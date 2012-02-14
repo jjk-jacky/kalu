@@ -1,0 +1,4 @@
+[D-BUS Service]
+Name=org.jjk.kalu
+Exec=/usr/bin/kalu-dbus
+User=root

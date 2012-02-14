@@ -1,0 +1,40 @@
+
+#ifndef _KALU_KUPDATER_H
+#define _KALU_KUPDATER_H
+
+typedef enum _sync_db_results_t {
+    SYNC_SUCCESS,
+    SYNC_FAILURE,
+    SYNC_NOT_NEEDED
+} sync_db_results_t;
+
+/* same as alpm_loglevel_t */
+typedef enum _loglevel_t {
+    LOG_ERROR    = 1,
+    LOG_WARNING  = (1 << 1),
+    LOG_DEBUG    = (1 << 2),
+    LOG_FUNCTION = (1 << 3)
+} loglevel_t;
+
+/* type of events for signal "Event" & "Progress" */
+typedef enum _event_t {
+    /* Event */
+    EVENT_CHECKING_DEPS,
+    EVENT_RESOLVING_DEPS,
+    EVENT_INTERCONFLICTS,
+    EVENT_DELTA_INTEGRITY,
+    EVENT_DELTA_PATCHES,
+    EVENT_DELTA_PATCH_DONE,
+    EVENT_DELTA_PATCH_FAILED,
+    EVENT_RETRIEVING_PKGS,
+    /* Progress */
+    EVENT_INSTALLING,
+    EVENT_UPGRADING,
+    EVENT_REMOVING,
+    EVENT_FILE_CONFLICTS,
+    EVENT_CHECKING_DISKSPACE,
+    EVENT_PKG_INTEGRITY,
+    EVENT_LOAD_PKGFILES
+} event_t;
+
+#endif /* _KALU_KUPDATER_H */

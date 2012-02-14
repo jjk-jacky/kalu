@@ -1,0 +1,5 @@
+#!/bin/bash
+
+glib-genmarshal --header closures.def >closures.h.new
+glib-genmarshal --body closures.def >closures.c.new
+
