@@ -1,3 +1,25 @@
+/**
+ * kalu - Copyright (C) 2012 Olivier Brunel
+ *
+ * util.c
+ * Copyright (C) 2012 Olivier Brunel <i.am.jack.mail@gmail.com>
+ * Copyright (c) 2006-2011 Pacman Development Team <pacman-dev@archlinux.org>
+ * 
+ * This file is part of kalu.
+ *
+ * kalu is free software: you can redistribute it and/or modify it under the
+ * terms of the GNU General Public License as published by the Free Software
+ * Foundation, either version 3 of the License, or (at your option) any later
+ * version.
+ *
+ * kalu is distributed in the hope that it will be useful, but WITHOUT ANY
+ * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE.
+ * See the GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along with
+ * kalu. If not, see http://www.gnu.org/licenses/
+ */
 
 #define _BSD_SOURCE /* for strdup w/ -std=c99 */
 
@@ -17,6 +39,15 @@
 #include "kalu.h"
 #include "util.h"
 
+/*******************************************************************************
+ * The following functions come from pacman's source code. (They might have
+ * been (slightly) modified.)
+ * 
+ * Copyright (c) 2006-2011 Pacman Development Team <pacman-dev@archlinux.org>
+ * Copyright (c) 2002-2006 by Judd Vinet <jvinet@zeroflux.org>
+ * http://projects.archlinux.org/pacman.git
+ * 
+ ******************************************************************************/
 
 /**
  * Trim whitespace and newlines from a string
@@ -116,35 +147,6 @@ char
 	}
 
 	return newstr;
-}
-
-gboolean
-check_syncdbs (kalu_alpm_t *alpm, size_t need_repos, int check_valid, GError **error)
-{
-	alpm_list_t *i;
-	alpm_list_t *sync_dbs = alpm_option_get_syncdbs (alpm->handle);
-
-	if (need_repos && sync_dbs == NULL)
-    {
-        g_set_error (error, KALU_ERROR, 1, "No usable package repositories configured");
-		return FALSE;
-	}
-
-	if (check_valid)
-    {
-		/* ensure all known dbs are valid */
-		for (i = sync_dbs; i; i = alpm_list_next (i))
-        {
-			alpm_db_t *db = i->data;
-			if (alpm_db_get_valid (db))
-            {
-                g_set_error (error, KALU_ERROR, 1, "Database %s is not valid: %s",
-                    alpm_db_get_name (db), alpm_strerror (alpm_errno (alpm->handle)));
-				return FALSE;
-			}
-		}
-	}
-	return TRUE;
 }
 
 gboolean
@@ -286,6 +288,37 @@ done:
     debug ("removing %s %s (%d)", path, (!errflag) ? "success" : "failed", errflag);
     return errflag;
 }
+
+gboolean
+check_syncdbs (kalu_alpm_t *alpm, size_t need_repos, int check_valid, GError **error)
+{
+	alpm_list_t *i;
+	alpm_list_t *sync_dbs = alpm_option_get_syncdbs (alpm->handle);
+
+	if (need_repos && sync_dbs == NULL)
+    {
+        g_set_error (error, KALU_ERROR, 1, "No usable package repositories configured");
+		return FALSE;
+	}
+
+	if (check_valid)
+    {
+		/* ensure all known dbs are valid */
+		for (i = sync_dbs; i; i = alpm_list_next (i))
+        {
+			alpm_db_t *db = i->data;
+			if (alpm_db_get_valid (db))
+            {
+                g_set_error (error, KALU_ERROR, 1, "Database %s is not valid: %s",
+                    alpm_db_get_name (db), alpm_strerror (alpm_errno (alpm->handle)));
+				return FALSE;
+			}
+		}
+	}
+	return TRUE;
+}
+
+/******************************************************************************/
 
 void
 parse_tpl (char *tpl, char **text, unsigned int *len, unsigned int *alloc,

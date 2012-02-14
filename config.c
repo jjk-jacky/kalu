@@ -1,3 +1,25 @@
+/**
+ * kalu - Copyright (C) 2012 Olivier Brunel
+ *
+ * config.c
+ * Copyright (C) 2012 Olivier Brunel <i.am.jack.mail@gmail.com>
+ * Copyright (c) 2006-2011 Pacman Development Team <pacman-dev@archlinux.org>
+ * 
+ * This file is part of kalu.
+ *
+ * kalu is free software: you can redistribute it and/or modify it under the
+ * terms of the GNU General Public License as published by the Free Software
+ * Foundation, either version 3 of the License, or (at your option) any later
+ * version.
+ *
+ * kalu is distributed in the hope that it will be useful, but WITHOUT ANY
+ * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE.
+ * See the GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along with
+ * kalu. If not, see http://www.gnu.org/licenses/
+ */
 
 #define _BSD_SOURCE /* for strdup w/ -std=c99 */
 
@@ -30,6 +52,15 @@ typedef struct _siglevel_def_t {
     char *def;
 } siglevel_def_t;
 
+/*******************************************************************************
+ * The following functions come from pacman's source code. (They might have
+ * been modified.)
+ * 
+ * Copyright (c) 2006-2011 Pacman Development Team <pacman-dev@archlinux.org>
+ * Copyright (c) 2002-2006 by Judd Vinet <jvinet@zeroflux.org>
+ * http://projects.archlinux.org/pacman.git
+ * 
+ ******************************************************************************/
 
 /** Add repeating options such as NoExtract, NoUpgrade, etc to libalpm
  * settings. Refactored out of the parseconfig code since all of them did
@@ -178,9 +209,9 @@ process_siglevel (alpm_list_t *values, alpm_siglevel_t *storage,
 	return ret;
 }
 
-
 #define set_error(fmt, ...)  g_set_error (error, KALU_ERROR, 1, \
     "Config file %s, line %d: " fmt, file, linenum, __VA_ARGS__);
+/** inspired from pacman's function */
 gboolean
 parse_pacman_conf (const char       *file,
                    char             *name,
@@ -577,6 +608,8 @@ cleanup:
 }
 #undef set_error
 
+/******************************************************************************/
+
 void
 free_pacman_config (pacman_config_t *pac_conf)
 {
@@ -639,6 +672,7 @@ setstringoption (char *value, const char *option, char **cfg)
 
 #define set_error(fmt, ...)  g_set_error (error, KALU_ERROR, 1, \
     "Config file %s, line %d: " fmt, file, linenum, __VA_ARGS__);
+/** inspired from pacman's function */
 gboolean
 parse_config_file (const char       *file,
                    conf_file_t       conf_file,
