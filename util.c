@@ -31,6 +31,7 @@
 #include <dirent.h>
 #include <errno.h>
 #include <unistd.h>
+#include <sys/stat.h>
 
 /* alpm */
 #include <alpm_list.h>
@@ -38,6 +39,51 @@
 /* kalu */
 #include "kalu.h"
 #include "util.h"
+
+/**
+ * Makes sure the path for the filename exists. that is, makes sure every
+ * bits before the last / exists and is a folder
+ */
+gboolean
+ensure_path (char *path)
+{
+    char *s, *p, org;
+    struct stat stat_info;
+    
+    p = path + 1; /* skip the root */
+    while ((s = strchr (p, '/')))
+    {
+        *s = '\0';
+        if (0 != stat(path, &stat_info))
+        {
+            /* if does not exist, we create it */
+            if (errno == ENOENT)
+            {
+                debug ("mkdir %s", path);
+                if (0 != mkdir (path, S_IRWXU | S_IRGRP | S_IWGRP | S_IROTH | S_IWOTH))
+                {
+                    *s = '/'; /* restore */
+                    return FALSE;
+                }
+            }
+            else
+            {
+                debug ("failed to stat %s: %s", path, strerror (errno));
+                *s = '/'; /* restore */
+                return FALSE;
+            }
+        }
+        /* make sure it's a folder */
+        else if (!S_ISDIR(stat_info.st_mode))
+        {
+            *s = '/'; /* restore */
+            return FALSE;
+        }
+        *s = '/'; /* restore */
+        p = s + 1;
+    }
+    return TRUE;
+}
 
 /*******************************************************************************
  * The following functions come from pacman's source code. (They might have

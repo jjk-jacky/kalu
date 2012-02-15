@@ -35,7 +35,7 @@
 
 #define _UNUSED_            __attribute__ ((unused)) 
 
-#define KALU_VERSION       "0.0.1"
+#define KALU_VERSION       "0.0.2"
 
 #define MAX_PATH            255
 

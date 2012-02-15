@@ -33,6 +33,8 @@
 #include "kalu.h"
 #include "news.h"
 #include "curl.h"
+#include "util.h"
+#include "util-gtk.h"
 
 #define NEWS_RSS_URL        "http://www.archlinux.org/feeds/news/"
 
@@ -431,17 +433,18 @@ static void
 btn_mark_cb (GtkWidget *button _UNUSED_, GtkWidget *window)
 {
     alpm_list_t **lists, *titles_all, *titles_shown, *titles_read, *i;
+    alpm_list_t *news_read = NULL;
+    char *news_last = NULL;
     gboolean is_last_set = FALSE;
     int nb_unread = 0;
+    
+    gtk_widget_hide (window);
     
     lists = g_object_get_data (G_OBJECT (window), "lists");
     /* reverse this one, to start with the oldest news */
     titles_all = alpm_list_reverse (lists[LIST_TITLES_ALL]);
     titles_shown = lists[LIST_TITLES_SHOWN];
     titles_read = lists[LIST_TITLES_READ];
-    
-    /* reset list of read news */
-    FREELIST (config->news_read);
     
     for (i = titles_all; i; i = alpm_list_next (i))
     {
@@ -455,17 +458,17 @@ btn_mark_cb (GtkWidget *button _UNUSED_, GtkWidget *window)
             {
                 /* then we add it to read */
                 debug ("read:%s", (char*)i->data);
-                config->news_read = alpm_list_add (config->news_read, strdup (i->data));
+                news_read = alpm_list_add (news_read, strdup (i->data));
             }
             else
             {
                 /* set the new last */
-                if (config->news_last)
+                if (news_last)
                 {
-                    free (config->news_last);
+                    free (news_last);
                 }
                 debug ("last=%s", (char*)i->data);
-                config->news_last = strdup (i->data);
+                news_last = strdup (i->data);
             }
         }
         /* was it shown? i.e. stays unread */
@@ -485,26 +488,50 @@ btn_mark_cb (GtkWidget *button _UNUSED_, GtkWidget *window)
     /* save */
     FILE *fp;
     char file[MAX_PATH];
+    gboolean saved = FALSE;
     
     snprintf (file, MAX_PATH - 1, "%s/.config/kalu/news.conf", g_get_home_dir ());
-    fp = fopen (file, "w");
-    if (fp != NULL)
+    if (ensure_path (file))
     {
-        fputs ("Last=", fp);
-        fputs (config->news_last, fp);
-        fputs ("\n", fp);
-        
-        for (i = config->news_read; i; i = alpm_list_next (i))
+        fp = fopen (file, "w");
+        if (fp != NULL)
         {
-            fputs ("Read=", fp);
-            fputs ((const char *) i->data, fp);
+            fputs ("Last=", fp);
+            fputs (news_last, fp);
             fputs ("\n", fp);
+            
+            for (i = news_read; i; i = alpm_list_next (i))
+            {
+                fputs ("Read=", fp);
+                fputs ((const char *) i->data, fp);
+                fputs ("\n", fp);
+            }
+            fclose (fp);
+            
+            /* update */
+            if (config->news_last)
+            {
+                free (config->news_last);
+            }
+            config->news_last = news_last;
+            
+            FREELIST (config->news_read);
+            config->news_read = news_read;
+            
+            set_kalpm_nb (CHECK_NEWS, nb_unread);
+            saved = TRUE;
         }
-        fclose (fp);
     }
-    set_kalpm_nb (CHECK_NEWS, nb_unread);
     
-    gtk_widget_destroy (window);
+    if (saved)
+    {
+        gtk_widget_destroy (window);
+    }
+    else
+    {
+        gtk_widget_show (window);
+        show_error ("Unable to save changes to disk", file, GTK_WINDOW (window));
+    }
 }
 
 static void

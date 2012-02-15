@@ -191,40 +191,43 @@ btn_close_cb (GtkButton *button _UNUSED_, w_type_t type)
     }
 }
 
-static void
-save_watched (gboolean is_aur)
+static gboolean
+save_watched (gboolean is_aur, alpm_list_t *new_watched)
 {
     FILE *fp;
     char file[MAX_PATH];
-    alpm_list_t *list, *i;
+    alpm_list_t *i;
+    gboolean success = FALSE;
     
     if (is_aur)
     {
         snprintf (file, MAX_PATH - 1, "%s/.config/kalu/watched-aur.conf", g_get_home_dir ());
-        list = config->watched_aur;
     }
     else
     {
         snprintf (file, MAX_PATH - 1, "%s/.config/kalu/watched.conf", g_get_home_dir ());
-        list = config->watched;
     }
     
-    fp = fopen (file, "w");
-    if (fp == NULL)
+    if (ensure_path (file))
     {
-        return;
+        fp = fopen (file, "w");
+        if (fp != NULL)
+        {
+            for (i = new_watched; i; i = alpm_list_next (i))
+            {
+                watched_package_t *w_pkg = i->data;
+                fputs (w_pkg->name, fp);
+                fputs ("=", fp);
+                fputs (w_pkg->version, fp);
+                fputs ("\n", fp);
+            }
+            
+            fclose (fp);
+            success = TRUE;
+        }
     }
     
-    for (i = list; i; i = alpm_list_next (i))
-    {
-        watched_package_t *w_pkg = i->data;
-        fputs (w_pkg->name, fp);
-        fputs ("=", fp);
-        fputs (w_pkg->version, fp);
-        fputs ("\n", fp);
-    }
-    
-    fclose (fp);
+    return success;
 }
 
 static int
@@ -293,11 +296,11 @@ btn_mark_cb (GtkButton *button _UNUSED_, gboolean is_aur)
     GtkTreeIter iter;
     gboolean upd;
     gchar *new;
-    watched_package_t *w_pkg, w_pkg_tmp;
+    watched_package_t *w_pkg, *w_pkg2, w_pkg_tmp;
     alpm_list_t *updates = NULL;
     int nb_watched = 0;
     GtkWidget *window_notif, *window_manage;
-    alpm_list_t *cfglist;
+    alpm_list_t *cfglist, *i, *new_watched = NULL;
     
     if (is_aur)
     {
@@ -316,6 +319,16 @@ btn_mark_cb (GtkButton *button _UNUSED_, gboolean is_aur)
     
     gtk_widget_hide (window_notif);
     
+    /* duplicate the list */
+    for (i = cfglist; i; i = alpm_list_next (i))
+    {
+        w_pkg = i->data;
+        w_pkg2 = calloc (1, sizeof (*w_pkg2));
+        w_pkg2->name = w_pkg->name;
+        w_pkg2->version = w_pkg->version;
+        new_watched = alpm_list_add (new_watched, w_pkg2);
+    }
+    
     if (gtk_tree_model_get_iter_first (model, &iter))
     {
         while (1)
@@ -329,7 +342,7 @@ btn_mark_cb (GtkButton *button _UNUSED_, gboolean is_aur)
                     WCOL_NEW_VERSION, &new,
                     -1);
                 /* find this package/version */
-                w_pkg = alpm_list_find (cfglist, &w_pkg_tmp,
+                w_pkg = alpm_list_find (new_watched, &w_pkg_tmp,
                     (alpm_list_fn_cmp) watched_package_cmp);
                 if (NULL != w_pkg)
                 {
@@ -358,30 +371,39 @@ btn_mark_cb (GtkButton *button _UNUSED_, gboolean is_aur)
     }
     
     /* save to file */
-    save_watched (is_aur);
-    
-    /* manage window needs an update? */
-    if (window_manage != NULL && updates != NULL)
+    if (save_watched (is_aur, new_watched))
     {
-        GtkWidget *dialog;
-        dialog = new_confirm ("Do you want to import marked changes into the current list?",
-                              "You have marked one or more packages with updated version number since starting the editing of this list.",
-                              "Yes, import changes.", NULL,
-                              "No, keep the list as is.", NULL,
-                              window_manage);
-        g_object_set_data (G_OBJECT (dialog), "is-aur", (gpointer) is_aur);
-        g_signal_connect (G_OBJECT (dialog), "response",
-                          G_CALLBACK (monitor_response_cb), (gpointer) updates);
-        gtk_widget_show (dialog);
+        /* manage window needs an update? */
+        if (window_manage != NULL && updates != NULL)
+        {
+            GtkWidget *dialog;
+            dialog = new_confirm ("Do you want to import marked changes into the current list?",
+                                  "You have marked one or more packages with updated version number since starting the editing of this list.",
+                                  "Yes, import changes.", NULL,
+                                  "No, keep the list as is.", NULL,
+                                  window_manage);
+            g_object_set_data (G_OBJECT (dialog), "is-aur", (gpointer) is_aur);
+            g_signal_connect (G_OBJECT (dialog), "response",
+                              G_CALLBACK (monitor_response_cb), (gpointer) updates);
+            gtk_widget_show (dialog);
+        }
+        else
+        {
+            alpm_list_free (updates);
+        }
+        
+        /* done */
+        set_kalpm_nb ((is_aur) ? CHECK_WATCHED_AUR : CHECK_WATCHED, nb_watched);
+        gtk_widget_destroy (window_notif);
     }
     else
     {
-        alpm_list_free (updates);
+        gtk_widget_show (window_notif);
+        show_error ("Unable to save changes to disk", NULL, GTK_WINDOW (window_notif));
     }
     
-    /* done */
-    set_kalpm_nb ((is_aur) ? CHECK_WATCHED_AUR : CHECK_WATCHED, nb_watched);
-    gtk_widget_destroy (window_notif);
+    /* free duplicate list */
+    FREELIST (new_watched);
 }
 
 static void
@@ -389,24 +411,26 @@ btn_save_cb (GtkButton *button _UNUSED_, gboolean is_aur)
 {
     GtkTreeModel *model;
     GtkTreeIter iter;
+    GtkWidget *window;
     watched_package_t *w_pkg;
-    alpm_list_t **cfglist;
+    alpm_list_t **cfglist, *new_watched = NULL;
     
     if (is_aur)
     {
+        window = watched.window_manage_aur;
         model = gtk_tree_view_get_model (GTK_TREE_VIEW (watched.tree_manage_aur));
         cfglist = &(config->watched_aur);
     }
     else
     {
+        window = watched.window_manage;
         model = gtk_tree_view_get_model (GTK_TREE_VIEW (watched.tree_manage));
         cfglist = &(config->watched);
     }
     
-    /* clear watched list in memory */
-    FREE_WATCHED_PACKAGE_LIST (*cfglist);
+    gtk_widget_hide (window);
     
-    /* make up new one */
+    /* make up new list */
     if (gtk_tree_model_get_iter_first (model, &iter))
     {
         while (1)
@@ -417,7 +441,7 @@ btn_save_cb (GtkButton *button _UNUSED_, gboolean is_aur)
             w_pkg = calloc (1, sizeof (*w_pkg));
             w_pkg->name = strdup ((name) ? name : "-");
             w_pkg->version = strdup ((version) ? version : "0");
-            *cfglist = alpm_list_add (*cfglist, w_pkg);
+            new_watched = alpm_list_add (new_watched, w_pkg);
             /* next */
             if (!gtk_tree_model_iter_next (model, &iter))
             {
@@ -425,17 +449,26 @@ btn_save_cb (GtkButton *button _UNUSED_, gboolean is_aur)
             }
         }
     }
-    /* save it */
-    save_watched (is_aur);
     
-    /* done */
-    if (is_aur)
+    /* save it */
+    if (save_watched (is_aur, new_watched))
     {
-        gtk_widget_destroy (watched.window_manage_aur);
+        /* clear watched list in memory */
+        FREE_WATCHED_PACKAGE_LIST (*cfglist);
+        
+        /* apply */
+        *cfglist = new_watched;
+        
+        /* done */
+        gtk_widget_destroy (window);
     }
     else
     {
-        gtk_widget_destroy (watched.window_manage);
+        /* free */
+        FREE_WATCHED_PACKAGE_LIST (new_watched);
+        
+        gtk_widget_show (window);
+        show_error ("Unable to save changes to disk", NULL, GTK_WINDOW (window));
     }
 }
 

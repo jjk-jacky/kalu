@@ -364,7 +364,12 @@ notify_updates (alpm_list_t *packages, check_t type, gchar *xml_news)
         size_h = humanize_size (nsize, '\0', &unit);
         snprintf (buf, 255, "%.2f %s", size_h, unit);
         replacements[2]->value = strdup (buf);
-        replacements[3] = NULL;
+        replacements[3] = (replacement_t *) malloc (sizeof (*replacements));
+        replacements[3]->name = "INS";
+        size_h = humanize_size (isize, '\0', &unit);
+        snprintf (buf, 255, "%.2f %s", size_h, unit);
+        replacements[3]->value = strdup (buf);
+        replacements[4] = NULL;
     }
     
     parse_tpl (template.title, &summary, &len, &alloc, replacements);
@@ -375,8 +380,10 @@ notify_updates (alpm_list_t *packages, check_t type, gchar *xml_news)
     {
         free (replacements[1]->value);
         free (replacements[2]->value);
+        free (replacements[3]->value);
         free (replacements[1]);
         free (replacements[2]);
+        free (replacements[3]);
     }
     
     NotifyNotification *notification;

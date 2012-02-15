@@ -37,6 +37,9 @@ typedef struct _replacement_t {
     char *value;
 } replacement_t;
 
+gboolean
+ensure_path (char *path);
+
 char *
 strtrim (char *str);
 
