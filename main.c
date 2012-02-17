@@ -481,6 +481,11 @@ kalu_check_work (gboolean is_auto)
             /* we dont free xml_news because it might be used by the notification
              * action (to show the news). hence, it'll be done when the notif is over */
         }
+        else if (error != NULL)
+        {
+            notify_error ("Unable to check the news", error->message);
+            g_clear_error (&error);
+        }
     }
     
     /* ALPM is required even for AUR only, since we get the list of foreign
