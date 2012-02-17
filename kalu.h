@@ -35,7 +35,8 @@
 
 #define _UNUSED_            __attribute__ ((unused)) 
 
-#define KALU_VERSION       "0.0.2"
+#define KALU_VERSION       "0.0.3"
+#define KALU_TAG            "Keeping Arch Linux Up-to-date"
 
 #define MAX_PATH            255
 
@@ -56,13 +57,6 @@
                 alpm_list_free (p);                                         \
                 p = NULL;                                                   \
             } while(0)
-
-#define debug(...)     
-#define _debug(...)     do {                                         \
-                                fprintf (stdout, "[DEBUG] ");       \
-                                fprintf (stdout, __VA_ARGS__);      \
-                                fprintf (stdout, "\n");             \
-                          } while (0)
 
 typedef enum {
     UPGRADE_NO_ACTION = 0,
@@ -85,6 +79,7 @@ typedef struct _templates_t {
 } templates_t;
 
 typedef struct _config_t {
+    gboolean         is_debug;
     unsigned int     verbose;
     unsigned int     verbose_watched;
     unsigned int     verbose_aur;
@@ -153,6 +148,8 @@ typedef struct _kalpm_state_t {
 /* global variable */
 extern config_t *config;
 
+void
+debug (const char *fmt, ...);
 
 void free_package (kalu_package_t *package);
 void free_watched_package (watched_package_t *w_pkg);

@@ -24,6 +24,7 @@
 
 /* C */
 #include <string.h>
+#include <time.h> /* for debug() */
 
 /* gtk */
 #include <gtk/gtk.h>
@@ -1308,6 +1309,31 @@ set_kalpm_busy (gboolean busy)
     }
 }
 
+void
+debug (const char *fmt, ...)
+{
+    va_list    args;
+    time_t     now;
+    struct tm *ptr;
+    char       buf[10];
+    
+    if (!config->is_debug)
+    {
+        return;
+    }
+    
+    now = time (NULL);
+    ptr = localtime (&now);
+    strftime (buf, 10, "%H:%M:%S", ptr);
+    fprintf (stdout, "[%s] ", buf);
+    
+    va_start (args, fmt);
+    vfprintf (stdout, fmt, args);
+    va_end (args);
+    
+    fprintf (stdout, "\n");
+}
+
 int
 main (int argc, char *argv[])
 {
@@ -1319,6 +1345,35 @@ main (int argc, char *argv[])
     
     gtk_init (&argc, &argv);
     config = calloc (1, sizeof(*config));
+    
+    /* parse command line -- very basic stuff */
+    if (argc > 1)
+    {
+        if (strcmp (argv[1], "-h") == 0 || strcmp (argv[1], "--help") == 0)
+        {
+            printf ("kalu - " KALU_TAG " v" KALU_VERSION "\n\n");
+            printf (" -h, --help        Show this help screen and exit\n");
+            printf (" -V, --version     Show version information and exit\n");
+            printf (" -d, --debug       Enable debug mode\n");
+            printf ("\nFor more, please refer to the man page: man kalu\n");
+            return 0;
+        }
+        else if (strcmp (argv[1], "-V") == 0 || strcmp (argv[1], "--version") == 0)
+        {
+            printf ("kalu - " KALU_TAG " v" KALU_VERSION "\n");
+            printf ("Copyright (C) 2012 Olivier Brunel\n");
+            printf ("License GPLv3+: GNU GPL version 3 or later"
+                    " <http://gnu.org/licenses/gpl.html>\n");
+            printf ("This is free software: you are free to change and redistribute it.\n");
+            printf ("There is NO WARRANTY, to the extent permitted by law.\n");
+            return 0;
+        }
+        else if (strcmp (argv[1], "-d") == 0 || strcmp (argv[1], "--debug") == 0)
+        {
+            config->is_debug = TRUE;
+            debug ("debug mode enabled");
+        }
+    }
     
     /* defaults -- undefined "sub"templates will use the corresponding main ones */
     /* (e.g. tpl_sep_watched_verbose defaults to tpl_sep_verbose) */

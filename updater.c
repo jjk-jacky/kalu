@@ -858,7 +858,7 @@ on_select_provider (KaluUpdater *kupdater _UNUSED_, const gchar *pkg, alpm_list_
     gchar question[255];
     snprintf (question, 255,
         "There are %d providers available for %s.\nPlease select the one to install :",
-        alpm_list_count (providers), pkg);
+        (int) alpm_list_count (providers), pkg);
     add_log (LOGTYPE_INFO, "%s\n", question);
     
     /* dialog */
@@ -1594,7 +1594,7 @@ updater_init_alpm_cb (KaluUpdater *kupdater, const gchar *errmsg, pacman_config_
     add_db_t *add_db = calloc (1, sizeof (*add_db));
     add_db->pac_conf = pac_conf;
     add_db->pctg = 0.42;
-    add_db->inc = 0.58 / alpm_list_count (pac_conf->databases);
+    add_db->inc = 0.58 / (int) alpm_list_count (pac_conf->databases);
     add_db->i = NULL;
     
     updater_add_db_cb (kupdater, NULL, add_db);

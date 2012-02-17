@@ -47,7 +47,7 @@
 gboolean
 ensure_path (char *path)
 {
-    char *s, *p, org;
+    char *s, *p;
     struct stat stat_info;
     
     p = path + 1; /* skip the root */

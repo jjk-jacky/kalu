@@ -83,10 +83,12 @@ copy_file (const gchar *from, const gchar *to)
 }
 
 static gboolean
-create_local_db (const gchar *dbpath, gchar **newpath, GError **error)
+create_local_db (const gchar *_dbpath, gchar **newpath, GError **error)
 {
     gchar    buf[MAX_PATH];
     gchar    buf2[MAX_PATH];
+    gchar   *dbpath;
+    size_t   l;
     gchar   *folder;
     GDir    *dir;
     
@@ -99,6 +101,14 @@ create_local_db (const gchar *dbpath, gchar **newpath, GError **error)
         return FALSE;
     }
     debug ("created tmp folder %s", folder);
+    
+    /* dbpath will not be slash-terminated */
+    dbpath = strdup (_dbpath);
+    l = strlen (dbpath) - 1;
+    if (dbpath[l] == '/')
+    {
+        dbpath[l] = '\0';
+    }
     
     /* symlink local */
     snprintf (buf, MAX_PATH - 1, "%s/local", dbpath);
@@ -133,42 +143,52 @@ create_local_db (const gchar *dbpath, gchar **newpath, GError **error)
     while ((file = g_dir_read_name (dir)))
     {
         snprintf (buf, MAX_PATH - 1, "%s/sync/%s", dbpath, file);
-        snprintf (buf2, MAX_PATH - 1, "%s/sync/%s", folder, file);
-        if (!copy_file (buf, buf2))
+        /* stat so we copy files only. also, we need to preserve modified date,
+         * used to determine if DBs are up to date or not by libalpm */
+        if (0 == stat (buf, &filestat))
         {
-            g_set_error (error, KALU_ERROR, 1, "Copy failed for %s", buf);
-            g_dir_close (dir);
-            goto error;
+            if (S_ISREG (filestat.st_mode))
+            {
+                snprintf (buf2, MAX_PATH - 1, "%s/sync/%s", folder, file);
+                if (!copy_file (buf, buf2))
+                {
+                    g_set_error (error, KALU_ERROR, 1, "Copy failed for %s", buf);
+                    g_dir_close (dir);
+                    goto error;
+                }
+                /* preserve time */
+                times.actime = filestat.st_atime;
+                times.modtime = filestat.st_mtime;
+                if (0 != utime (buf2, &times))
+                {
+                    /* sucks, but no fail, we'll just have to download this db */
+                    debug ("Unable to change time of %s", buf2);
+                }
+                else
+                {
+                    debug ("updated time for %s", buf2);
+                }
+            }
+            else
+            {
+                debug ("ignoring non-regular file: %s", buf);
+            }
         }
-        /* we need to preserve modified date, used to determine if DBs are
-         * up to date or not by libalpm */
-        if (0 != stat (buf, &filestat))
+        else
         {
             g_set_error (error, KALU_ERROR, 1, "Unable to stat %s\n", buf);
             g_dir_close (dir);
             goto error;
         }
-        else
-        {
-            times.actime = filestat.st_atime;
-            times.modtime = filestat.st_mtime;
-            if (0 != utime (buf2, &times))
-            {
-                /* sucks, but no fail, we'll just have to download this db */
-                debug ("Unable to change time of %s", buf2);
-            }
-            else
-            {
-                debug ("updated time for %s", buf2);
-            }
-        }
     }
     g_dir_close (dir);
+    free (dbpath);
     
     *newpath = folder;
     return TRUE;
 
 error:
+    free (dbpath);
     g_free (folder);
     return FALSE;
 }
