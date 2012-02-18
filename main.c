@@ -183,70 +183,44 @@ notify_updates (alpm_list_t *packages, check_t type, gchar *xml_news)
     templates_t template;
     const char *unit;
     double      size_h;
-    unsigned int verbose, *v;
     replacement_t *replacements[6];
     
+    templates_t *t, *tt;
+    /* tpl_upgrades is the ref/fallback for pretty much everything */
+    t = config->tpl_upgrades;
     if (type & CHECK_UPGRADES)
     {
-        v = &(config->verbose);
+        tt = config->tpl_upgrades;
     }
     else if (type & CHECK_WATCHED)
     {
-        v = &(config->verbose_watched);
+        tt = config->tpl_watched;
     }
     else if (type & CHECK_AUR)
     {
-        v = &(config->verbose_aur);
+        tt = config->tpl_aur;
     }
     else if (type & CHECK_WATCHED_AUR)
     {
-        v = &(config->verbose_watched_aur);
-    }
-    
-    if (type & CHECK_NEWS)
-    {
-        verbose = 0;
-    }
-    else
-    {
-        verbose = (*v == 0) ? alpm_verbose : *v;
-    }
-    
-    templates_t *t;
-    t = (verbose == 1) ? config->tpl_verbose : config->tpl;
-    if (type & CHECK_UPGRADES)
-    {
-        template.title = t->title;
-        template.package = t->package;
-        template.sep = t->sep;
-    }
-    else if (type & CHECK_WATCHED)
-    {
-        templates_t *tt = (verbose == 1) ? config->tpl_watched_verbose : config->tpl_watched;
-        template.title = (tt->title) ? tt->title : t->title;
-        template.package = (tt->package) ? tt->package : t->package;
-        template.sep = (tt->sep) ? tt->sep : t->sep;
-    }
-    else if (type & CHECK_AUR)
-    {
-        templates_t *tt = (verbose == 1) ? config->tpl_aur_verbose : config->tpl_aur;
-        template.title = (tt->title) ? tt->title : t->title;
-        template.package = (tt->package) ? tt->package : t->package;
-        template.sep = (tt->sep) ? tt->sep : t->sep;
-    }
-    else if (type & CHECK_WATCHED_AUR)
-    {
-        templates_t *tt = (verbose == 1) ? config->tpl_watched_aur_verbose
-                                         : config->tpl_watched_aur;
-        template.title = (tt->title) ? tt->title : t->title;
-        template.package = (tt->package) ? tt->package : t->package;
-        template.sep = (tt->sep) ? tt->sep : t->sep;
+        tt = config->tpl_watched_aur;
+        /* watched-aur uses aur as fallback */
+        t = config->tpl_aur;
     }
     else if (type & CHECK_NEWS)
     {
-        template.title = config->tpl_news->title;
-        template.package = config->tpl_news->package;
-        template.sep = config->tpl_news->sep;
+        tt = config->tpl_news;
+    }
+    /* set the templates to use */
+    template.title = (tt->title) ? tt->title : t->title;
+    template.package = (tt->package) ? tt->package : t->package;
+    template.sep = (tt->sep) ? tt->sep : t->sep;
+    /* watched-aur might have fallen back to aur, which itself needs to fallback */
+    if (type & CHECK_WATCHED_AUR)
+    {
+        t = config->tpl_upgrades;
+        template.title = (template.title) ? template.title : t->title;
+        template.package = (template.package) ? template.package : t->package;
+        template.sep = (template.sep) ? template.sep : t->sep;
     }
     
     alloc = 1024;
@@ -979,34 +953,19 @@ free_config (void)
     free (config->pacmanconf);
     
     /* tpl */
-    if (NULL != config->tpl->title)
+    if (NULL != config->tpl_upgrades->title)
     {
-        free (config->tpl->title);
+        free (config->tpl_upgrades->title);
     }
-    if (NULL != config->tpl->package)
+    if (NULL != config->tpl_upgrades->package)
     {
-        free (config->tpl->package);
+        free (config->tpl_upgrades->package);
     }
-    if (NULL != config->tpl->sep)
+    if (NULL != config->tpl_upgrades->sep)
     {
-        free (config->tpl->sep);
+        free (config->tpl_upgrades->sep);
     }
-    free (config->tpl);
-    
-    /* tpl verbose */
-    if (NULL != config->tpl_verbose->title)
-    {
-        free (config->tpl_verbose->title);
-    }
-    if (NULL != config->tpl_verbose->package)
-    {
-        free (config->tpl_verbose->package);
-    }
-    if (NULL != config->tpl_verbose->sep)
-    {
-        free (config->tpl_verbose->sep);
-    }
-    free (config->tpl_verbose);
+    free (config->tpl_upgrades);
     
     /* tpl watched */
     if (NULL != config->tpl_watched->title)
@@ -1023,21 +982,6 @@ free_config (void)
     }
     free (config->tpl_watched);
     
-    /* tpl watched verbose */
-    if (NULL != config->tpl_watched_verbose->title)
-    {
-        free (config->tpl_watched_verbose->title);
-    }
-    if (NULL != config->tpl_watched_verbose->package)
-    {
-        free (config->tpl_watched_verbose->package);
-    }
-    if (NULL != config->tpl_watched_verbose->sep)
-    {
-        free (config->tpl_watched_verbose->sep);
-    }
-    free (config->tpl_watched_verbose);
-    
     /* tpl aur */
     if (NULL != config->tpl_aur->title)
     {
@@ -1052,21 +996,6 @@ free_config (void)
         free (config->tpl_aur->sep);
     }
     free (config->tpl_aur);
-    
-    /* tpl aur verbose */
-    if (NULL != config->tpl_aur_verbose->title)
-    {
-        free (config->tpl_aur_verbose->title);
-    }
-    if (NULL != config->tpl_aur_verbose->package)
-    {
-        free (config->tpl_aur_verbose->package);
-    }
-    if (NULL != config->tpl_aur_verbose->sep)
-    {
-        free (config->tpl_aur_verbose->sep);
-    }
-    free (config->tpl_aur_verbose);
     
     /* watched */
     FREE_WATCHED_PACKAGE_LIST (config->watched);
@@ -1390,36 +1319,24 @@ main (int argc, char *argv[])
                             | CHECK_WATCHED_AUR | CHECK_NEWS;
     config->action = UPGRADE_ACTION_KALU;
     
-    config->tpl = calloc (1, sizeof (templates_t));
-    config->tpl->title = strdup ("$NB updates available");
-    config->tpl->package = strdup ("$PKG $NEW");
-    config->tpl->sep = strdup (", ");
-    config->tpl_verbose = calloc (1, sizeof (templates_t));
-    config->tpl_verbose->title = strdup ("$NB updates available (D: $DL; N: $NET)");
-    config->tpl_verbose->package = strdup ("- <b>$PKG</b> $OLD > <b>$NEW</b> (D: $DL; N: $NET)");
-    config->tpl_verbose->sep = strdup ("\n");
+    config->tpl_upgrades = calloc (1, sizeof (templates_t));
+    config->tpl_upgrades->title = strdup ("$NB updates available (D: $DL; N: $NET)");
+    config->tpl_upgrades->package = strdup ("- <b>$PKG</b> $OLD > <b>$NEW</b> (D: $DL; N: $NET)");
+    config->tpl_upgrades->sep = strdup ("\n");
     
     config->tpl_watched = calloc (1, sizeof (templates_t));
-    config->tpl_watched->title = strdup ("$NB watched packages updated");
-    config->tpl_watched_verbose = calloc (1, sizeof (templates_t));
-    config->tpl_watched_verbose->title = strdup ("$NB watched packages updated (D: $DL; N: $NET)");
+    config->tpl_watched->title = strdup ("$NB watched packages updated (D: $DL; N: $NET)");
     
     config->tpl_aur = calloc (1, sizeof (templates_t));
-    config->tpl_aur->title = strdup ("$NB packages updated in AUR");
-    config->tpl_aur_verbose = calloc (1, sizeof (templates_t));
-    config->tpl_aur_verbose->title = strdup ("$NB packages updated in AUR");
-    config->tpl_aur_verbose->package = strdup ("- <b>$PKG</b> $OLD > <b>$NEW</b>");
+    config->tpl_aur->title = strdup ("AUR: $NB packages updated");
+    config->tpl_aur->package = strdup ("- <b>$PKG</b> $OLD > <b>$NEW</b>");
     
     config->tpl_watched_aur = calloc (1, sizeof (templates_t));
-    config->tpl_watched_aur->title = strdup ("$NB watched packages updated in AUR");
-    config->tpl_watched_aur_verbose = calloc (1, sizeof (templates_t));
-    config->tpl_watched_aur_verbose->title = strdup ("$NB watched packages updated in AUR");
-    config->tpl_watched_aur_verbose->package = strdup ("- <b>$PKG</b> $OLD > <b>$NEW</b>");
+    config->tpl_watched_aur->title = strdup ("AUR: $NB watched packages updated");
     
     config->tpl_news = calloc (1, sizeof (templates_t));
     config->tpl_news->title = strdup ("$NB unread news");
     config->tpl_news->package = strdup ("- $NEWS");
-    config->tpl_news->sep = strdup ("\n");
     
     /* parse config */
     snprintf (conffile, MAX_PATH - 1, "%s/.config/kalu/kalu.conf", g_get_home_dir ());

@@ -893,83 +893,31 @@ parse_config_file (const char       *file,
                         debug ("config: checks_manual: %d", checks);
                     }
                 }
-                else if (strcmp (key, "Verbose") == 0)
+                else
                 {
-                    verbose = &(config->verbose);
-                }
-                else if (strcmp (key, "VerboseWatched") == 0)
-                {
-                    verbose = &(config->verbose_watched);
-                }
-                else if (strcmp (key, "VerboseAur") == 0)
-                {
-                    verbose = &(config->verbose_aur);
-                }
-                else if (strcmp (key, "VerboseWatchedAur") == 0)
-                {
-                    verbose = &(config->verbose_watched_aur);
-                }
-                
-                /* was this a verbose setting? */
-                if (verbose != NULL)
-                {
-                    if (strcmp (value, "auto") == 0)
-                    {
-                        *verbose = 0;
-                        debug ("config: %s: 0 (auto)", key);
-                    }
-                    else if (strcmp (value, "on") == 0)
-                    {
-                        *verbose = 1;
-                        debug ("config: %s: 1 (on)", key);
-                    }
-                    else if (strcmp (value, "off") == 0)
-                    {
-                        *verbose = 2;
-                        debug ("config: %s: 2 (off)", key);
-                    }
-                    else
-                    {
-                        set_error ("invalid value for %s: %s", key, value);
-                        success = FALSE;
-                        goto cleanup;
-                    }
+                    set_error ("unknown option: %s", key);
+                    success = FALSE;
+                    goto cleanup;
                 }
             }
             else
             {
                 templates_t *t;
-                if (strcmp ("template", section) == 0)
+                if (strcmp ("template-upgrades", section) == 0)
                 {
-                    t = config->tpl;
-                }
-                else if (strcmp ("template-verbose", section) == 0)
-                {
-                    t = config->tpl_verbose;
+                    t = config->tpl_upgrades;
                 }
                 else if (strcmp ("template-watched", section) == 0)
                 {
                     t = config->tpl_watched;
                 }
-                else if (strcmp ("template-watched-verbose", section) == 0)
-                {
-                    t = config->tpl_watched_verbose;
-                }
                 else if (strcmp ("template-aur", section) == 0)
                 {
                     t = config->tpl_aur;
                 }
-                else if (strcmp ("template-aur-verbose", section) == 0)
-                {
-                    t = config->tpl_aur_verbose;
-                }
                 else if (strcmp ("template-watched-aur", section) == 0)
                 {
                     t = config->tpl_watched_aur;
-                }
-                else if (strcmp ("template-watched-aur-verbose", section) == 0)
-                {
-                    t = config->tpl_watched_aur_verbose;
                 }
                 else if (strcmp ("template-news", section) == 0)
                 {

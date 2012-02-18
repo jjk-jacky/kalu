@@ -80,10 +80,6 @@ typedef struct _templates_t {
 
 typedef struct _config_t {
     gboolean         is_debug;
-    unsigned int     verbose;
-    unsigned int     verbose_watched;
-    unsigned int     verbose_aur;
-    unsigned int     verbose_watched_aur;
     char            *pacmanconf;
     unsigned int     checks_manual;
     unsigned int     checks_auto;
@@ -98,14 +94,10 @@ typedef struct _config_t {
     char            *cmdline_aur;
     alpm_list_t     *cmdline_post;
     
-    templates_t     *tpl;
-    templates_t     *tpl_verbose;
+    templates_t     *tpl_upgrades;
     templates_t     *tpl_watched;
-    templates_t     *tpl_watched_verbose;
     templates_t     *tpl_aur;
-    templates_t     *tpl_aur_verbose;
     templates_t     *tpl_watched_aur;
-    templates_t     *tpl_watched_aur_verbose;
     templates_t     *tpl_news;
     
     alpm_list_t     *aur_ignore;
