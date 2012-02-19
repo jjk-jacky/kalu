@@ -713,9 +713,9 @@ watched_new_window (w_type_t type)
     {
         /* selection */
         GtkTreeSelection *selection;
-        selection = gtk_tree_view_get_selection (GTK_TREE_VIEW(list));
+        selection = gtk_tree_view_get_selection (GTK_TREE_VIEW (list));
         g_signal_connect (selection, "changed",
-                          G_CALLBACK(selection_changed_cb), (gpointer) toolbar);
+                          G_CALLBACK (selection_changed_cb), (gpointer) toolbar);
     }
     
     /* cell renderer & column(s) */

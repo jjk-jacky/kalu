@@ -11,14 +11,14 @@ PROGRAMS = kalu kalu-dbus
 DOCS = kalu.1.gz
 
 SRCFILES =	main.c alpm.c config.c util.c watched.c util-gtk.c kalu-updater.c \
-			updater.c closures.c cJSON.c aur.c curl.c news.c
+			updater.c closures.c cJSON.c aur.c curl.c news.c preferences.c
 
 HDRFILES =	alpm.h config.h util.h kalu.h watched.h util-gtk.h kalu-updater.h \
 			updater.h closures.h updater-dbus.h kupdater.h cJSON.h aur.h \
-			curl.h news.h arch_linux.h
+			curl.h news.h arch_linux.h preferences.h
 
 OBJFILES =	main.o alpm.o config.o util.o watched.o util-gtk.o kalu-updater.o \
-			updater.o closures.o cJSON.o aur.o curl.o news.o
+			updater.o closures.o cJSON.o aur.o curl.o news.o preferences.o
 
 DBUSSRCFILES = kalu-dbus.c
 DBUSOBJFILES = kalu-dbus.o
@@ -69,6 +69,9 @@ curl.o:	curl.c curl.h kalu.h
 
 news.o:	news.c news.h kalu.h curl.h
 	$(CC) -c $(CFLAGS) `pkg-config --cflags gtk+-3.0` news.c
+
+preferences.o:	preferences.c preferences.h kalu.h util.h
+	$(CC) -c $(CFLAGS) `pkg-config --cflags gtk+-3.0` preferences.c
 
 kalu-dbus: $(DBUSOBJFILES)
 	$(CC) -o kalu-dbus $(DBUSOBJFILES) `pkg-config --libs glib-2.0 polkit-gobject-1` -lalpm

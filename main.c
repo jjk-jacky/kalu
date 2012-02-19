@@ -51,6 +51,7 @@
 #include "updater.h"
 #include "aur.h"
 #include "news.h"
+#include "preferences.h"
 
 
 /* global variable */
@@ -744,6 +745,12 @@ menu_news_cb (GtkMenuItem *item _UNUSED_, gpointer data _UNUSED_)
     }
 }
 
+static void
+menu_prefs_cb (GtkMenuItem *item _UNUSED_, gpointer data _UNUSED_)
+{
+    show_prefs ();
+}
+
 static gboolean
 menu_unmap_cb (GtkWidget *menu, GdkEvent *event _UNUSED_, gpointer data _UNUSED_)
 {
@@ -806,6 +813,17 @@ icon_popup_cb (GtkStatusIcon *_icon _UNUSED_, guint button, guint activate_time,
     item = gtk_image_menu_item_new_with_label ("Manage watched AUR packages...");
     g_signal_connect (G_OBJECT (item), "activate",
                       G_CALLBACK (menu_manage_cb), (gpointer) TRUE);
+    gtk_widget_show (item);
+    gtk_menu_attach (GTK_MENU (menu), item, 0, 1, pos, pos + 1); ++pos;
+    
+    item = gtk_separator_menu_item_new ();
+    gtk_widget_show (item);
+    gtk_menu_attach (GTK_MENU (menu), item, 0, 1, pos, pos + 1); ++pos;
+    
+    item = gtk_image_menu_item_new_from_stock (GTK_STOCK_PREFERENCES, NULL);
+    gtk_widget_set_tooltip_text (item, "Edit preferences");
+    g_signal_connect (G_OBJECT (item), "activate",
+                      G_CALLBACK (menu_prefs_cb), NULL);
     gtk_widget_show (item);
     gtk_menu_attach (GTK_MENU (menu), item, 0, 1, pos, pos + 1); ++pos;
     
@@ -1397,7 +1415,7 @@ main (int argc, char *argv[])
     gtk_status_icon_set_visible (icon, TRUE);
     
     /* set timer, first check in 2 seconds */
-    kalpm_state.timeout = g_timeout_add_seconds (2, (GSourceFunc) kalu_auto_check, NULL);
+//    kalpm_state.timeout = g_timeout_add_seconds (2, (GSourceFunc) kalu_auto_check, NULL);
     
     notify_init ("kalu");
     if (curl_global_init (CURL_GLOBAL_ALL) == 0)
