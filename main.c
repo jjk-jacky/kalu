@@ -1451,7 +1451,7 @@ main (int argc, char *argv[])
     gtk_status_icon_set_visible (icon, TRUE);
     
     /* set timer, first check in 2 seconds */
-//    kalpm_state.timeout = g_timeout_add_seconds (2, (GSourceFunc) kalu_auto_check, NULL);
+    kalpm_state.timeout = g_timeout_add_seconds (2, (GSourceFunc) kalu_auto_check, NULL);
     
     notify_init ("kalu");
     if (curl_global_init (CURL_GLOBAL_ALL) == 0)
