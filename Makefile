@@ -8,7 +8,7 @@ WARNINGS := -Wall -Wextra -pedantic -Wshadow -Wpointer-arith -Wcast-align \
 CFLAGS := -g -std=c99 $(WARNINGS) -imacros configure.h
 
 PROGRAMS = kalu kalu-dbus
-DOCS = kalu.1.gz
+DOCS = kalu.1.gz index.html
 
 SRCFILES =	main.c alpm.c config.c util.c watched.c util-gtk.c kalu-updater.c \
 			updater.c closures.c cJSON.c aur.c curl.c news.c preferences.c
@@ -25,8 +25,7 @@ DBUSOBJFILES = kalu-dbus.o
 
 MANFILES = kalu.1
 
-#all: $(PROGRAMS) $(DOCS)
-all: $(PROGRAMS)
+all: $(PROGRAMS) $(DOCS)
 
 kalu: $(OBJFILES)
 	$(CC) -o kalu $(OBJFILES) `pkg-config --libs gtk+-3.0 libnotify` `curl-config --libs` -lalpm -lm
@@ -84,14 +83,14 @@ doc: $(DOCS)
 kalu.1.gz: $(MANFILES)
 	gzip -c kalu.1 > kalu.1.gz
 
-index.html:
+index.html: kalu.1
 	groff -T html -man kalu.1 > index.html
 
 install:
 	install -D -m755 kalu $(DESTDIR)/usr/bin/kalu
 	install -D -m755 kalu-dbus $(DESTDIR)/usr/bin/kalu-dbus
-#	install -D -m644 kalu.1.gz $(DESTDIR)/usr/share/man/man1/kalu.1.gz
-#	install -D -m644 index.html $(DESTDIR)usr/share/doc/kalu/html/index.html
+	install -D -m644 kalu.1.gz $(DESTDIR)/usr/share/man/man1/kalu.1.gz
+	install -D -m644 index.html $(DESTDIR)usr/share/doc/kalu/html/index.html
 	install -D -m644 arch_linux_48x48_icon_by_painlessrob.png $(DESTDIR)usr/share/pixmaps/kalu.png
 	install -D -m644 org.jjk.kalu.policy $(DESTDIR)usr/share/polkit-1/actions/org.jjk.kalu.policy
 	install -D -m644 org.jjk.kalu.service $(DESTDIR)usr/share/dbus-1/system-services/org.jjk.kalu.service

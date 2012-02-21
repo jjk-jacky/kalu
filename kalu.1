@@ -1,0 +1,494 @@
+.TH kalu 1 "2012-02-22" 0.0.4.1 "Keeping Arch Linux Up-to-date"
+
+.SH NAME
+kalu \- Keeping Arch Linux Up-to-date
+
+.SH SYNOPSIS
+.B kalu
+[\fIOPTION\fR]
+
+.SH OPTIONS
+.PP
+\fB\-h, \-\-help\fR
+.RS 4
+Show a little help text and exit
+.RE
+.PP
+\fB\-V, \-\-version\fR
+.RS 4
+Show version information and exit
+.RE
+.PP
+\fB\-d, \-\-debug\fR
+.RS 4
+Enable debug mode. Debugging messages will then be sent to kalu's stdout,
+prefixed with a timestamp.
+.RE
+
+.SH DESCRIPTION
+\fBkalu\fR is (yet another) upgrade notifier for Arch Linux. Once started, it
+will add an icon into your systray, and regularly check if any upgrade is
+available, and if so show a notification to inform you about it.
+.P
+You can know whether anything was found during kalu's last check or not by
+its icon: if gray nothing was found. If blue, you can mouse over it to see (in
+the tooltip) what was found.
+.P
+If the icon happens to blink from gray to blue, it means kalu is currently busy.
+.P
+kalu can check for a few things, each one resulting in a separate
+notification (if something is found) :
+.PP
+* \fBUpgrades\fR
+.RS 4
+kalu will check for upgrades of any of the installed packages, similarly to what
+a `pacman -Syu` would do. To do so, kalu does not requires root privileges to
+do its checking. In order to determine whether or not upgrades are available,
+it will create a temporary copy of your sync databases and synchronize those
+copies, and of course remove them once done.
+.PP
+That way not only can all this be done as user, but it avoids putting you in a
+situation where you'd risk messing up your system, as you might otherwise
+unknowingly end up basically doing a `pacman -Sy foobar` (which is pretty
+generally understood to be a bad idea).
+.P
+(Because if your databases were synchronized and upgrades were available, yet
+you did not upgrade right away - e.g. because you didn't see the notification
+or were busy on something - then your next -S operation would really be a -Sy
+even though you might not even realize it.)
+.RE
+.PP
+* \fBWatched packages\fR
+.RS 4
+kalu will check for upgrades of packages that aren't currently installed.
+This is done by simply maintaining a list of packages (name & version) and
+checking it against the online repos (after synchronization).
+.P
+When upgrades are available, you will be able to easily "mark them" - i.e. kalu
+can auto-update the list with the latest version number. You will of course
+be able to select which of the packages to update, if any.
+.P
+If so, and a newer version is available, you will be notified. If you have
+foreign packages which you know are not in the AUR (and therefore checking for
+them is useless), you can put them on an ignore list, see \fBPREFERENCES\fR
+below.
+.RE
+.PP
+* \fBAUR packages\fR
+.RS 4
+kalu will compile the list of foreign packages on the system (i.e. not found
+in any repo, or what you'd have from running `pacman -Qm`) and check to see if
+they are available in the AUR. If so, it will check whether the AUR version
+is more recent than the one installed.
+.RE
+.PP
+* \fBWatched AUR packages\fR
+.RS 4
+Just as with "official" packages, you can maintain a list of non-installed
+packages that kalu should check the AUR for.
+.RE
+.PP
+* \fBArch Linux News\fR
+.RS 4
+kalu will check the news from the Arch Linux website (www.archlinux.org) and
+show a notification whenever something new has been posted.
+.P
+The notification can only feature titles, but using the button "Show news" will
+show the complete news. Note that this is done through kalu's own rendering (i.e.
+there is no HTML engine used) and as such the rendering might differ.
+For instance, neither images nor links are supported.
+.RE
+
+.SH DATA LOCATION
+Every setting/data kalu stores will be done in folder \fB~/.config/kalu/\fR
+which can contain the following files :
+.P
+* \fIkalu.conf\fR : your preferences
+.P
+* \fIwatched.conf\fR : the list of watched packages
+.P
+* \fIwatched-aur.conf\fR : the ist of watched AUR packages
+.P
+* \fInews.conf\fR : information about which news you have already read
+.P
+
+.SH PREFERENCES
+Preferences are presented under 6 tabs. Most of those represent a type of
+check/notification supported by kalu, and as such include a template definition
+allowing you to tweak the content of said notifications.
+.P
+The only required template is \fIUpgrades\fR. All others, or more specifically,
+each of their fields, are optional.
+.P
+If a field is not defined, kalu will simply fall back and use the corresponding
+field from the \fIUpgrades\fR template. One exception: the template \fIWatched
+AUR\fR will fall back to the \fIAUR\fR template, and only if nothing was defined
+there will \fIUpgrades\fR be used.
+.P
+All templates are made of 3 fields: Title, Package (or News item), and Separator.
+\fBTitle\fR will be the title of the notification. \fBPackage\fR (\fBNews
+item\fR) is the text corresponding to one package/news item. It will be repeated
+for each package/news item, separated using \fBSeparator\fR, to make the body
+of the notification.
+.P
+Each field can have none, one or more variables. They are not the same for all
+templates, so they'll be described in each of them below.
+.P
+Note: You can use some markup tags in the body of the notification (i.e. in the
+fields \fBPackage/News item\fR and \fBSeparator\fR but not in \fBTitle\fR), such
+as <b> ... </b> for bold, <i> ... </i> for italic or <u> ... </u> for underline.
+.P
+Through support is recommended, whether or not those will actually be applied
+on the notifications depends on your notification daemon.
+
+.P
+Preferences are presented under the following tabs :
+
+.P
+\fBGeneral\fR
+.RS 4
+\fIConfiguration file (pacman.conf)\fR
+.RS 4
+This is the configuration file used to initialize the Arch Linux Package
+Management (ALPM) library (whose most famous front end is no other than pacman).
+.RE
+.RE
+.P
+.RS 4
+\fICheck for upgrades every (minutes)\fR
+.RS 4
+How often must kalu run its automatic check. Select from the list, or type in
+what you want.
+.RE
+.RE
+.P
+.RS 4
+\fIDo not check between .. and ..\fR
+.RS 4
+This is e.g. in case you keep your computer on 24/7, yet go to sleep at some
+point. It would then make sense that you not want kalu to do its checks while
+you're sleeping.
+.P
+Specify here the period during which no (automatic) checks will be performed
+(Of course, you can always ask for one manually).
+.RE
+.RE
+.P
+.RS 4
+\fIDuring an automatic check, check for ..\fR
+.RS 4
+Select one or more checks that will be performed during every automatic check,
+i.e. run on start or at the interval specified above.
+.RE
+.RE
+.P
+.RS 4
+\fIDuring a manual check, check for ..\fR
+.RS 4
+Select one or more checks that will be performed when you start a manual check,
+i.e. using menu "Check for Upgrades"
+.RE
+.RE
+
+.P
+\fBNews\fR
+.RS 4
+\fBNotification template\fR
+.RS 4
+Title
+.RS 4
+\fB$NB\fR   : number of news items
+.RE
+News item
+.RS 4
+\fB$NEWS\fR : the title of the news
+.RE
+Separator
+.RS 4
+No variables available.
+.RE
+.RE
+.RE
+.RE
+
+.P
+\fBUpgrades\fR
+.RS 4
+\fIShow a button "Upgrade system" on notifications\fR
+.RS 4
+Whether or not notifications should feature a button "Upgrade system"
+.RE
+.RE
+.P
+.RS 4
+\fIWhen clicking the button\fR
+.RS 4
+Clicking the button can either start kalu's own updater (see \fBSYSTEM
+UPGRADE\fR below), or simply run the program of your choice.
+.RE
+.RE
+.P
+.RS 4
+\fICommand-line\fR
+.RS 4
+The command line to start when pressing the button "Upgrade system" from the
+notification.
+.RE
+.RE
+.P
+.RS 4
+\fIAfter completing a system upgrade, ask whether to start the following\fR
+.RS 4
+When using kalu's updater, you can define one or more processes to be ran after
+a system upgrade was completed. Specify their command-line in the list, and
+after a succesful system upgrade kalu will ask whether to start them or not.
+.P
+In case you specify more than one, the full list will be featured and you will
+be able to determine which (if any) to start each time.
+.RE
+.RE
+.P
+.RS 4
+\fBNotification template\fR
+.RS 4
+Title
+.RS 4
+\fB$NB\fR  : the number of packages
+.RE
+.RS 4
+\fB$DL\fR  : the total download size
+.RE
+.RS 4
+\fB$INS\fR : the total installed size
+.RE
+.RS 4
+\fB$NET\fR : the total net (post-install difference) size
+.RE
+Package
+.RS 4
+\fB$PKG\fR : the name of the package
+.RE
+.RS 4
+\fB$OLD\fR : the version number of the currently installed version
+.RE
+.RS 4
+\fB$NET\fR : the version number of the version available in the repo
+.RE
+.RS 4
+\fB$DL\fR  : the download size
+.RE
+.RS 4
+\fB$INS\fR : the installed size
+.RE
+.RS 4
+\fB$NET\fR : the net (post-install difference) size
+.RE
+Separator
+.RS 4
+No variables available.
+.RE
+.RE
+.RE
+.RE
+
+.P
+\fBWatched\fR
+.RS 4
+\fIManage watched packages\fR
+.RS 4
+Does the same as the menu by the same name, that is open the window to manage
+(add, edit, remove) the list of watched packages. This list is independent from
+the preferences, as data are saved in a different file, as saving the list will
+not have an effect on preferences, and vice versa.
+.RE
+.RE
+.P
+.RS 4
+\fBNotification template\fR
+.RS 4
+Title
+.RS 4
+\fB$NB\fR  : the number of packages
+.RE
+.RS 4
+\fB$DL\fR  : the total download size
+.RE
+.RS 4
+\fB$INS\fR : the total installed size
+.RE
+.RS 4
+\fB$NET\fR : the total net (post-install difference) size
+.RE
+Package
+.RS 4
+\fB$PKG\fR : the name of the package
+.RE
+.RS 4
+\fB$OLD\fR : the version number from the list of watched packages
+.RE
+.RS 4
+\fB$NET\fR : the version number of the version available in the repo
+.RE
+.RS 4
+\fB$DL\fR  : the download size
+.RE
+.RS 4
+\fB$INS\fR : the installed size
+.RE
+.RS 4
+\fB$NET\fR : the net (post-install difference) size
+.RE
+Separator
+.RS 4
+No variables available.
+.RE
+.RE
+.RE
+.RE
+
+.P
+\fBAUR\fR
+.RS 4
+\fIShow a button "Update AUR packages" on notifications\fR
+.RS 4
+If enabled, notifications for AUR packages will feature a button "Update AUR
+packages" which will start the specified command-line. If not, no button will
+be featured.
+.RE
+.RE
+.P
+.RS 4
+\fIWhen clicking the button, run the following\fR
+.RS 4
+The command line to start when pressing the button "Update AUR packages" from the
+notification.
+.RE
+.RE
+.P
+.RS 4
+\fIDo not check the AUR for the following packages\fR
+.RS 4
+By default kalu determines the list of all foreign packages (i.e. not found
+in any repo, or what you'd have from running `pacman -Qm`) and check to see
+if they are available in the AUR.
+.P
+If you have packages which you know are not there (or simply for which you do
+not want to be notified), simply add their names to this list.
+.RE
+.RE
+.P
+.RS 4
+\fBNotification template\fR
+.RS 4
+Title
+.RS 4
+\fB$NB\fR  : the number of packages
+.RE
+Package
+.RS 4
+\fB$PKG\fR : the name of the package
+.RE
+.RS 4
+\fB$OLD\fR : the version number of the currently installed version
+.RE
+.RS 4
+\fB$NET\fR : the version number of the version available in the AUR
+.RE
+Separator
+.RS 4
+No variables available.
+.RE
+.RE
+.RE
+.RE
+
+.P
+\fBWatched AUR\fR
+.RS 4
+\fIManage watched AUR packages\fR
+.RS 4
+Does the same as the menu by the same name, that is open the window to manage
+(add, edit, remove) the list of watched AUR packages. This list is independent
+from the preferences, as data are saved in a different file, as saving the list
+will not have an effect on preferences, and vice versa.
+.RE
+.RE
+.P
+.RS 4
+\fBNotification template\fR
+.RS 4
+Title
+.RS 4
+\fB$NB\fR  : the number of packages
+.RE
+Package
+.RS 4
+\fB$PKG\fR : the name of the package
+.RE
+.RS 4
+\fB$OLD\fR : the version number from the list of watched AUR packages
+.RE
+.RS 4
+\fB$NET\fR : the version number of the version available in the AUR
+.RE
+Separator
+.RS 4
+No variables available.
+.RE
+.RE
+.RE
+.RE
+
+
+.SH SYSTEM UPGRADE
+When a notification is shown for available upgrades, a button "Upgrade system"
+can be featured. This button can start a process of your choice, or kalu's own
+system upgrader. (See \fBPREFERENCES\fR above.)
+.P
+The later will first synchronize your databases, then upgrade all packages that
+are out of date. In other words, it does what a `pacman -Syu` would do, only
+in a GTK GUI.
+.P
+In order to synchronize databases and upgrades packages, root privileges are
+obviously required. The way this is handled is as follows: kalu itself only
+contains the GUI, and therefore can work running under your (user) account.
+.P
+The part that does interact with libalpm (to actually synchronize databases and
+upgrade packages) is in a secondary library (\fIkalu-dbus\fR), that is the only
+one to require root privileges.
+.P
+This binary will be executed automatically, with root privileges, through DBus
+when needed, and PolicyKit will be used to ensure that you are authorized to
+upgrade the system.
+.P
+When upgrading your system with kalu's updater, your log file (e.g. pacman.log,
+as defined in pacman.conf) will be updated. kalu adds an entry for each
+database synchronized, one when starting the upgrade, one after the upgrade
+was completed, and one after each package operation (installed, upgraded,
+removed).
+.P
+This is all very much like pacman itself, only all those will be prefixed with
+\fIkalu:\fR so that you can identify them easily. Note however that other log
+entries added during an upgrade with kalu's updater might not have such prefix,
+specifically all those coming from libalpm directly, such as warnings, errors
+or scriptlet output.
+
+
+.SH BUGS
+They're probably crawling somewhere in there... if you happen to catch one,
+(or more) report it and I'll do my best to squash it.
+
+.SH REPOSITORY
+You can find the latest source code of \fBkalu\fR as well as report bugs and/or
+suggest features on its BitBucket repository, available at
+.I https://bitbucket.org/jjacky/kalu
+
+.SH AUTHORS
+Olivier Brunel <i.am.jack.mail AT gmail DOT com>
+
+Dave Gamble
+
+Pacman Development Team <pacman-dev AT archlinux DOT org>
+
+.SH ARTWORK
+Icon by Painless Rob (\fIhttps://bbs.archlinux.org/viewtopic.php?id=130839\fR)
