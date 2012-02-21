@@ -35,7 +35,7 @@
 
 #define _UNUSED_            __attribute__ ((unused)) 
 
-#define KALU_VERSION       "0.0.3"
+#define KALU_VERSION       "0.0.4"
 #define KALU_TAG            "Keeping Arch Linux Up-to-date"
 
 #define MAX_PATH            255
@@ -81,8 +81,8 @@ typedef struct _templates_t {
 typedef struct _config_t {
     gboolean         is_debug;
     char            *pacmanconf;
-    unsigned int     checks_manual;
-    unsigned int     checks_auto;
+    check_t          checks_manual;
+    check_t          checks_auto;
     int              interval;
     int              has_skip;
     int              skip_begin_hour;

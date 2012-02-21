@@ -246,7 +246,7 @@ monitor_response_cb (GtkWidget *dialog, gint response, alpm_list_t *updates)
         GtkTreeModel *model;
         GtkTreeIter iter;
         watched_package_t *w_pkg, w_pkg_tmp;
-        gboolean is_aur = (gboolean) g_object_get_data (G_OBJECT (dialog), "is-aur");
+        gboolean is_aur = GPOINTER_TO_INT (g_object_get_data (G_OBJECT (dialog), "is-aur"));
         
         if (is_aur)
         {
@@ -382,7 +382,7 @@ btn_mark_cb (GtkButton *button _UNUSED_, gboolean is_aur)
                                   "Yes, import changes.", NULL,
                                   "No, keep the list as is.", NULL,
                                   window_manage);
-            g_object_set_data (G_OBJECT (dialog), "is-aur", (gpointer) is_aur);
+            g_object_set_data (G_OBJECT (dialog), "is-aur", GINT_TO_POINTER (is_aur));
             g_signal_connect (G_OBJECT (dialog), "response",
                               G_CALLBACK (monitor_response_cb), (gpointer) updates);
             gtk_widget_show (dialog);
@@ -529,7 +529,7 @@ btn_remove_cb (GtkToolButton *tb_item _UNUSED_, gboolean is_aur)
 static void
 btn_reload_cb (GtkToolButton *tb_item, int from_disk)
 {
-    gboolean is_aur = (gboolean) g_object_get_data (G_OBJECT (tb_item), "is-aur");
+    gboolean is_aur = GPOINTER_TO_INT (g_object_get_data (G_OBJECT (tb_item), "is-aur"));
     if (from_disk)
     {
         GError *error = NULL;
@@ -546,7 +546,7 @@ btn_reload_cb (GtkToolButton *tb_item, int from_disk)
 static void
 renderer_edited_cb (GtkCellRendererText *renderer, gchar *path, gchar *text, int col)
 {
-    gboolean is_aur = (gboolean) g_object_get_data (G_OBJECT (renderer), "is-aur");
+    gboolean is_aur = GPOINTER_TO_INT (g_object_get_data (G_OBJECT (renderer), "is-aur"));
     GtkTreeModel *model;
     GtkTreeIter iter;
     
@@ -649,7 +649,7 @@ watched_new_window (w_type_t type)
         tb_item = gtk_tool_button_new_from_stock (GTK_STOCK_ADD);
         gtk_widget_set_tooltip_text (GTK_WIDGET (tb_item), "Add a new package");
         g_signal_connect (G_OBJECT (tb_item), "clicked",
-                          G_CALLBACK (btn_add_cb), (gpointer) is_aur);
+                          G_CALLBACK (btn_add_cb), GINT_TO_POINTER (is_aur));
         gtk_toolbar_insert (GTK_TOOLBAR (toolbar), tb_item, -1);
         gtk_widget_show (GTK_WIDGET (tb_item));
         /* button: Edit */
@@ -657,7 +657,7 @@ watched_new_window (w_type_t type)
         gtk_widget_set_tooltip_text (GTK_WIDGET (tb_item), "Edit selected package");
         gtk_widget_set_sensitive (GTK_WIDGET (tb_item), FALSE);
         g_signal_connect (G_OBJECT (tb_item), "clicked",
-                          G_CALLBACK (btn_edit_cb), (gpointer) is_aur);
+                          G_CALLBACK (btn_edit_cb), GINT_TO_POINTER (is_aur));
         gtk_toolbar_insert (GTK_TOOLBAR (toolbar), tb_item, -1);
         gtk_widget_show (GTK_WIDGET (tb_item));
         /* button: Remove */
@@ -665,7 +665,7 @@ watched_new_window (w_type_t type)
         gtk_widget_set_tooltip_text (GTK_WIDGET (tb_item), "Remove selected package");
         gtk_widget_set_sensitive (GTK_WIDGET (tb_item), FALSE);
         g_signal_connect (G_OBJECT (tb_item), "clicked",
-                          G_CALLBACK (btn_remove_cb), (gpointer) is_aur);
+                          G_CALLBACK (btn_remove_cb), GINT_TO_POINTER (is_aur));
         gtk_toolbar_insert (GTK_TOOLBAR (toolbar), tb_item, -1);
         gtk_widget_show (GTK_WIDGET (tb_item));
         /* --- */
@@ -674,7 +674,7 @@ watched_new_window (w_type_t type)
         gtk_widget_show (GTK_WIDGET (tb_item));
         /* button: Reload from memory */
         tb_item = gtk_tool_button_new_from_stock (GTK_STOCK_UNDO);
-        g_object_set_data (G_OBJECT (tb_item), "is-aur", (gpointer) is_aur);
+        g_object_set_data (G_OBJECT (tb_item), "is-aur", GINT_TO_POINTER (is_aur));
         gtk_widget_set_tooltip_text (GTK_WIDGET (tb_item), "Reload list from memory (undo changes)");
         g_signal_connect (G_OBJECT (tb_item), "clicked",
                           G_CALLBACK (btn_reload_cb), (gpointer) 0);
@@ -682,7 +682,7 @@ watched_new_window (w_type_t type)
         gtk_widget_show (GTK_WIDGET (tb_item));
         /* button: Reload from disk */
         tb_item = gtk_tool_button_new_from_stock (GTK_STOCK_REFRESH);
-        g_object_set_data (G_OBJECT (tb_item), "is-aur", (gpointer) is_aur);
+        g_object_set_data (G_OBJECT (tb_item), "is-aur", GINT_TO_POINTER (is_aur));
         gtk_widget_set_tooltip_text (GTK_WIDGET (tb_item), "Reload list from file");
         g_signal_connect (G_OBJECT (tb_item), "clicked",
                           G_CALLBACK (btn_reload_cb), (gpointer) 1);
@@ -731,14 +731,14 @@ watched_new_window (w_type_t type)
                                                            NULL);
         g_object_set (renderer, "activatable", TRUE, NULL);
         g_signal_connect (G_OBJECT (renderer), "toggled",
-                          G_CALLBACK (renderer_toggle_cb), (gpointer) is_aur);
+                          G_CALLBACK (renderer_toggle_cb), GINT_TO_POINTER (is_aur));
         gtk_tree_view_append_column (GTK_TREE_VIEW (list), column);
     }
     /* column: Package */
     renderer = gtk_cell_renderer_text_new ();
     if (!is_update)
     {
-        g_object_set_data (G_OBJECT (renderer), "is-aur", (gpointer) is_aur);
+        g_object_set_data (G_OBJECT (renderer), "is-aur", GINT_TO_POINTER (is_aur));
         g_object_set (G_OBJECT (renderer), "editable", TRUE, NULL);
         g_signal_connect (G_OBJECT (renderer), "edited",
                           G_CALLBACK (renderer_edited_cb), (gpointer) WCOL_NAME);
@@ -754,7 +754,7 @@ watched_new_window (w_type_t type)
     {
         /* we need another renderer so we know which column gets edited */
         renderer = gtk_cell_renderer_text_new ();
-        g_object_set_data (G_OBJECT (renderer), "is-aur", (gpointer) is_aur);
+        g_object_set_data (G_OBJECT (renderer), "is-aur", GINT_TO_POINTER (is_aur));
         g_object_set (G_OBJECT (renderer), "editable", TRUE, NULL);
         g_signal_connect (G_OBJECT (renderer), "edited",
                           G_CALLBACK (renderer_edited_cb), (gpointer) WCOL_OLD_VERSION);
@@ -813,7 +813,7 @@ watched_new_window (w_type_t type)
         gtk_box_pack_end (GTK_BOX (hbox), button, FALSE, FALSE, 4);
         gtk_widget_set_tooltip_text (button, "Save new version numbers of checked packages");
         g_signal_connect (G_OBJECT (button), "clicked",
-                          G_CALLBACK (btn_mark_cb), (gpointer) is_aur);
+                          G_CALLBACK (btn_mark_cb), GINT_TO_POINTER (is_aur));
         gtk_widget_show (button);
     }
     else
@@ -825,7 +825,7 @@ watched_new_window (w_type_t type)
         gtk_box_pack_end (GTK_BOX (hbox), button, FALSE, FALSE, 4);
         gtk_widget_set_tooltip_text (button, "Save list of watched packages");
         g_signal_connect (G_OBJECT (button), "clicked",
-                          G_CALLBACK (btn_save_cb), (gpointer) is_aur);
+                          G_CALLBACK (btn_save_cb), GINT_TO_POINTER (is_aur));
         gtk_widget_show (button);
     }
     /* Close */

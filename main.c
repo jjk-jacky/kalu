@@ -444,7 +444,7 @@ kalu_check_work (gboolean is_auto)
     gint nb_news        = -1;
     unsigned int checks = (is_auto) ? config->checks_auto : config->checks_manual;
     
-    if (checks && CHECK_NEWS)
+    if (checks & CHECK_NEWS)
     {
         packages = NULL;
         if (news_has_updates (&packages, &xml_news, &error))
@@ -682,7 +682,7 @@ kalu_check (gboolean is_auto)
     set_kalpm_busy (TRUE);
     
     /* run in a separate thread, to not block/make GUI unresponsive */
-    g_thread_create ((GThreadFunc) kalu_check_work, (gpointer) is_auto, FALSE, NULL);
+    g_thread_create ((GThreadFunc) kalu_check_work, GINT_TO_POINTER (is_auto), FALSE, NULL);
 }
 
 static void
@@ -749,6 +749,35 @@ static void
 menu_prefs_cb (GtkMenuItem *item _UNUSED_, gpointer data _UNUSED_)
 {
     show_prefs ();
+}
+
+static void
+menu_about_cb (GtkMenuItem *item _UNUSED_, gpointer data _UNUSED_)
+{
+    GtkAboutDialog *about;
+    GdkPixbuf *pixbuf;
+    const char *authors[] = {"Olivier Brunel", "Dave Gamble", "Pacman Development Team", NULL};
+    const char *artists[] = {"Painless Rob", NULL};
+    
+    about = GTK_ABOUT_DIALOG (gtk_about_dialog_new ());
+    pixbuf = gtk_widget_render_icon_pixbuf (GTK_WIDGET (about), "kalu-logo",
+                                            GTK_ICON_SIZE_DIALOG);
+    gtk_window_set_icon (GTK_WINDOW (about), pixbuf);
+    gtk_about_dialog_set_logo (about, pixbuf);
+    g_object_unref (G_OBJECT (pixbuf));
+    
+    gtk_about_dialog_set_program_name (about, "kalu");
+    gtk_about_dialog_set_version (about, KALU_VERSION);
+    gtk_about_dialog_set_comments (about, KALU_TAG);
+    gtk_about_dialog_set_website (about, "https://bitbucket.org/jjacky/kalu");
+    gtk_about_dialog_set_website_label (about, "https://bitbucket.org/jjacky/kalu");
+    gtk_about_dialog_set_copyright (about, "Copyright (C) 2012 Olivier Brunel");
+    gtk_about_dialog_set_license_type (about, GTK_LICENSE_GPL_3_0);
+    gtk_about_dialog_set_authors (about, authors);
+    gtk_about_dialog_set_artists (about, artists);
+    
+    gtk_dialog_run (GTK_DIALOG (about));
+    gtk_widget_destroy (GTK_WIDGET (about));
 }
 
 static gboolean
@@ -824,6 +853,13 @@ icon_popup_cb (GtkStatusIcon *_icon _UNUSED_, guint button, guint activate_time,
     gtk_widget_set_tooltip_text (item, "Edit preferences");
     g_signal_connect (G_OBJECT (item), "activate",
                       G_CALLBACK (menu_prefs_cb), NULL);
+    gtk_widget_show (item);
+    gtk_menu_attach (GTK_MENU (menu), item, 0, 1, pos, pos + 1); ++pos;
+    
+    item = gtk_image_menu_item_new_from_stock (GTK_STOCK_ABOUT, NULL);
+    gtk_widget_set_tooltip_text (item, "Show Copyright & version information");
+    g_signal_connect (G_OBJECT (item), "activate",
+                      G_CALLBACK (menu_about_cb), NULL);
     gtk_widget_show (item);
     gtk_menu_attach (GTK_MENU (menu), item, 0, 1, pos, pos + 1); ++pos;
     
@@ -1137,7 +1173,7 @@ set_kalpm_nb (check_t type, gint nb)
     gboolean active = (kalpm_state.nb_upgrades + kalpm_state.nb_watched
                        + kalpm_state.nb_aur + kalpm_state.nb_watched_aur
                        + kalpm_state.nb_news > 0);
-    g_main_context_invoke (NULL, (GSourceFunc) set_status_icon, (gpointer) active);
+    g_main_context_invoke (NULL, (GSourceFunc) set_status_icon, GINT_TO_POINTER (active));
 }
 
 static gboolean

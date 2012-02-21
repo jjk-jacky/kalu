@@ -759,8 +759,6 @@ parse_config_file (const char       *file,
             }
             else if (strcmp ("options", section) == 0)
             {
-                unsigned int *verbose = NULL;
-                
                 if (strcmp (key, "PacmanConf") == 0)
                 {
                     setstringoption (value, "pacmanconf", &(config->pacmanconf));
@@ -814,7 +812,24 @@ parse_config_file (const char       *file,
                 }
                 else if (strcmp (key, "UpgradeAction") == 0)
                 {
-                    config->action = atoi (value);
+                    if (strcmp (value, "NONE") == 0)
+                    {
+                        config->action = UPGRADE_NO_ACTION;
+                    }
+                    else if (strcmp (value, "KALU") == 0)
+                    {
+                        config->action = UPGRADE_ACTION_KALU;
+                    }
+                    else if (strcmp (value, "CMDLINE") == 0)
+                    {
+                        config->action = UPGRADE_ACTION_CMDLINE;
+                    }
+                    else
+                    {
+                        set_error ("Invalid value for UpgradeAction: %s", value);
+                        success = FALSE;
+                        goto cleanup;
+                    }
                     debug ("config: action: %d", config->action);
                 }
                 else if (strcmp (key, "CmdLine") == 0)
@@ -839,7 +854,7 @@ parse_config_file (const char       *file,
                         || strcmp (key, "AutoChecks") == 0)
                 {
                     char *v, *s;
-                    unsigned int checks = 0;
+                    check_t checks = 0;
                     
                     for (v = value, s = (char *) 1; s; )
                     {
