@@ -1,4 +1,4 @@
-.TH kalu 1 "2012-02-22" 0.0.4.1 "Keeping Arch Linux Up-to-date"
+.TH kalu 1 "2012-02-22" 0.0.5 "Keeping Arch Linux Up-to-date"
 
 .SH NAME
 kalu \- Keeping Arch Linux Up-to-date
@@ -134,12 +134,13 @@ of the notification.
 Each field can have none, one or more variables. They are not the same for all
 templates, so they'll be described in each of them below.
 .P
-Note: You can use some markup tags in the body of the notification (i.e. in the
-fields \fBPackage/News item\fR and \fBSeparator\fR but not in \fBTitle\fR), such
-as <b> ... </b> for bold, <i> ... </i> for italic or <u> ... </u> for underline.
+In addition to \\n for a new line, you can use some markup tags, but only in
+the body of the notification (i.e. in the fields \fBPackage/News item\fR and
+\fBSeparator\fR but not in \fBTitle\fR), such as <b> ... </b> for bold,
+<i> ... </i> for italic or <u> ... </u> for underline.
 .P
-Through support is recommended, whether or not those will actually be applied
-on the notifications depends on your notification daemon.
+Note that though support is recommanded, whether or not those will actually be
+applied on the notifications depends on your notification daemon.
 
 .P
 Preferences are presented under the following tabs :
@@ -151,6 +152,17 @@ Preferences are presented under the following tabs :
 .RS 4
 This is the configuration file used to initialize the Arch Linux Package
 Management (ALPM) library (whose most famous front end is no other than pacman).
+.RE
+.RE
+.P
+.RS 4
+\fINotifications expire after (seconds)\fR
+.RS 4
+The delay after which the notification should expire/be automatically closed
+by the daemon. The left-most value will use the default (from the daemon),
+while the right-most value will set notifications to never expires, i.e. they
+will stay opened until either you manually close them, or for notifications
+with an action button until kalu is closed.
 .RE
 .RE
 .P

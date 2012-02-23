@@ -376,6 +376,7 @@ notify_updates (alpm_list_t *packages, check_t type, gchar *xml_news)
     g_object_unref (pixbuf);
     gtk_widget_destroy (w);
     g_object_unref (w);
+    notify_notification_set_timeout (notification, config->timeout);
     if (type & CHECK_UPGRADES)
     {
         if (config->action != UPGRADE_NO_ACTION)
@@ -525,6 +526,7 @@ kalu_check_work (gboolean is_auto)
                     g_object_unref (pixbuf);
                     gtk_widget_destroy (w);
                     g_object_unref (w);
+                    notify_notification_set_timeout (notification, config->timeout);
                     if (config->action != UPGRADE_NO_ACTION)
                     {
                         notify_notification_add_action (notification, "do_updates",
@@ -1367,6 +1369,7 @@ main (int argc, char *argv[])
     /* (e.g. tpl_sep_watched_verbose defaults to tpl_sep_verbose) */
     config->pacmanconf = strdup ("/etc/pacman.conf");
     config->interval = 3600; /* 1 hour */
+    config->timeout = NOTIFY_EXPIRES_DEFAULT;
     config->checks_manual = CHECK_UPGRADES | CHECK_WATCHED | CHECK_AUR
                             | CHECK_WATCHED_AUR | CHECK_NEWS;
     config->checks_auto   = CHECK_UPGRADES | CHECK_WATCHED | CHECK_AUR

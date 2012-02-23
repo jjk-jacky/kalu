@@ -200,6 +200,7 @@ notify_error (const gchar *summary, const gchar *text)
     g_object_unref (pixbuf);
     gtk_widget_destroy (w);
     g_object_unref (w);
+    notify_notification_set_timeout (notification, config->timeout);
     notify_notification_show (notification, NULL);
     g_object_unref (notification);
 }

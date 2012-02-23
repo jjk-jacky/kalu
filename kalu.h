@@ -35,10 +35,17 @@
 
 #define _UNUSED_            __attribute__ ((unused)) 
 
-#define KALU_VERSION       "0.0.4.1"
+#define KALU_VERSION       "0.0.5"
 #define KALU_TAG            "Keeping Arch Linux Up-to-date"
 
 #define MAX_PATH            255
+
+#ifndef NOTIFY_EXPIRES_DEFAULT
+#define NOTIFY_EXPIRES_DEFAULT  -1
+#endif
+#ifndef NOTIFY_EXPIRES_NEVER
+#define NOTIFY_EXPIRES_NEVER     0
+#endif
 
 #define KALU_ERROR          g_quark_from_static_string ("kalu error")
 
@@ -84,6 +91,7 @@ typedef struct _config_t {
     check_t          checks_manual;
     check_t          checks_auto;
     int              interval;
+    int              timeout;
     int              has_skip;
     int              skip_begin_hour;
     int              skip_begin_minute;

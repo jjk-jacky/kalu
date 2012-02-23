@@ -41,6 +41,7 @@ static GtkWidget *notebook                  = NULL;
 /* General */
 static GtkWidget *filechooser               = NULL;
 static GtkWidget *combo_interval            = NULL;
+static GtkWidget *timeout_scale             = NULL;
 static GtkWidget *button_skip               = NULL;
 static GtkWidget *spin_begin_hour           = NULL;
 static GtkWidget *spin_begin_minute         = NULL;
@@ -287,6 +288,23 @@ renderer_edited_cb (GtkCellRendererText *renderer, gchar *path,
         gtk_tree_model_get (model, &iter, 0, &s, -1);
         free (s);
         gtk_list_store_set (store, &iter, 0, text, -1);
+    }
+}
+
+static gchar *
+timeout_format_value (GtkScale *scale _UNUSED_, gdouble value, gpointer data _UNUSED_)
+{
+    if (value == 0)
+    {
+        return g_strdup ("Default");
+    }
+    else if (value == 40)
+    {
+        return g_strdup ("Never");
+    }
+    else
+    {
+        return g_strdup_printf ("%d seconds", 3 + (int) value);
     }
 }
 
@@ -712,6 +730,25 @@ btn_save_cb (GtkButton *button _UNUSED_, gpointer data _UNUSED_)
     add_to_conf ("Interval = %s\n", s);
     g_free (s);
     new_config.interval = nb * 60; /* we store seconds, not minutes */
+    
+    nb = (gint) gtk_range_get_value (GTK_RANGE (timeout_scale));
+    if (nb == 0)
+    {
+        add_to_conf ("Timeout = DEFAULT\n");
+        nb = NOTIFY_EXPIRES_DEFAULT;
+    }
+    else if (nb == 40)
+    {
+        add_to_conf ("Timeout = NEVER\n");
+        nb = NOTIFY_EXPIRES_NEVER;
+    }
+    else
+    {
+        nb += 3;
+        add_to_conf ("Timeout = %d\n", nb);
+        nb *= 1000; /* we store ms, not seconds */
+    }
+    new_config.timeout = nb;
     
     if (gtk_toggle_button_get_active (GTK_TOGGLE_BUTTON (button_skip)))
     {
@@ -1150,6 +1187,33 @@ show_prefs (void)
     gtk_grid_attach (GTK_GRID (grid), filechooser, 1, top, 1, 1);
     gtk_file_chooser_set_filename (GTK_FILE_CHOOSER (filechooser), config->pacmanconf);
     gtk_widget_show (filechooser);
+    
+    ++top;
+    /* Timeout */
+    label = gtk_label_new ("Notifications expire after (seconds) :");
+    gtk_widget_set_tooltip_text (label, "Delay after which the notification should expire/be automatically closed by the daemon.");
+    gtk_grid_attach (GTK_GRID (grid), label, 0, top, 1, 1);
+    gtk_widget_show (label);
+    
+    /* 40 = 42 (MAX) - 4 (MIN) + 2 (DEFAULT + NEVER) */
+    timeout_scale = gtk_scale_new_with_range (GTK_ORIENTATION_HORIZONTAL, 0, 40, 1);
+    gtk_widget_set_tooltip_text (timeout_scale, "Delay after which the notification should expire/be automatically closed by the daemon.");
+    if (config->timeout == NOTIFY_EXPIRES_DEFAULT)
+    {
+        gtk_range_set_value (GTK_RANGE (timeout_scale), 0);
+    }
+    else if (config->timeout == NOTIFY_EXPIRES_NEVER)
+    {
+        gtk_range_set_value (GTK_RANGE (timeout_scale), 40);
+    }
+    else
+    {
+        gtk_range_set_value (GTK_RANGE (timeout_scale), (config->timeout / 1000) - 3);
+    }
+    gtk_grid_attach (GTK_GRID (grid), timeout_scale, 1, top, 1, 1);
+    gtk_widget_show (timeout_scale);
+    g_signal_connect (G_OBJECT (timeout_scale), "format-value",
+                      G_CALLBACK (timeout_format_value), NULL);
     
     ++top;
     /* Interval */

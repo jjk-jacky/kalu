@@ -666,7 +666,7 @@ setstringoption (char *value, const char *option, char **cfg)
         }
     }
     
-    *cfg = strdup (value);
+    *cfg = strreplace (value, "\\n", "\n");
     debug ("config: %s: %s", option, value);
 }
 
@@ -776,6 +776,29 @@ parse_config_file (const char       *file,
                     }
                     
                     debug ("config: interval: %d", config->interval);
+                }
+                else if (strcmp (key, "Timeout") == 0)
+                {
+                    if (strcmp (value, "DEFAULT") == 0)
+                    {
+                        config->timeout = NOTIFY_EXPIRES_DEFAULT;
+                    }
+                    else if (strcmp (value, "NEVER") == 0)
+                    {
+                        config->timeout = NOTIFY_EXPIRES_NEVER;
+                    }
+                    else
+                    {
+                        int timeout = atoi (value);
+                        if (timeout < 4 || timeout > 42)
+                        {
+                            set_error ("Invalid timeout delay: %s", value);
+                            success = FALSE;
+                            goto cleanup;
+                        }
+                        config->timeout = timeout * 1000; /* from seconds to ms */
+                    }
+                    debug ("config: timeout: %d", config->timeout);
                 }
                 else if (strcmp (key, "SkipPeriod") == 0)
                 {
