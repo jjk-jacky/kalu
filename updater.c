@@ -147,6 +147,7 @@ static updater_t *updater = NULL;
 static void
 add_log (logtype_t type, const gchar *fmt, ...)
 {
+    GtkTextMark *mark;
     GtkTextIter iter;
     gchar buffer[1024];
     const char *tag;
@@ -181,13 +182,12 @@ add_log (logtype_t type, const gchar *fmt, ...)
         gtk_expander_set_expanded (GTK_EXPANDER (updater->expander), TRUE);
     }
     
-    gtk_text_buffer_get_end_iter (updater->buffer, &iter);
+    mark = gtk_text_buffer_get_mark (updater->buffer, "end-mark");
+    gtk_text_buffer_get_iter_at_mark (updater->buffer, &iter, mark);
     gtk_text_buffer_insert_with_tags_by_name (updater->buffer, &iter,
         buffer, -1, tag, NULL);
     /* scrolling to the end using gtk_text_view_scroll_to_iter doesn't work;
-     * using a mark like so does (insert mark is always at the end for us,
-     * with a read-only text-view) */
-    GtkTextMark *mark = gtk_text_buffer_get_insert (updater->buffer);
+     * using a mark like so seems to work better... */
     gtk_text_view_scroll_mark_onscreen ( GTK_TEXT_VIEW (updater->text_view), mark);
 }
 
@@ -210,7 +210,6 @@ _show_error (const gchar *msg, const gchar *fmt, ...)
     gtk_label_set_text (GTK_LABEL (updater->lbl_action), buffer);
     gtk_widget_show (updater->lbl_action);
     gtk_widget_hide (updater->pbar_action);
-    //show_error (msg, buffer, GTK_WINDOW (updater->window));
     gtk_widget_set_sensitive (updater->btn_close, TRUE);
 }
 
@@ -229,10 +228,9 @@ text_view_draw_cb (GtkWidget *widget _UNUSED_, gpointer *cr _UNUSED_,
     
     if (is_first)
     {
-        GtkTextIter iter;
-        gtk_text_buffer_get_end_iter (updater->buffer, &iter);
-        gtk_text_view_scroll_to_iter (GTK_TEXT_VIEW (updater->text_view),
-            &iter, 0, FALSE, 0, 0);
+        GtkTextMark *mark;
+        mark = gtk_text_buffer_get_mark (updater->buffer, "end-mark");
+        gtk_text_view_scroll_mark_onscreen ( GTK_TEXT_VIEW (updater->text_view), mark);
         is_first = FALSE;
     }
     
@@ -1992,8 +1990,6 @@ updater_run (alpm_list_t *cmdline_post)
     gtk_expander_set_resize_toplevel (GTK_EXPANDER (expander), TRUE);
     gtk_paned_pack2 (GTK_PANED (paned), expander, FALSE, FALSE);
     gtk_widget_show (expander);
-//gtk_expander_set_expanded (GTK_EXPANDER (expander), TRUE);
-//gtk_window_set_default_size (GTK_WINDOW (window), w, h + 230);
     
     /* text view */
     GtkWidget *text_view;
@@ -2010,6 +2006,10 @@ updater_run (alpm_list_t *cmdline_post)
     gtk_text_buffer_create_tag (updater->buffer, "info", "foreground", "blue", NULL);
     gtk_text_buffer_create_tag (updater->buffer, "warning", "foreground", "green", NULL);
     gtk_text_buffer_create_tag (updater->buffer, "error", "foreground", "red", NULL);
+    /* create mark at the end, where we'll insert stuff/scroll to */
+    GtkTextIter iter;
+    gtk_text_buffer_get_end_iter (updater->buffer, &iter);
+    gtk_text_buffer_create_mark (updater->buffer, "end-mark", &iter, FALSE);
 
     /* scrolledwindow for text view */
     scrolled_window = gtk_scrolled_window_new (

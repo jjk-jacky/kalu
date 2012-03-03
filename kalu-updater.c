@@ -461,7 +461,7 @@ kalu_updater_g_signal (GDBusProxy   *proxy,
         g_variant_get (parameters, "(ssas)", &pkg, &version, &iter);
         while (g_variant_iter_loop (iter, "s", &dep))
         {
-            optdeps = alpm_list_add (optdeps, dep);
+            optdeps = alpm_list_add (optdeps, strdup (dep));
         }
         g_variant_iter_free (iter);
         g_signal_emit (kupdater, signals[SIGNAL_EVENT_INSTALLED], 0, pkg, version,
@@ -488,7 +488,7 @@ kalu_updater_g_signal (GDBusProxy   *proxy,
         g_variant_get (parameters, "(sssas)", &pkg, &old_version, &new_version, &iter);
         while (g_variant_iter_loop (iter, "s", &dep))
         {
-            newoptdeps = alpm_list_add (newoptdeps, dep);
+            newoptdeps = alpm_list_add (newoptdeps, strdup (dep));
         }
         g_variant_iter_free (iter);
         g_signal_emit (kupdater, signals[SIGNAL_EVENT_UPGRADED], 0, pkg,
@@ -588,7 +588,7 @@ kalu_updater_g_signal (GDBusProxy   *proxy,
         g_variant_get (parameters, "(as)", &iter);
         while (g_variant_iter_loop (iter, "s", &pkg))
         {
-            pkgs = alpm_list_add (pkgs, pkg);
+            pkgs = alpm_list_add (pkgs, strdup (pkg));
         }
         g_variant_iter_free (iter);
         

@@ -157,7 +157,6 @@ event_cb (alpm_event_t event, void *data1, void *data2)
 {
     if (event == ALPM_EVENT_ADD_DONE)
     {
-        printf("installed: %s %s\n", alpm_pkg_get_name (data1), alpm_pkg_get_version (data1));
         alpm_logaction (handle, "kalu: installed %s (%s)\n",
             alpm_pkg_get_name (data1),
             alpm_pkg_get_version (data1));
@@ -180,7 +179,6 @@ event_cb (alpm_event_t event, void *data1, void *data2)
     }
     else if (event == ALPM_EVENT_REMOVE_DONE)
     {
-        printf("removed: %s %s\n", alpm_pkg_get_name (data1), alpm_pkg_get_version (data1));
         alpm_logaction (handle, "kalu: removed %s (%s)\n",
             alpm_pkg_get_name (data1),
             alpm_pkg_get_version (data1));
@@ -190,8 +188,6 @@ event_cb (alpm_event_t event, void *data1, void *data2)
     }
     else if (event == ALPM_EVENT_UPGRADE_DONE)
     {
-        printf("upgraded: %s %s -> %s\n", alpm_pkg_get_name (data1), alpm_pkg_get_version (data2),
-            alpm_pkg_get_version (data1));
         alpm_logaction (handle, "kalu: upgraded %s (%s -> %s)\n",
             alpm_pkg_get_name (data1),
             alpm_pkg_get_version (data2),
@@ -225,13 +221,11 @@ event_cb (alpm_event_t event, void *data1, void *data2)
     else if (event == ALPM_EVENT_CHECKDEPS_START)
     {
         /* checking dependencies */
-        printf("check dep\n");
         emit_signal ("Event", "i", EVENT_CHECKING_DEPS);
     }
     else if (event == ALPM_EVENT_RESOLVEDEPS_START)
     {
         /* resolving dependencies */
-        printf("resolv dep\n");
         emit_signal ("Event", "i", EVENT_RESOLVING_DEPS);
     }
     else if (event == ALPM_EVENT_INTERCONFLICTS_START)
@@ -241,7 +235,6 @@ event_cb (alpm_event_t event, void *data1, void *data2)
     }
     else if (event == ALPM_EVENT_SCRIPTLET_INFO)
     {
-        printf("script; %s\n", (const char *) data1);
         emit_signal ("EventScriptlet", "s", data1);
     }
     else if (event == ALPM_EVENT_DELTA_INTEGRITY_START)
@@ -1021,7 +1014,7 @@ sysupgrade (GVariant *parameters)
 {
     g_variant_unref (parameters);
     
-    alpm_logaction (handle, "kalu: upgrading system...\n");
+    alpm_logaction (handle, "kalu: starting sysupgrade...\n");
     
     alpm_list_t *alpm_data = NULL;
     if (alpm_trans_commit (handle, &alpm_data) == -1)
