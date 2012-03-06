@@ -57,6 +57,11 @@
 /* global variable */
 config_t *config = NULL;
 
+#define run_updater()   do {                \
+        set_kalpm_busy (TRUE);              \
+        updater_run (config->cmdline_post); \
+    } while (0)
+
 
 static void action_upgrade (NotifyNotification *notification, const char *action, gpointer data);
 static void action_watched (NotifyNotification *notification, char *action, alpm_list_t *packages);
@@ -72,9 +77,36 @@ static void free_config (void);
 static kalpm_state_t kalpm_state = { FALSE, 0, 0, NULL, 0, 0, 0, 0, 0 };
 
 static void
-action_upgrade (NotifyNotification *notification, const char *action, gpointer data _UNUSED_)
+run_cmdline (const char *cmdline)
 {
     GError *error = NULL;
+    
+    if (!g_spawn_command_line_async (cmdline, &error))
+    {
+        GtkWidget *dialog;
+        
+        dialog = gtk_message_dialog_new (NULL,
+                                         GTK_DIALOG_DESTROY_WITH_PARENT,
+                                         GTK_MESSAGE_ERROR,
+                                         GTK_BUTTONS_OK,
+                                         "%s",
+                                         "Unable to start process");
+        gtk_message_dialog_format_secondary_markup (GTK_MESSAGE_DIALOG (dialog),
+                "Error while trying to run command line: %s\n\nThe error was: <b>%s</b>",
+                cmdline, error->message);
+        gtk_window_set_title (GTK_WINDOW (dialog), "kalu: Unable to start process");
+        gtk_window_set_decorated (GTK_WINDOW (dialog), FALSE);
+        gtk_window_set_skip_taskbar_hint (GTK_WINDOW (dialog), FALSE);
+        gtk_window_set_skip_pager_hint (GTK_WINDOW (dialog), FALSE);
+        gtk_dialog_run (GTK_DIALOG (dialog));
+        gtk_widget_destroy (dialog);
+        g_error_free (error);
+    }
+}
+
+static void
+action_upgrade (NotifyNotification *notification, const char *action, gpointer data _UNUSED_)
+{
     char *cmdline = NULL;
     
     notify_notification_close (notification, NULL);
@@ -83,7 +115,7 @@ action_upgrade (NotifyNotification *notification, const char *action, gpointer d
     {
         if (config->action == UPGRADE_ACTION_KALU)
         {
-            menu_updater_cb (NULL, NULL);
+            run_updater ();
         }
         else /* if (config->action == UPGRADE_ACTION_CMDLINE) */
         {
@@ -97,27 +129,7 @@ action_upgrade (NotifyNotification *notification, const char *action, gpointer d
     
     if (cmdline)
     {
-        if (!g_spawn_command_line_async (cmdline, &error))
-        {
-            GtkWidget *dialog;
-            
-            dialog = gtk_message_dialog_new (NULL,
-                                             GTK_DIALOG_DESTROY_WITH_PARENT,
-                                             GTK_MESSAGE_ERROR,
-                                             GTK_BUTTONS_OK,
-                                             "%s",
-                                             "Unable to start Update process");
-            gtk_message_dialog_format_secondary_markup (GTK_MESSAGE_DIALOG (dialog),
-                    "Error while trying to run command line: %s\n\nThe error was: <b>%s</b>",
-                    cmdline, error->message);
-            gtk_window_set_title (GTK_WINDOW (dialog), "kalu: Unable to start Update process");
-            gtk_window_set_decorated (GTK_WINDOW (dialog), FALSE);
-            gtk_window_set_skip_taskbar_hint (GTK_WINDOW (dialog), FALSE);
-            gtk_window_set_skip_pager_hint (GTK_WINDOW (dialog), FALSE);
-            gtk_dialog_run (GTK_DIALOG (dialog));
-            gtk_widget_destroy (dialog);
-            g_error_free (error);
-        }
+        run_cmdline (cmdline);
     }
 }
 
@@ -724,9 +736,15 @@ menu_updater_cb (GtkMenuItem *item _UNUSED_, gpointer data _UNUSED_)
     {
         return;
     }
-    set_kalpm_busy (TRUE);
     
-    updater_run (config->cmdline_post);
+    if (config->action == UPGRADE_ACTION_KALU)
+    {
+        run_updater ();
+    }
+    else /* if (config->action == UPGRADE_ACTION_CMDLINE) */
+    {
+        run_cmdline (config->cmdline);
+    }
 }
 
 static void
@@ -811,15 +829,18 @@ icon_popup_cb (GtkStatusIcon *_icon _UNUSED_, guint button, guint activate_time,
     gtk_widget_show (item);
     gtk_menu_attach (GTK_MENU (menu), item, 0, 1, pos, pos + 1); ++pos;
     
-    item = gtk_image_menu_item_new_with_label ("System upgrade...");
-    gtk_widget_set_sensitive (item, !kalpm_state.is_busy);
-    image = gtk_image_new_from_stock ("kalu-logo", GTK_ICON_SIZE_MENU);
-    gtk_image_menu_item_set_image (GTK_IMAGE_MENU_ITEM (item), image);
-    gtk_widget_set_tooltip_text (item, "Perform a system upgrade");
-    g_signal_connect (G_OBJECT (item), "activate",
-                      G_CALLBACK (menu_updater_cb), NULL);
-    gtk_widget_show (item);
-    gtk_menu_attach (GTK_MENU (menu), item, 0, 1, pos, pos + 1); ++pos;
+    if (config->action != UPGRADE_NO_ACTION)
+    {
+        item = gtk_image_menu_item_new_with_label ("System upgrade...");
+        gtk_widget_set_sensitive (item, !kalpm_state.is_busy);
+        image = gtk_image_new_from_stock ("kalu-logo", GTK_ICON_SIZE_MENU);
+        gtk_image_menu_item_set_image (GTK_IMAGE_MENU_ITEM (item), image);
+        gtk_widget_set_tooltip_text (item, "Perform a system upgrade");
+        g_signal_connect (G_OBJECT (item), "activate",
+                          G_CALLBACK (menu_updater_cb), NULL);
+        gtk_widget_show (item);
+        gtk_menu_attach (GTK_MENU (menu), item, 0, 1, pos, pos + 1); ++pos;
+    }
     
     item = gtk_image_menu_item_new_with_label ("Show recent Arch Linux news...");
     gtk_widget_set_sensitive (item, !kalpm_state.is_busy);

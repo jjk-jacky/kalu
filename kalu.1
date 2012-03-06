@@ -1,4 +1,4 @@
-.TH kalu 1 "2012-02-22" 0.0.5 "Keeping Arch Linux Up-to-date"
+.TH kalu 1 "2012-03-06" 0.1.0 "Keeping Arch Linux Up-to-date"
 
 .SH NAME
 kalu \- Keeping Arch Linux Up-to-date
@@ -226,9 +226,10 @@ No variables available.
 .P
 \fBUpgrades\fR
 .RS 4
-\fIShow a button "Upgrade system" on notifications\fR
+\fIShow a button "Upgrade system" on notifications (and on kalu's menu)\fR
 .RS 4
-Whether or not notifications should feature a button "Upgrade system"
+Whether or not notifications should feature a button "Upgrade system" and kalu's
+menu (right-click on its systray icon) feature an item "System upgrade"
 .RE
 .RE
 .P
@@ -453,9 +454,10 @@ No variables available.
 
 
 .SH SYSTEM UPGRADE
-When a notification is shown for available upgrades, a button "Upgrade system"
-can be featured. This button can start a process of your choice, or kalu's own
-system upgrader. (See \fBPREFERENCES\fR above.)
+An item "System Upgrade" on kalu's menu, as well as a button "Upgrade system"
+on notifications for available upgrades, can be featured. This button can start
+a process of your choice, or kalu's own system upgrader. (See \fBPREFERENCES\fR
+above.)
 .P
 The later will first synchronize your databases, then upgrade all packages that
 are out of date. In other words, it does what a `pacman -Syu` would do, only

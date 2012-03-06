@@ -1434,7 +1434,8 @@ show_prefs (void)
     lbl_page = gtk_label_new ("Upgrades");
     
     /* UpgradeAction */
-    button_upg_action = gtk_check_button_new_with_label ("Show a button \"Upgrade system\" on notifications");
+    button_upg_action = gtk_check_button_new_with_label ("Show a button \"Upgrade system\" on notifications (and on kalu's menu)");
+    gtk_widget_set_tooltip_text (button_upg_action, "Whether or not to show a button \"Upgrade system\" on notifications, as well as an item \"System upgrade\" on kalu's menu");
     gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON (button_upg_action),
         config->action != UPGRADE_NO_ACTION);
     gtk_grid_attach (GTK_GRID (grid), button_upg_action, 0, top, 4, 1);
@@ -1443,11 +1444,13 @@ show_prefs (void)
                       G_CALLBACK (upg_action_toggled_cb), NULL);
     
     ++top;
-    label = gtk_label_new ("When clicking the button :");
+    label = gtk_label_new ("When clicking the button/menu :");
+    gtk_widget_set_tooltip_text (label, "When clicking the button \"Upgrade system\" on notifications, or the menu \"System upgrade\"");
     gtk_grid_attach (GTK_GRID (grid), label, 0, top, 2, 1);
     gtk_widget_show (label);
     
     upg_action_combo = gtk_combo_box_text_new ();
+    gtk_widget_set_tooltip_text (upg_action_combo, "When clicking the button \"Upgrade system\" on notifications, or the menu \"System upgrade\"");
     gtk_widget_set_sensitive (upg_action_combo, config->action != UPGRADE_NO_ACTION);
     gtk_combo_box_text_append (GTK_COMBO_BOX_TEXT (upg_action_combo), "1",
         "Run kalu's system updater");
