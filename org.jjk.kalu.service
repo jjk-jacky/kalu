@@ -1,4 +1,4 @@
 [D-BUS Service]
 Name=org.jjk.kalu
-Exec=/usr/bin/kalu-dbus
+Exec=/usr/bin/kalu-dbus-launcher
 User=root

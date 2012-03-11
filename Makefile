@@ -89,6 +89,7 @@ index.html: kalu.1
 install:
 	install -D -m755 kalu $(DESTDIR)/usr/bin/kalu
 	install -D -m755 kalu-dbus $(DESTDIR)/usr/bin/kalu-dbus
+	install -D -m755 kalu-dbus-launcher $(DESTDIR)/usr/bin/kalu-dbus-launcher
 	install -D -m644 kalu.1.gz $(DESTDIR)/usr/share/man/man1/kalu.1.gz
 	install -D -m644 index.html $(DESTDIR)usr/share/doc/kalu/html/index.html
 	install -D -m644 arch_linux_48x48_icon_by_painlessrob.png $(DESTDIR)usr/share/pixmaps/kalu.png
