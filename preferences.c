@@ -964,6 +964,16 @@ btn_save_cb (GtkButton *button _UNUSED_, gpointer data _UNUSED_)
     char conffile[MAX_PATH];
     GError *error = NULL;
     snprintf (conffile, MAX_PATH - 1, "%s/.config/kalu/kalu.conf", g_get_home_dir ());
+    if (!ensure_path (conffile))
+    {
+        s = strrchr (conffile, '/');
+        *s = '\0';
+        s = g_strdup_printf ("%s cannot be created or is not a folder", conffile);
+        show_error ("Unable to write configuration file", s,
+                    GTK_WINDOW (window));
+        g_free (s);
+        goto clean_on_error;
+    }
     if (!g_file_set_contents (conffile, conf, -1, &error))
     {
         show_error ("Unable to write configuration file", error->message,

@@ -35,7 +35,7 @@
 
 #define _UNUSED_            __attribute__ ((unused)) 
 
-#define KALU_VERSION       "0.1.1"
+#define KALU_VERSION       "0.1.2"
 #define KALU_TAG            "Keeping Arch Linux Up-to-date"
 
 #define MAX_PATH            255
