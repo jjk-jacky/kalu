@@ -656,7 +656,7 @@ btn_manage_watched_cb (GtkButton *button _UNUSED_, gboolean is_aur)
                 add_to_conf ("[template-" name "]\n");                      \
             }                                                               \
             add_to_conf (key " = \"%s\"\n", s);                             \
-            new_config.tpl_name->tpl_key = strdup (s);                      \
+            new_config.tpl_name->tpl_key = strreplace (s, "\\n", "\n");     \
             has_tpl = TRUE;                                                 \
         }                                                                   \
     } while (0)
