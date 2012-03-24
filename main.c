@@ -74,7 +74,7 @@ static void menu_updater_cb (GtkMenuItem *item, gpointer data);
 static void icon_popup_cb (GtkStatusIcon *icon, guint button, guint activate_time, gpointer data);
 static void free_config (void);
 
-static kalpm_state_t kalpm_state = { FALSE, 0, 0, NULL, 0, 0, 0, 0, 0 };
+static kalpm_state_t kalpm_state = { FALSE, 0, 0, NULL, 0, 0, 0, 0, 0, 0 };
 
 static void
 run_cmdline (const char *cmdline)
@@ -450,6 +450,7 @@ kalu_check_work (gboolean is_auto)
     alpm_list_t *packages, *aur_pkgs;
     gchar *xml_news;
     gboolean got_something =  FALSE;
+    gint nb_syncdbs     = -1;
     gint nb_upgrades    = -1;
     gint nb_watched     = -1;
     gint nb_aur         = -1;
@@ -491,7 +492,7 @@ kalu_check_work (gboolean is_auto)
         
         /* syncdbs only if needed */
         if (checks & (CHECK_UPGRADES | CHECK_WATCHED)
-            && !kalu_alpm_syncdbs (&error))
+            && !kalu_alpm_syncdbs (&nb_syncdbs, &error))
         {
             notify_error ("Unable to check for updates -- could not synchronize databases",
                 error->message);
@@ -662,6 +663,10 @@ kalu_check_work (gboolean is_auto)
         g_date_time_unref (kalpm_state.last_check);
     }
     kalpm_state.last_check = g_date_time_new_now_local ();
+    if (nb_syncdbs >= 0)
+    {
+        set_kalpm_nb_syncdbs (nb_syncdbs);
+    }
     if (nb_news >= 0)
     {
         set_kalpm_nb (CHECK_NEWS, nb_news);
@@ -991,6 +996,11 @@ icon_query_tooltip_cb (GtkWidget *icon _UNUSED_, gint x _UNUSED_, gint y _UNUSED
         addstr ("ago");
     }
     
+    if (kalpm_state.nb_syncdbs > 0)
+    {
+        addstr ("\nsync possible for %d dbs", kalpm_state.nb_syncdbs);
+    }
+    
     if (kalpm_state.nb_news > 0)
     {
         addstr ("\n%d unread news", kalpm_state.nb_news);
@@ -1197,6 +1207,12 @@ set_kalpm_nb (check_t type, gint nb)
                        + kalpm_state.nb_aur + kalpm_state.nb_watched_aur
                        + kalpm_state.nb_news > 0);
     g_main_context_invoke (NULL, (GSourceFunc) set_status_icon, GINT_TO_POINTER (active));
+}
+
+inline void
+set_kalpm_nb_syncdbs (gint nb)
+{
+    kalpm_state.nb_syncdbs = nb;
 }
 
 static gboolean

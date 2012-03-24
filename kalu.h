@@ -35,7 +35,7 @@
 
 #define _UNUSED_            __attribute__ ((unused)) 
 
-#define KALU_VERSION       "0.1.3"
+#define KALU_VERSION        "0.1.4"
 #define KALU_TAG            "Keeping Arch Linux Up-to-date"
 
 #define MAX_PATH            255
@@ -138,6 +138,7 @@ typedef struct _kalpm_state_t {
     guint       timeout;
     guint       timeout_icon;
     GDateTime  *last_check;
+    gint        nb_syncdbs;
     gint        nb_upgrades;
     gint        nb_watched;
     gint        nb_aur;
@@ -158,5 +159,6 @@ gboolean reload_watched (gboolean is_aur, GError **error);
 
 void set_kalpm_busy (gboolean busy);
 void set_kalpm_nb (check_t type, gint nb);
+void set_kalpm_nb_syncdbs (gint nb);
 
 #endif /* _KALU_H */

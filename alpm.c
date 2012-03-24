@@ -322,7 +322,7 @@ kalu_alpm_load (const gchar *conffile, GError **error)
 }
 
 gboolean
-kalu_alpm_syncdbs (GError **error)
+kalu_alpm_syncdbs (gint *nb_dbs_synced, GError **error)
 {
     alpm_list_t     *sync_dbs   = NULL;
     alpm_list_t     *i;
@@ -336,12 +336,13 @@ kalu_alpm_syncdbs (GError **error)
 	}
     
     sync_dbs = alpm_option_get_syncdbs (alpm->handle);
+    *nb_dbs_synced = 0;
     for (i = sync_dbs; i; i = alpm_list_next (i))
     {
 		alpm_db_t *db = i->data;
 
-		ret = alpm_db_update (0, db);
-		if (ret < 0)
+        ret = alpm_db_update (0, db);
+        if (ret < 0)
         {
             g_set_error (error, KALU_ERROR, 1, "Failed to update %s: %s",
                 alpm_db_get_name (db), alpm_strerror (alpm_errno (alpm->handle)));
@@ -353,6 +354,7 @@ kalu_alpm_syncdbs (GError **error)
 		}
         else
         {
+            ++*nb_dbs_synced;
             debug ("%s was updated", alpm_db_get_name (db));
 		}
 	}

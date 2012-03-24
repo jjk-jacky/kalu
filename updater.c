@@ -1487,6 +1487,7 @@ updater_sync_dbs_cb (KaluUpdater *kupdater, const gchar *errmsg, gpointer data _
     
     gtk_progress_bar_set_fraction (GTK_PROGRESS_BAR (updater->pbar_main), 1);
     add_log (LOGTYPE_NORMAL, "Databases synchronized\n");
+    set_kalpm_nb_syncdbs (0);
     
     add_log (LOGTYPE_UNIMPORTANT, "Getting packages list\n");
     gtk_label_set_text (GTK_LABEL (updater->lbl_main), "Getting packages list...");

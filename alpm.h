@@ -43,7 +43,7 @@ gboolean
 kalu_alpm_load (const gchar *conffile, GError **error);
 
 gboolean
-kalu_alpm_syncdbs (GError **error);
+kalu_alpm_syncdbs (gint *nb_dbs_synced, GError **error);
 
 gboolean
 kalu_alpm_has_updates (alpm_list_t **packages, GError **error);
