@@ -705,6 +705,10 @@ btn_save_cb (GtkButton *button _UNUSED_, gpointer data _UNUSED_)
     new_config.tpl_news         = calloc (1, sizeof (templates_t));
     new_config.aur_ignore       = NULL;
     
+    /* this is a "tweak" not featured as GUI */
+    new_config.sane_sort_order = config->sane_sort_order;
+    add_to_conf ("SaneSortOrder = %d\n", new_config.sane_sort_order);
+    
     /* General */
     s = gtk_file_chooser_get_filename (GTK_FILE_CHOOSER (filechooser));
     if (NULL == s)

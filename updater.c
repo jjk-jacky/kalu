@@ -1930,8 +1930,11 @@ updater_run (alpm_list_t *cmdline_post)
                                                        NULL);
     gtk_tree_view_column_set_resizable (column, TRUE);
     gtk_tree_view_column_set_sort_column_id (column, UCOL_PACKAGE);
-    g_signal_connect (G_OBJECT (column), "clicked",
-                      G_CALLBACK (column_clicked_cb), NULL);
+    if (config->sane_sort_order)
+    {
+        g_signal_connect (G_OBJECT (column), "clicked",
+                          G_CALLBACK (column_clicked_cb), NULL);
+    }
     gtk_tree_view_append_column (GTK_TREE_VIEW (list), column);
     /* column: Old version */
     column = gtk_tree_view_column_new_with_attributes ("Old/Current",
@@ -1940,8 +1943,11 @@ updater_run (alpm_list_t *cmdline_post)
                                                        NULL);
     gtk_tree_view_column_set_resizable (column, TRUE);
     gtk_tree_view_column_set_sort_column_id (column, UCOL_OLD);
-    g_signal_connect (G_OBJECT (column), "clicked",
-                      G_CALLBACK (column_clicked_cb), NULL);
+    if (config->sane_sort_order)
+    {
+        g_signal_connect (G_OBJECT (column), "clicked",
+                          G_CALLBACK (column_clicked_cb), NULL);
+    }
     gtk_tree_view_append_column (GTK_TREE_VIEW (list), column);
     /* column: New version */
     column = gtk_tree_view_column_new_with_attributes ("New",
@@ -1950,8 +1956,11 @@ updater_run (alpm_list_t *cmdline_post)
                                                        NULL);
     gtk_tree_view_column_set_resizable (column, TRUE);
     gtk_tree_view_column_set_sort_column_id (column, UCOL_NEW);
-    g_signal_connect (G_OBJECT (column), "clicked",
-                      G_CALLBACK (column_clicked_cb), NULL);
+    if (config->sane_sort_order)
+    {
+        g_signal_connect (G_OBJECT (column), "clicked",
+                          G_CALLBACK (column_clicked_cb), NULL);
+    }
     gtk_tree_view_append_column (GTK_TREE_VIEW (list), column);
     /* column: Download size */
     renderer_lbl = gtk_cell_renderer_text_new ();
@@ -1970,8 +1979,11 @@ updater_run (alpm_list_t *cmdline_post)
     gtk_tree_view_column_pack_start (column, renderer_pbar, TRUE);
     gtk_tree_view_column_set_resizable (column, TRUE);
     gtk_tree_view_column_set_sort_column_id (column, UCOL_DL_SIZE);
-    g_signal_connect (G_OBJECT (column), "clicked",
-                      G_CALLBACK (column_clicked_cb), NULL);
+    if (config->sane_sort_order)
+    {
+        g_signal_connect (G_OBJECT (column), "clicked",
+                          G_CALLBACK (column_clicked_cb), NULL);
+    }
     gtk_tree_view_append_column (GTK_TREE_VIEW (list), column);
     /* column: Installed size */
     renderer_lbl = gtk_cell_renderer_text_new ();
@@ -1990,8 +2002,11 @@ updater_run (alpm_list_t *cmdline_post)
     gtk_tree_view_column_pack_start (column, renderer_pbar, TRUE);
     gtk_tree_view_column_set_resizable (column, TRUE);
     gtk_tree_view_column_set_sort_column_id (column, UCOL_NEW_SIZE);
-    g_signal_connect (G_OBJECT (column), "clicked",
-                      G_CALLBACK (column_clicked_cb), NULL);
+    if (config->sane_sort_order)
+    {
+        g_signal_connect (G_OBJECT (column), "clicked",
+                          G_CALLBACK (column_clicked_cb), NULL);
+    }
     gtk_tree_view_append_column (GTK_TREE_VIEW (list), column);
     /* column: Net size */
     column = gtk_tree_view_column_new_with_attributes ("Net",
@@ -2001,17 +2016,23 @@ updater_run (alpm_list_t *cmdline_post)
         (GtkTreeCellDataFunc) rend_net_size, NULL, NULL);
     gtk_tree_view_column_set_resizable (column, TRUE);
     gtk_tree_view_column_set_sort_column_id (column, UCOL_NET_SIZE);
-    g_signal_connect (G_OBJECT (column), "clicked",
-                      G_CALLBACK (column_clicked_cb), NULL);
+    if (config->sane_sort_order)
+    {
+        g_signal_connect (G_OBJECT (column), "clicked",
+                          G_CALLBACK (column_clicked_cb), NULL);
+    }
     gtk_tree_view_append_column (GTK_TREE_VIEW (list), column);
     
     /* set the tree ordered by package ASC */
     gtk_tree_sortable_set_sort_column_id (GTK_TREE_SORTABLE (store),
                                           UCOL_PACKAGE,
                                           GTK_SORT_ASCENDING);
-    /* reverse the initial arrow */
-    column = gtk_tree_view_get_column (GTK_TREE_VIEW (list), 0);
-    gtk_tree_view_column_set_sort_order (column, GTK_SORT_DESCENDING);
+    if (config->sane_sort_order)
+    {
+        /* reverse the initial arrow */
+        column = gtk_tree_view_get_column (GTK_TREE_VIEW (list), 0);
+        gtk_tree_view_column_set_sort_order (column, GTK_SORT_DESCENDING);
+    }
     
     gtk_container_add (GTK_CONTAINER (scrolled_window), list);
     gtk_widget_show (list);

@@ -101,6 +101,7 @@ typedef struct _config_t {
     char            *cmdline;
     char            *cmdline_aur;
     alpm_list_t     *cmdline_post;
+    gboolean         sane_sort_order;
     
     templates_t     *tpl_upgrades;
     templates_t     *tpl_watched;

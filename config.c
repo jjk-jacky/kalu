@@ -931,6 +931,14 @@ parse_config_file (const char       *file,
                         debug ("config: checks_manual: %d", checks);
                     }
                 }
+                else if (strcmp (key, "SaneSortOrder") == 0)
+                {
+                    if (*value == '1')
+                    {
+                        config->sane_sort_order = TRUE;
+                    }
+                    debug ("config: sane sort order: %d", config->sane_sort_order);
+                }
                 else
                 {
                     set_error ("unknown option: %s", key);
