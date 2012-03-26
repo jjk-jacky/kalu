@@ -996,7 +996,7 @@ icon_query_tooltip_cb (GtkWidget *icon _UNUSED_, gint x _UNUSED_, gint y _UNUSED
         addstr ("ago");
     }
     
-    if (kalpm_state.nb_syncdbs > 0)
+    if (config->syncdbs_in_tooltip && kalpm_state.nb_syncdbs > 0)
     {
         addstr ("\nsync possible for %d dbs", kalpm_state.nb_syncdbs);
     }
@@ -1407,11 +1407,13 @@ main (int argc, char *argv[])
     config->pacmanconf = strdup ("/etc/pacman.conf");
     config->interval = 3600; /* 1 hour */
     config->timeout = NOTIFY_EXPIRES_DEFAULT;
+    config->syncdbs_in_tooltip = TRUE;
     config->checks_manual = CHECK_UPGRADES | CHECK_WATCHED | CHECK_AUR
                             | CHECK_WATCHED_AUR | CHECK_NEWS;
     config->checks_auto   = CHECK_UPGRADES | CHECK_WATCHED | CHECK_AUR
                             | CHECK_WATCHED_AUR | CHECK_NEWS;
     config->action = UPGRADE_ACTION_KALU;
+    config->sane_sort_order = TRUE;
     
     config->tpl_upgrades = calloc (1, sizeof (templates_t));
     config->tpl_upgrades->title = strdup ("$NB updates available (D: $DL; N: $NET)");

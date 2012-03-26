@@ -933,11 +933,13 @@ parse_config_file (const char       *file,
                 }
                 else if (strcmp (key, "SaneSortOrder") == 0)
                 {
-                    if (*value == '1')
-                    {
-                        config->sane_sort_order = TRUE;
-                    }
+                    config->sane_sort_order = (*value == '1');
                     debug ("config: sane sort order: %d", config->sane_sort_order);
+                }
+                else if (strcmp (key, "SyncDbsInTooltip") == 0)
+                {
+                    config->syncdbs_in_tooltip = (*value == '1');
+                    debug ("config: syncdbs in tooltip: %d", config->syncdbs_in_tooltip);
                 }
                 else
                 {

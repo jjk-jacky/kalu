@@ -90,6 +90,7 @@ typedef struct _config_t {
     char            *pacmanconf;
     check_t          checks_manual;
     check_t          checks_auto;
+    int              syncdbs_in_tooltip;
     int              interval;
     int              timeout;
     int              has_skip;
