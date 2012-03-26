@@ -736,7 +736,7 @@ static inline void
 kalu_sysupgrade (void)
 {
     /* in case e.g. the menu was shown (sensitive) before an auto-check started */
-    if (kalpm_state.is_busy)
+    if (kalpm_state.is_busy || config->action == UPGRADE_NO_ACTION)
     {
         return;
     }

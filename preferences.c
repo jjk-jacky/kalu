@@ -1559,6 +1559,7 @@ show_prefs (void)
               "Edit selected command-line",
               "Remove selected command-line",
               config->cmdline_post);
+    gtk_widget_set_sensitive (cmdline_post_hbox, config->action != UPGRADE_NO_ACTION);
     
     /* doing this now otherwise it's triggered with non-yet-existing widgets to hide/show */
     g_signal_connect (G_OBJECT (upg_action_combo), "changed",
