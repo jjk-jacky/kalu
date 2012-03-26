@@ -733,7 +733,7 @@ menu_manage_cb (GtkMenuItem *item _UNUSED_, gboolean is_aur)
 }
 
 static inline void
-kalu_sysupgrade ()
+kalu_sysupgrade (void)
 {
     /* in case e.g. the menu was shown (sensitive) before an auto-check started */
     if (kalpm_state.is_busy)
@@ -913,6 +913,7 @@ icon_popup_cb (GtkStatusIcon *_icon _UNUSED_, guint button, guint activate_time,
 }
 
 static GPtrArray *open_windows = NULL;
+static gboolean has_hidden_windows = FALSE;
 
 void
 add_open_window (gpointer window)
@@ -930,18 +931,43 @@ remove_open_window (gpointer window)
     g_ptr_array_remove (open_windows, window);
 }
 
+static inline void
+toggle_open_windows (void)
+{
+    if (!open_windows || open_windows->len == 0)
+    {
+        return;
+    }
+    
+    g_ptr_array_foreach (open_windows,
+                         (GFunc) ((has_hidden_windows) ? gtk_widget_show : gtk_widget_hide),
+                         NULL);
+    has_hidden_windows = !has_hidden_windows;
+}
+
 static guint icon_press_timeout = 0;
+
+#define process_click_action(on_click)  do {        \
+        if (on_click == DO_SYSUPGRADE)              \
+        {                                           \
+            kalu_sysupgrade ();                     \
+        }                                           \
+        else if (on_click == DO_CHECK)              \
+        {                                           \
+            kalu_check (FALSE);                     \
+        }                                           \
+        else if (on_click == DO_TOGGLE_WINDOWS)     \
+        {                                           \
+            toggle_open_windows ();                 \
+        }                                           \
+    } while (0)
 
 static gboolean
 icon_press_click (gpointer data _UNUSED_)
 {
     icon_press_timeout = 0;
     
-    static gboolean is_minimized = FALSE;
-    g_ptr_array_foreach (open_windows,
-                         (GFunc) ((is_minimized) ? gtk_widget_show : gtk_widget_hide),
-                         NULL);
-    is_minimized = !is_minimized;
+    process_click_action (config->on_sgl_click);
     
     return FALSE;
 }
@@ -961,14 +987,7 @@ icon_press_cb (GtkStatusIcon *icon _UNUSED_, GdkEventButton *event, gpointer dat
                 icon_press_timeout = 0;
             }
             
-            if (config->on_dbl_click == DO_SYSUPGRADE)
-            {
-                kalu_sysupgrade ();
-            }
-            else if (config->on_dbl_click == DO_CHECK)
-            {
-                kalu_check (FALSE);
-            }
+            process_click_action (config->on_dbl_click);
         }
         else if (event->type == GDK_BUTTON_PRESS)
         {
@@ -993,6 +1012,8 @@ icon_press_cb (GtkStatusIcon *icon _UNUSED_, GdkEventButton *event, gpointer dat
     return FALSE;
 }
 
+#undef process_click_action
+
 #define addstr(...)     do {                            \
         len = snprintf (s, (size_t) max, __VA_ARGS__);  \
         max -= len;                                     \
@@ -1009,18 +1030,21 @@ icon_query_tooltip_cb (GtkWidget *icon _UNUSED_, gint x _UNUSED_, gint y _UNUSED
     gchar buf[420], *s = buf;
     gint max = 420, len;
     
+    addstr ("[kalu%s]", (has_hidden_windows) ? " +" : "");
+    
     if (kalpm_state.is_busy)
     {
-        gtk_tooltip_set_text (tooltip, "kalu - Checking/updating in progress...");
+        addstr (" Checking/updating in progress...");
+        gtk_tooltip_set_text (tooltip, buf);
         return TRUE;
     }
     else if (kalpm_state.last_check == NULL)
     {
-        gtk_tooltip_set_text (tooltip, "kalu");
+        gtk_tooltip_set_text (tooltip, buf);
         return TRUE;
     }
     
-    addstr ("[kalu] Last checked ");
+    addstr (" Last checked ");
     
     current = g_date_time_new_now_local ();
     timespan = g_date_time_difference (current, kalpm_state.last_check);
@@ -1103,7 +1127,7 @@ icon_query_tooltip_cb (GtkWidget *icon _UNUSED_, gint x _UNUSED_, gint y _UNUSED
     
     if (max <= 0)
     {
-        sprintf (buf, "kalu");
+        sprintf (buf, "kalu: error setting tooltip");
     }
     gtk_tooltip_set_text (tooltip, buf);
     return TRUE;
@@ -1492,6 +1516,7 @@ main (int argc, char *argv[])
     config->checks_auto   = CHECK_UPGRADES | CHECK_WATCHED | CHECK_AUR
                             | CHECK_WATCHED_AUR | CHECK_NEWS;
     config->action = UPGRADE_ACTION_KALU;
+    config->on_sgl_click = DO_CHECK;
     config->on_dbl_click = DO_SYSUPGRADE;
     config->sane_sort_order = TRUE;
     

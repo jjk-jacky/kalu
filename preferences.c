@@ -88,6 +88,7 @@ static GtkWidget *watched_aur_sep_entry     = NULL;
 /* Misc */
 static GtkWidget *sane_sort_order           = NULL;
 static GtkWidget *syncdbs_in_tooltip        = NULL;
+static GtkWidget *on_sgl_click              = NULL;
 static GtkWidget *on_dbl_click              = NULL;
 
 /* we keep a copy of templates like so, so that we can use it when refreshing
@@ -941,6 +942,24 @@ btn_save_cb (GtkButton *button _UNUSED_, gpointer data _UNUSED_)
         GTK_TOGGLE_BUTTON (syncdbs_in_tooltip));
     add_to_conf ("SyncDbsInTooltip = %d\n", new_config.syncdbs_in_tooltip);
     
+    new_config.on_sgl_click = gtk_combo_box_get_active (GTK_COMBO_BOX (on_sgl_click));
+    if (new_config.on_sgl_click == DO_SYSUPGRADE)
+    {
+        add_to_conf ("OnSglClick = SYSUPGRADE\n");
+    }
+    else if (new_config.on_sgl_click == DO_CHECK)
+    {
+        add_to_conf ("OnSglClick = CHECK\n");
+    }
+    else if (new_config.on_sgl_click == DO_TOGGLE_WINDOWS)
+    {
+        add_to_conf ("OnSglClick = TOGGLE_WINDOWS\n");
+    }
+    else /* if (new_config.on_sgl_click == DO_NOTHING) */
+    {
+        add_to_conf ("OnSglClick = NOTHING\n");
+    }
+    
     new_config.on_dbl_click = gtk_combo_box_get_active (GTK_COMBO_BOX (on_dbl_click));
     if (new_config.on_dbl_click == DO_SYSUPGRADE)
     {
@@ -949,6 +968,10 @@ btn_save_cb (GtkButton *button _UNUSED_, gpointer data _UNUSED_)
     else if (new_config.on_dbl_click == DO_CHECK)
     {
         add_to_conf ("OnDblClick = CHECK\n");
+    }
+    else if (new_config.on_dbl_click == DO_TOGGLE_WINDOWS)
+    {
+        add_to_conf ("OnDblClick = TOGGLE_WINDOWS\n");
     }
     else /* if (new_config.on_dbl_click == DO_NOTHING) */
     {
@@ -1689,6 +1712,39 @@ show_prefs (void)
     gtk_widget_show (syncdbs_in_tooltip);
     
     ++top;
+    label = gtk_label_new ("When clicking the systray icon :");
+    gtk_grid_attach (GTK_GRID (grid), label, 0, top, 1, 1);
+    gtk_widget_show (label);
+    
+    on_sgl_click = gtk_combo_box_text_new ();
+    gtk_combo_box_text_append (GTK_COMBO_BOX_TEXT (on_sgl_click), "0",
+        "Do nothing");
+    gtk_combo_box_text_append (GTK_COMBO_BOX_TEXT (on_sgl_click), "1",
+        "Check for Upgrades...");
+    gtk_combo_box_text_append (GTK_COMBO_BOX_TEXT (on_sgl_click), "2",
+        "System upgrade...");
+    gtk_combo_box_text_append (GTK_COMBO_BOX_TEXT (on_sgl_click), "3",
+        "Hide/show opened windows (except kalu's updater)");
+    gtk_grid_attach (GTK_GRID (grid), on_sgl_click, 1, top, 1, 1);
+    gtk_widget_show (on_sgl_click);
+    if (config->on_sgl_click == DO_CHECK)
+    {
+        gtk_combo_box_set_active (GTK_COMBO_BOX (on_sgl_click), 1);
+    }
+    else if (config->on_sgl_click == DO_SYSUPGRADE)
+    {
+        gtk_combo_box_set_active (GTK_COMBO_BOX (on_sgl_click), 2);
+    }
+    else if (config->on_sgl_click == DO_TOGGLE_WINDOWS)
+    {
+        gtk_combo_box_set_active (GTK_COMBO_BOX (on_sgl_click), 3);
+    }
+    else /* DO_NOTHING */
+    {
+        gtk_combo_box_set_active (GTK_COMBO_BOX (on_sgl_click), 0);
+    }
+    
+    ++top;
     label = gtk_label_new ("When double clicking the systray icon :");
     gtk_grid_attach (GTK_GRID (grid), label, 0, top, 1, 1);
     gtk_widget_show (label);
@@ -1700,6 +1756,8 @@ show_prefs (void)
         "Check for Upgrades...");
     gtk_combo_box_text_append (GTK_COMBO_BOX_TEXT (on_dbl_click), "2",
         "System upgrade...");
+    gtk_combo_box_text_append (GTK_COMBO_BOX_TEXT (on_dbl_click), "3",
+        "Hide/show opened windows (except kalu's updater)");
     gtk_grid_attach (GTK_GRID (grid), on_dbl_click, 1, top, 1, 1);
     gtk_widget_show (on_dbl_click);
     if (config->on_dbl_click == DO_CHECK)
@@ -1709,6 +1767,10 @@ show_prefs (void)
     else if (config->on_dbl_click == DO_SYSUPGRADE)
     {
         gtk_combo_box_set_active (GTK_COMBO_BOX (on_dbl_click), 2);
+    }
+    else if (config->on_dbl_click == DO_TOGGLE_WINDOWS)
+    {
+        gtk_combo_box_set_active (GTK_COMBO_BOX (on_dbl_click), 3);
     }
     else /* DO_NOTHING */
     {

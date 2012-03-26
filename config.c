@@ -931,19 +931,34 @@ parse_config_file (const char       *file,
                         debug ("config: checks_manual: %d", checks);
                     }
                 }
-                else if (strcmp (key, "OnDblClick") == 0)
+                else if (  strcmp (key, "OnSglClick") == 0
+                        || strcmp (key, "OnDblClick") == 0)
                 {
+                    on_click_t *on_click;
+                    if (strcmp (key, "OnSglClick") == 0)
+                    {
+                        on_click = &(config->on_sgl_click);
+                    }
+                    else
+                    {
+                        on_click = &(config->on_dbl_click);
+                    }
+                    
                     if (strcmp (value, "CHECK") == 0)
                     {
-                        config->on_dbl_click = DO_CHECK;
+                        *on_click = DO_CHECK;
                     }
                     else if (strcmp (value, "SYSUPGRADE") == 0)
                     {
-                        config->on_dbl_click = DO_SYSUPGRADE;
+                        *on_click = DO_SYSUPGRADE;
                     }
                     else if (strcmp (value, "NOTHING") == 0)
                     {
-                        config->on_dbl_click = DO_NOTHING;
+                        *on_click = DO_NOTHING;
+                    }
+                    else if (strcmp (value, "TOGGLE_WINDOWS") == 0)
+                    {
+                        *on_click = DO_TOGGLE_WINDOWS;
                     }
                     else
                     {
@@ -951,7 +966,7 @@ parse_config_file (const char       *file,
                         success = FALSE;
                         goto cleanup;
                     }
-                    debug ("config: on dbl-click: %s", config->on_dbl_click);
+                    debug ("config: %s: %s", key, *on_click);
                 }
                 else if (strcmp (key, "SaneSortOrder") == 0)
                 {
