@@ -1,4 +1,4 @@
-.TH kalu 1 "2012-03-06" 0.1.0 "Keeping Arch Linux Up-to-date"
+.TH kalu 1 "2012-03-26" 0.1.4 "Keeping Arch Linux Up-to-date"
 
 .SH NAME
 kalu \- Keeping Arch Linux Up-to-date
@@ -113,7 +113,7 @@ which can contain the following files :
 .P
 
 .SH PREFERENCES
-Preferences are presented under 6 tabs. Most of those represent a type of
+Preferences are presented under a few tabs. Most of those represent a type of
 check/notification supported by kalu, and as such include a template definition
 allowing you to tweak the content of said notifications.
 .P
@@ -451,6 +451,48 @@ No variables available.
 .RE
 .RE
 .RE
+
+.P
+\fBMisc\fR
+.RS 4
+\fIUse sane indicator\fR
+.RS 4
+Because in the Linux world, when a list is ordered descendingly, the arrow points...
+up!? This option restores sanity and have it point down.
+.P
+This is used when sorting packages in kalu's updater.
+.RE
+.RE
+.P
+.RS 4
+\fIShow if databases can be synchronized in tooltip\fR
+.RS 4
+An indication of how many databases can by synchronized (i.e. are not up-to-date)
+will be featured on the tooltip, regardless of whether upgrades are available or
+not.
+.RE
+.RE
+.P
+.RS 4
+\fIWhen (double) clicking the systray icon\fR
+.RS 4
+Defines the action to be done when you single/double click on kalu's systray icon.
+.P
+* \fBDo nothing\fR : does exactly that.
+
+* \fBCheck for Upgrades\fR : Start a manual check
+
+* \fBSystem Upgrade\fR : Start a system upgrade. This will do the same as using
+menu "System Upgrade" or the button "Upgrade system" on notification; i.e. the
+specified action done depends on your settings under \fBUpgrades\fR
+.P
+Note that if no button "Upgrade system" is shown on notification, this option
+will have the same effect as \fBDo nothing\fR
+
+* \fBHide/show opened windows (except kalu's updater)\fR : will hide all
+opened windows (except for kalu's updater). If at least one window is hidden,
+an indication will be featured on the tooltip (" +" next to "kalu") and
+triggering the action again will then show all hidden windows.
 
 
 .SH SYSTEM UPGRADE
