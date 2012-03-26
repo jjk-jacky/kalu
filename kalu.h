@@ -79,6 +79,12 @@ typedef enum {
     CHECK_NEWS          = (1 << 4)
 } check_t;
 
+typedef enum {
+    DO_NOTHING = 0,
+    DO_CHECK,
+    DO_SYSUPGRADE
+} on_dbl_click_t;
+
 typedef struct _templates_t {
     char *title;
     char *package;
@@ -103,6 +109,7 @@ typedef struct _config_t {
     char            *cmdline_aur;
     alpm_list_t     *cmdline_post;
     gboolean         sane_sort_order;
+    on_dbl_click_t   on_dbl_click;
     
     templates_t     *tpl_upgrades;
     templates_t     *tpl_watched;

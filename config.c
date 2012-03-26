@@ -931,6 +931,28 @@ parse_config_file (const char       *file,
                         debug ("config: checks_manual: %d", checks);
                     }
                 }
+                else if (strcmp (key, "OnDblClick") == 0)
+                {
+                    if (strcmp (value, "CHECK") == 0)
+                    {
+                        config->on_dbl_click = DO_CHECK;
+                    }
+                    else if (strcmp (value, "SYSUPGRADE") == 0)
+                    {
+                        config->on_dbl_click = DO_SYSUPGRADE;
+                    }
+                    else if (strcmp (value, "NOTHING") == 0)
+                    {
+                        config->on_dbl_click = DO_NOTHING;
+                    }
+                    else
+                    {
+                        set_error ("unknown value for %s: %s", key, value);
+                        success = FALSE;
+                        goto cleanup;
+                    }
+                    debug ("config: on dbl-click: %s", config->on_dbl_click);
+                }
                 else if (strcmp (key, "SaneSortOrder") == 0)
                 {
                     config->sane_sort_order = (*value == '1');

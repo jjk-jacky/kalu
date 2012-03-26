@@ -85,6 +85,10 @@ static GtkWidget *aur_sep_entry             = NULL;
 static GtkWidget *watched_aur_title_entry   = NULL;
 static GtkWidget *watched_aur_package_entry = NULL;
 static GtkWidget *watched_aur_sep_entry     = NULL;
+/* Misc */
+static GtkWidget *sane_sort_order           = NULL;
+static GtkWidget *syncdbs_in_tooltip        = NULL;
+static GtkWidget *on_dbl_click              = NULL;
 
 /* we keep a copy of templates like so, so that we can use it when refreshing
  * the different templates. that is, values shown when a template is not set
@@ -705,13 +709,6 @@ btn_save_cb (GtkButton *button _UNUSED_, gpointer data _UNUSED_)
     new_config.tpl_news         = calloc (1, sizeof (templates_t));
     new_config.aur_ignore       = NULL;
     
-    /* those are "tweaks" not featured in GUI */
-    new_config.sane_sort_order = config->sane_sort_order;
-    add_to_conf ("SaneSortOrder = %d\n", new_config.sane_sort_order);
-    
-    new_config.syncdbs_in_tooltip = config->syncdbs_in_tooltip;
-    add_to_conf ("SyncDbsInTooltip = %d\n", new_config.syncdbs_in_tooltip);
-    
     /* General */
     s = gtk_file_chooser_get_filename (GTK_FILE_CHOOSER (filechooser));
     if (NULL == s)
@@ -930,6 +927,29 @@ btn_save_cb (GtkButton *button _UNUSED_, gpointer data _UNUSED_)
             }
         } while (gtk_tree_model_iter_next (model, &iter));
         add_to_conf ("\n");
+    }
+    
+    /* Misc */
+    new_config.sane_sort_order = gtk_toggle_button_get_active (
+        GTK_TOGGLE_BUTTON (sane_sort_order));
+    add_to_conf ("SaneSortOrder = %d\n", new_config.sane_sort_order);
+    
+    new_config.sane_sort_order = gtk_toggle_button_get_active (
+        GTK_TOGGLE_BUTTON (syncdbs_in_tooltip));
+    add_to_conf ("SyncDbsInTooltip = %d\n", new_config.syncdbs_in_tooltip);
+    
+    new_config.on_dbl_click = gtk_combo_box_get_active (GTK_COMBO_BOX (on_dbl_click));
+    if (new_config.on_dbl_click == DO_SYSUPGRADE)
+    {
+        add_to_conf ("OnDblClick = SYSUPGRADE\n");
+    }
+    else if (new_config.on_dbl_click == DO_CHECK)
+    {
+        add_to_conf ("OnDblClick = CHECK\n");
+    }
+    else /* if (new_config.on_dbl_click == DO_NOTHING) */
+    {
+        add_to_conf ("OnDblClick = NOTHING\n");
     }
     
     /* ** TEMPLATES ** */
@@ -1636,6 +1656,59 @@ show_prefs (void)
                   &watched_aur_sep_entry,
                   config->tpl_watched_aur,
                   CHECK_WATCHED_AUR);
+    
+    /* add page */
+    gtk_widget_show (grid);
+    gtk_notebook_append_page (GTK_NOTEBOOK (notebook), grid, lbl_page);
+    
+    /*******************************************/
+    
+    /* [ Misc ] */
+    top = 0;
+    grid = gtk_grid_new ();
+    lbl_page = gtk_label_new ("Misc");
+    
+    sane_sort_order = gtk_check_button_new_with_label ("Use sane sort indicator");
+    gtk_widget_set_tooltip_text (sane_sort_order, "So when sorted descendingly, the arrow points down...\nThis is used for the packages list in kalu's updater");
+    gtk_widget_set_margin_top (sane_sort_order, 10);
+    gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON (sane_sort_order),
+                                  config->sane_sort_order);
+    gtk_grid_attach (GTK_GRID (grid), sane_sort_order, 0, top, 2, 1);
+    gtk_widget_show (sane_sort_order);
+    
+    ++top;
+    syncdbs_in_tooltip = gtk_check_button_new_with_label ("Show if databases can by synchronized in tooltip");
+    gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON (syncdbs_in_tooltip),
+                                  config->syncdbs_in_tooltip);
+    gtk_grid_attach (GTK_GRID (grid), syncdbs_in_tooltip, 0, top, 2, 1);
+    gtk_widget_show (syncdbs_in_tooltip);
+    
+    ++top;
+    label = gtk_label_new ("When double clicking the systray icon :");
+    gtk_grid_attach (GTK_GRID (grid), label, 0, top, 1, 1);
+    gtk_widget_show (label);
+    
+    on_dbl_click = gtk_combo_box_text_new ();
+    gtk_combo_box_text_append (GTK_COMBO_BOX_TEXT (on_dbl_click), "0",
+        "Do nothing");
+    gtk_combo_box_text_append (GTK_COMBO_BOX_TEXT (on_dbl_click), "1",
+        "Check for Upgrades...");
+    gtk_combo_box_text_append (GTK_COMBO_BOX_TEXT (on_dbl_click), "2",
+        "System upgrade...");
+    gtk_grid_attach (GTK_GRID (grid), on_dbl_click, 1, top, 1, 1);
+    gtk_widget_show (on_dbl_click);
+    if (config->on_dbl_click == DO_CHECK)
+    {
+        gtk_combo_box_set_active (GTK_COMBO_BOX (on_dbl_click), 1);
+    }
+    else if (config->on_dbl_click == DO_SYSUPGRADE)
+    {
+        gtk_combo_box_set_active (GTK_COMBO_BOX (on_dbl_click), 2);
+    }
+    else /* DO_NOTHING */
+    {
+        gtk_combo_box_set_active (GTK_COMBO_BOX (on_dbl_click), 0);
+    }
     
     /* add page */
     gtk_widget_show (grid);

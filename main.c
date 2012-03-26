@@ -70,7 +70,6 @@ static void kalu_check (gboolean is_auto);
 static void kalu_auto_check (void);
 static void menu_check_cb (GtkMenuItem *item, gpointer data);
 static void menu_quit_cb (GtkMenuItem *item, gpointer data);
-static void menu_updater_cb (GtkMenuItem *item, gpointer data);
 static void icon_popup_cb (GtkStatusIcon *icon, guint button, guint activate_time, gpointer data);
 static void free_config (void);
 
@@ -690,7 +689,7 @@ kalu_check_work (gboolean is_auto)
     set_kalpm_busy (FALSE);
 }
 
-static void
+static inline void
 kalu_check (gboolean is_auto)
 {
     /* in case e.g. the menu was shown (sensitive) before an auto-check started */
@@ -733,8 +732,8 @@ menu_manage_cb (GtkMenuItem *item _UNUSED_, gboolean is_aur)
     watched_manage (is_aur);
 }
 
-static void
-menu_updater_cb (GtkMenuItem *item _UNUSED_, gpointer data _UNUSED_)
+static inline void
+kalu_sysupgrade ()
 {
     /* in case e.g. the menu was shown (sensitive) before an auto-check started */
     if (kalpm_state.is_busy)
@@ -842,7 +841,7 @@ icon_popup_cb (GtkStatusIcon *_icon _UNUSED_, guint button, guint activate_time,
         gtk_image_menu_item_set_image (GTK_IMAGE_MENU_ITEM (item), image);
         gtk_widget_set_tooltip_text (item, "Perform a system upgrade");
         g_signal_connect (G_OBJECT (item), "activate",
-                          G_CALLBACK (menu_updater_cb), NULL);
+                          G_CALLBACK (kalu_sysupgrade), NULL);
         gtk_widget_show (item);
         gtk_menu_attach (GTK_MENU (menu), item, 0, 1, pos, pos + 1); ++pos;
     }
@@ -913,6 +912,64 @@ icon_popup_cb (GtkStatusIcon *_icon _UNUSED_, guint button, guint activate_time,
     gtk_menu_popup (GTK_MENU (menu), NULL, NULL, NULL, NULL, button, activate_time);
 }
 
+static guint icon_press_timeout = 0;
+
+static gboolean
+icon_press_click (gpointer data _UNUSED_)
+{
+    icon_press_timeout = 0;
+    
+    /* do something... */
+    
+    return FALSE;
+}
+
+static gboolean
+icon_press_cb (GtkStatusIcon *icon _UNUSED_, GdkEventButton *event, gpointer data _UNUSED_)
+{
+    /* left button? */
+    if (event->button == 1)
+    {
+        if (event->type == GDK_2BUTTON_PRESS)
+        {
+            /* we probably had a timeout set for the click, remove it */
+            if (icon_press_timeout > 0)
+            {
+                g_source_remove (icon_press_timeout);
+                icon_press_timeout = 0;
+            }
+            
+            if (config->on_dbl_click == DO_SYSUPGRADE)
+            {
+                kalu_sysupgrade ();
+            }
+            else if (config->on_dbl_click == DO_CHECK)
+            {
+                kalu_check (FALSE);
+            }
+        }
+        else if (event->type == GDK_BUTTON_PRESS)
+        {
+            /* As per GTK manual: on a dbl-click, we get GDK_BUTTON_PRESS twice
+             * and then a GDK_2BUTTON_PRESS. Obviously, we want then to ignore
+             * the two GDK_BUTTON_PRESS.
+             * Also per manual, for a double click to occur, the second button
+             * press must occur within 1/4 of a second of the first; so:
+             * - on GDK_BUTTON_PRESS we set a timeout, in 250ms
+             *  - if it expires/gets triggered, it was a click
+             *  - if another click happens within that time, the timeout will be
+             *    removed (see GDK_2BUTTON_PRESS above) and the clicks ignored
+             * - if a GDK_BUTTON_PRESS occurs while a timeout is set, it's a
+             * second click and ca be ignored, GDK_2BUTTON_PRESS will handle it */
+            if (icon_press_timeout == 0)
+            {
+                icon_press_timeout = g_timeout_add (250, icon_press_click, NULL);
+            }
+        }
+    }
+    
+    return FALSE;
+}
 
 #define addstr(...)     do {                            \
         len = snprintf (s, (size_t) max, __VA_ARGS__);  \
@@ -1413,6 +1470,7 @@ main (int argc, char *argv[])
     config->checks_auto   = CHECK_UPGRADES | CHECK_WATCHED | CHECK_AUR
                             | CHECK_WATCHED_AUR | CHECK_NEWS;
     config->action = UPGRADE_ACTION_KALU;
+    config->on_dbl_click = DO_SYSUPGRADE;
     config->sane_sort_order = TRUE;
     
     config->tpl_upgrades = calloc (1, sizeof (templates_t));
@@ -1489,6 +1547,8 @@ main (int argc, char *argv[])
                       G_CALLBACK (icon_query_tooltip_cb), NULL);
     g_signal_connect (G_OBJECT (icon), "popup-menu",
                       G_CALLBACK (icon_popup_cb), NULL);
+    g_signal_connect (G_OBJECT (icon), "button-press-event",
+                      G_CALLBACK (icon_press_cb), NULL);
 
     gtk_status_icon_set_visible (icon, TRUE);
     
