@@ -92,6 +92,11 @@ install:
 	install -D -m755 kalu-dbus-launcher $(DESTDIR)/usr/bin/kalu-dbus-launcher
 	install -D -m644 kalu.1.gz $(DESTDIR)/usr/share/man/man1/kalu.1.gz
 	install -D -m644 index.html $(DESTDIR)usr/share/doc/kalu/html/index.html
+	install -D -m644 AUTHORS $(DESTDIR)usr/share/doc/kalu/AUTHORS
+	install -D -m644 COPYING $(DESTDIR)usr/share/licenses/kalu/COPYING
+	install -D -m644 HISTORY $(DESTDIR)usr/share/doc/kalu/HISTORY
+	install -D -m644 LICENSE $(DESTDIR)usr/share/doc/kalu/LICENSE
+	install -D -m644 README.md $(DESTDIR)usr/share/doc/kalu/README.md
 	install -D -m644 arch_linux_48x48_icon_by_painlessrob.png $(DESTDIR)usr/share/pixmaps/kalu.png
 	install -D -m644 org.jjk.kalu.policy $(DESTDIR)usr/share/polkit-1/actions/org.jjk.kalu.policy
 	install -D -m644 org.jjk.kalu.service $(DESTDIR)usr/share/dbus-1/system-services/org.jjk.kalu.service
@@ -103,6 +108,7 @@ uninstall:
 	rm -f $(DESTDIR)/usr/bin/kalu-dbus
 	rm -f $(DESTDIR)/usr/share/man/man1/kalu.1.gz
 	rm -rf $(DESTDIR)usr/share/doc/kalu
+	rm -rf $(DESTDIR)usr/share/licenses/kalu
 	rm -f $(DESTDIR)usr/share/pixmaps/kalu.png
 	rm -f $(DESTDIR)usr/share/polkit-1/actions/org.jjk.kalu.policy
 	rm -f $(DESTDIR)usr/share/dbus-1/system-services/org.jjk.kalu.service
