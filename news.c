@@ -540,7 +540,7 @@ window_destroy_cb (GtkWidget *window, gpointer data _UNUSED_)
     alpm_list_t **lists;
     int i;
     
-    /* will be present of this was a only_updates window */
+    /* will be present if this was a only_updates window */
     lists = g_object_get_data (G_OBJECT (window), "lists");
     if (lists)
     {
@@ -556,6 +556,9 @@ window_destroy_cb (GtkWidget *window, gpointer data _UNUSED_)
         /* this was holding the pointers, free it */
         free (lists);
     }
+    
+    /* remove from list of open windows */
+    remove_open_window (window);
 }
 
 static void
@@ -570,6 +573,8 @@ new_window (gboolean only_updates, GtkWidget **window, GtkWidget **textview)
     gtk_window_set_has_resize_grip (GTK_WINDOW (*window), FALSE);
     g_signal_connect (G_OBJECT (*window), "destroy",
                       G_CALLBACK (window_destroy_cb), NULL);
+    /* add to list of open windows */
+    add_open_window (window);
     /* icon */
     GdkPixbuf *pixbuf;
     pixbuf = gtk_widget_render_icon_pixbuf (*window, "kalu-logo", GTK_ICON_SIZE_DIALOG);
@@ -670,6 +675,7 @@ news_show (gchar *xml_news, gboolean only_updates, GError **error)
             free (xml_news);
         }
         g_propagate_error (error, local_err);
+        gtk_widget_destroy (window);
         set_kalpm_busy (FALSE);
         return FALSE;
     }

@@ -76,7 +76,7 @@ struct _watched_t {
 
 static struct _watched_t watched = {NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL};
 
-static GtkWidget * watched_new_window (w_type_t type);
+static GtkWidget *watched_new_window (w_type_t type);
 static void manage_load_watched (gboolean is_aur);
 
 
@@ -105,7 +105,7 @@ renderer_toggle_cb (GtkCellRendererToggle *renderer _UNUSED_, gchar *path,
 }
 
 static void
-window_destroy_cb (GtkWidget *widget _UNUSED_, w_type_t type)
+window_destroy_cb (GtkWidget *window, w_type_t type)
 {
     GtkTreeModel *model;
     GtkTreeIter iter;
@@ -169,6 +169,9 @@ window_destroy_cb (GtkWidget *widget _UNUSED_, w_type_t type)
             watched.tree_manage_aur = NULL;
             break;
     }
+    
+    /* remove from list of open windows */
+    remove_open_window (window);
 }
 
 static void
@@ -615,6 +618,8 @@ watched_new_window (w_type_t type)
     }
     gtk_container_set_border_width (GTK_CONTAINER (window), 0);
     gtk_window_set_has_resize_grip (GTK_WINDOW (window), FALSE);
+    /* add to list of open windows */
+    add_open_window (window);
     /* icon */
     GdkPixbuf *pixbuf;
     pixbuf = gtk_widget_render_icon_pixbuf (window, "kalu-logo", GTK_ICON_SIZE_DIALOG);

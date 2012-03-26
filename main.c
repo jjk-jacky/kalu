@@ -912,6 +912,24 @@ icon_popup_cb (GtkStatusIcon *_icon _UNUSED_, guint button, guint activate_time,
     gtk_menu_popup (GTK_MENU (menu), NULL, NULL, NULL, NULL, button, activate_time);
 }
 
+static GPtrArray *open_windows = NULL;
+
+void
+add_open_window (gpointer window)
+{
+    if (!open_windows)
+    {
+        open_windows = g_ptr_array_new ();
+    }
+    g_ptr_array_add (open_windows, window);
+}
+
+void
+remove_open_window (gpointer window)
+{
+    g_ptr_array_remove (open_windows, window);
+}
+
 static guint icon_press_timeout = 0;
 
 static gboolean
@@ -919,7 +937,11 @@ icon_press_click (gpointer data _UNUSED_)
 {
     icon_press_timeout = 0;
     
-    /* do something... */
+    static gboolean is_minimized = FALSE;
+    g_ptr_array_foreach (open_windows,
+                         (GFunc) ((is_minimized) ? gtk_widget_show : gtk_widget_hide),
+                         NULL);
+    is_minimized = !is_minimized;
     
     return FALSE;
 }
@@ -1573,6 +1595,10 @@ main (int argc, char *argv[])
     }
     notify_uninit ();
     free_config ();
+    if (open_windows)
+    {
+        g_ptr_array_free (open_windows, TRUE);
+    }
     return 0;
 }
 

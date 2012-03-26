@@ -170,4 +170,7 @@ void set_kalpm_busy (gboolean busy);
 void set_kalpm_nb (check_t type, gint nb);
 void set_kalpm_nb_syncdbs (gint nb);
 
+void add_open_window (gpointer window);
+void remove_open_window (gpointer window);
+
 #endif /* _KALU_H */

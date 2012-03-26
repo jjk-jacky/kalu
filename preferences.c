@@ -123,6 +123,9 @@ destroy_cb (GtkWidget *widget _UNUSED_)
     free (fallback_templates.tpl_aur->sep);
     free (fallback_templates.tpl_aur);
     
+    /* remove from list of open windows */
+    remove_open_window (window);
+    
     window = NULL;
 }
 
@@ -1182,6 +1185,8 @@ show_prefs (void)
     gtk_window_set_title (GTK_WINDOW (window), "Preferences - kalu");
     gtk_container_set_border_width (GTK_CONTAINER (window), 2);
     gtk_window_set_resizable (GTK_WINDOW (window), FALSE);
+    /* add to list of open windows */
+    add_open_window (window);
     /* icon */
     GdkPixbuf *pixbuf;
     pixbuf = gtk_widget_render_icon_pixbuf (window, "kalu-logo", GTK_ICON_SIZE_DIALOG);
@@ -1739,7 +1744,7 @@ show_prefs (void)
     
     /* signals */
     g_signal_connect (G_OBJECT (window), "destroy",
-                     G_CALLBACK (destroy_cb), NULL);
+                      G_CALLBACK (destroy_cb), NULL);
     
     /* enforce (minimum) size */
     gint w, h;
