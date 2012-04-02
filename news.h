@@ -37,4 +37,10 @@ news_has_updates (alpm_list_t **titles,
 gboolean
 news_show (gchar *xml_news, gboolean only_updates, GError **error);
 
+gboolean
+show_help (GError **error);
+
+gboolean
+show_history (GError **error);
+
 #endif /* _KALU_NEWS_H */

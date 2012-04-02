@@ -38,6 +38,9 @@
 
 #define NEWS_RSS_URL        "http://www.archlinux.org/feeds/news/"
 
+#define HTML_MAN_PAGE       "/usr/share/doc/kalu/html/index.html"
+#define HISTORY             "/usr/share/doc/kalu/HISTORY"
+
 typedef struct _parse_updates_data_t {
     gboolean     is_last_reached;
     alpm_list_t *titles;
@@ -135,6 +138,183 @@ title_toggled_cb (GtkToggleButton *button, alpm_list_t **lists)
         }                                                                       \
     } while (0)
 static void
+parse_to_buffer (GtkTextBuffer *buffer, const gchar *text, gsize text_len)
+{
+    GtkTextIter  iter, iter2;
+    GtkTextMark *mark;
+    alpm_list_t *i, *tags = NULL;
+    gchar       *s, *ss, *start, *end;
+    gchar        buf[10];
+    gint         c, margin;
+    
+    s = malloc ((text_len + 2) * sizeof (gchar));
+    snprintf (s, text_len + 1, "%s", text);
+    
+    /* \n replaced by space */
+    while ((ss = strchr (s, '\n')))
+    {
+        *ss = ' ';
+    }
+    while ((ss = strstr (s, "<br>")))
+    {
+        *ss = '\n';
+        start = ss + 4;
+        memmove (++ss, start, strlen (start) + 1);
+    }
+    
+    gtk_text_buffer_get_end_iter (buffer, &iter);
+    mark = gtk_text_buffer_create_mark (buffer, "mark", &iter, TRUE);
+    
+    ss = s;
+    while ((start = strchr (ss, '<')))
+    {
+        if (NULL == (end = strchr (start, '>')))
+        {
+            break;
+        }
+        *end = '\0';
+        if (*(start + 1) == 'p' && (*(start + 2) == '\0' || *(start + 2) == ' '))
+        {
+            *start = '\0';
+            insert_text_with_tags ();
+            gtk_text_buffer_insert (buffer, &iter, "\n", -1);
+            
+            /* look for the margin-left style, and create a corresponding tag.
+             * This is useful when showing the (HTML) man page */
+            ++start;
+            if ((ss = strstr (start, "margin-left:")))
+            {
+                ss += 12; /* 12 = strlen ("margin-left:") */
+                for (c = 0, margin = 0; *ss >= '0' && *ss <= '9'; ++ss, ++c)
+                {
+                    margin = margin * 10 + (*ss - '0');
+                }
+                snprintf (buf, 10, "margin%d", margin);
+                if (!gtk_text_tag_table_lookup (gtk_text_buffer_get_tag_table (buffer),
+                                                buf))
+                {
+                    gtk_text_buffer_create_tag (buffer, buf,
+                        "left-margin",      margin,
+                        NULL);
+                }
+                tags = alpm_list_add (tags, (void *) buf);
+            }
+        }
+        else if (strcmp (start + 1, "/p") == 0)
+        {
+            *start = '\0';
+            insert_text_with_tags ();
+            gtk_text_buffer_insert (buffer, &iter, "\n", -1);
+            
+            /* when showing the (HTML) man page, <p> tags (might) have a margin,
+             * that should be closed here. we assume proper HTML, no recursion
+             * and whatnot, but that should be the case
+             * Go through tags from last to first (first->prev is last) and
+             * remove the first margin found */
+            for (i = tags;
+                 i && ((i->prev == tags && !i->next) || i->prev != tags);
+                 i = i->prev)
+            {
+                if (strncmp (i->data, "margin", 6) == 0)
+                {
+                    tags = alpm_list_remove_str (tags, i->data, NULL);
+                    break;
+                }
+            }
+            
+        }
+        else if (strcmp (start + 1, "b") == 0)
+        {
+            *start = '\0';
+            insert_text_with_tags ();
+            tags = alpm_list_add (tags, (void *) "bold");
+        }
+        else if (strcmp (start + 1, "/b") == 0)
+        {
+            *start = '\0';
+            insert_text_with_tags ();
+            tags = alpm_list_remove_str (tags, "bold", NULL);
+        }
+        else if (strcmp (start + 1, "code") == 0)
+        {
+            *start = '\0';
+            insert_text_with_tags ();
+            tags = alpm_list_add (tags, (void *) "code");
+        }
+        else if (strcmp (start + 1, "/code") == 0)
+        {
+            *start = '\0';
+            insert_text_with_tags ();
+            tags = alpm_list_remove_str (tags, "code", NULL);
+        }
+        else if (strcmp (start + 1, "pre") == 0)
+        {
+            *start = '\0';
+            insert_text_with_tags ();
+            tags = alpm_list_add (tags, (void *) "pre");
+        }
+        else if (strcmp (start + 1, "/pre") == 0)
+        {
+            *start = '\0';
+            insert_text_with_tags ();
+            tags = alpm_list_remove_str (tags, "pre", NULL);
+        }
+        else if (strcmp (start + 1, "h2") == 0)
+        {
+            *start = '\0';
+            insert_text_with_tags ();
+            gtk_text_buffer_insert (buffer, &iter, "\n", -1);
+            tags = alpm_list_add (tags, (void *) "title");
+        }
+        else if (strcmp (start + 1, "/h2") == 0)
+        {
+            *start = '\0';
+            insert_text_with_tags ();
+            gtk_text_buffer_insert (buffer, &iter, "\n", -1);
+            tags = alpm_list_remove_str (tags, "title", NULL);
+        }
+        else if (strcmp (start + 1, "i") == 0)
+        {
+            *start = '\0';
+            insert_text_with_tags ();
+            tags = alpm_list_add (tags, (void *) "italic");
+        }
+        else if (strcmp (start + 1, "/i") == 0)
+        {
+            *start = '\0';
+            insert_text_with_tags ();
+            tags = alpm_list_remove_str (tags, "italic", NULL);
+        }
+        else if (strcmp (start + 1, "lt") == 0)
+        {
+            *start = '\0';
+            insert_text_with_tags ();
+            ss = (gchar *) "<";
+            insert_text_with_tags ();
+        }
+        else if (strcmp (start + 1, "gt") == 0)
+        {
+            *start = '\0';
+            insert_text_with_tags ();
+            ss = (gchar *) ">";
+            insert_text_with_tags ();
+        }
+        else
+        {
+            /* unknown tag - just skip it */
+            *start = '\0';
+            insert_text_with_tags ();
+        }
+        ss = end + 1;
+    }
+    insert_text_with_tags ();
+    
+    gtk_text_buffer_delete_mark (buffer, mark);
+    free (s);
+}
+#undef insert_text_with_tags
+
+static void
 xml_parser_news_text (GMarkupParseContext *context,
                       const gchar         *text,
                       gsize                text_len,
@@ -142,11 +322,10 @@ xml_parser_news_text (GMarkupParseContext *context,
                       GError             **error _UNUSED_)
 {
     GtkTextBuffer   *buffer = parse_news_data->buffer;
-    GtkTextIter     iter, iter2;
-    GtkTextMark     *mark;
-    gchar           *s, *ss, *start, *end;
+    GtkTextIter     iter;
+    gchar           *s;
     const GSList    *list;
-    alpm_list_t     *i, *tags = NULL;
+    alpm_list_t     *i;
     gboolean        is_title = FALSE;
     static gboolean skip_next_description = FALSE;
     alpm_list_t   **lists;
@@ -249,97 +428,43 @@ xml_parser_news_text (GMarkupParseContext *context,
     }
     else
     {
-        s = malloc ((text_len + 2) * sizeof (gchar));
-        snprintf (s, text_len + 1, "%s", text);
-        
-        /* \n replaced by space */
-        while ((ss = strchr (s, '\n')))
-        {
-            *ss = ' ';
-        }
-        
-        gtk_text_buffer_get_end_iter (buffer, &iter);
-        mark = gtk_text_buffer_create_mark (buffer, "mark", &iter, TRUE);
-        
-        ss = s;
-        while ((start = strchr (ss, '<')))
-        {
-            if (NULL == (end = strchr (start, '>')))
-            {
-                break;
-            }
-            *end = '\0';
-            if (strcmp (start + 1, "p") == 0)
-            {
-                *start = '\0';
-                insert_text_with_tags ();
-                gtk_text_buffer_insert (buffer, &iter, "\n", -1);
-                ss = end + 1;
-            }
-            else if (strcmp (start + 1, "/p") == 0)
-            {
-                *start = '\0';
-                insert_text_with_tags ();
-                gtk_text_buffer_insert (buffer, &iter, "\n", -1);
-                ss = end + 1;
-            }
-            else if (strcmp (start + 1, "b") == 0)
-            {
-                *start = '\0';
-                insert_text_with_tags ();
-                tags = alpm_list_add (tags, (void *) "bold");
-                ss = end + 1;
-            }
-            else if (strcmp (start + 1, "/b") == 0)
-            {
-                *start = '\0';
-                insert_text_with_tags ();
-                tags = alpm_list_remove_str (tags, "bold", NULL);
-                ss = end + 1;
-            }
-            else if (strcmp (start + 1, "code") == 0)
-            {
-                *start = '\0';
-                insert_text_with_tags ();
-                tags = alpm_list_add (tags, (void *) "code");
-                ss = end + 1;
-            }
-            else if (strcmp (start + 1, "/code") == 0)
-            {
-                *start = '\0';
-                insert_text_with_tags ();
-                tags = alpm_list_remove_str (tags, "code", NULL);
-                ss = end + 1;
-            }
-            else if (strcmp (start + 1, "pre") == 0)
-            {
-                *start = '\0';
-                insert_text_with_tags ();
-                tags = alpm_list_add (tags, (void *) "pre");
-                ss = end + 1;
-            }
-            else if (strcmp (start + 1, "/pre") == 0)
-            {
-                *start = '\0';
-                insert_text_with_tags ();
-                tags = alpm_list_remove_str (tags, "pre", NULL);
-                ss = end + 1;
-            }
-            else
-            {
-                /* unknown tag - just skip it */
-                *start = '\0';
-                insert_text_with_tags ();
-                ss = end + 1;
-            }
-        }
-        insert_text_with_tags ();
-        
-        gtk_text_buffer_delete_mark (buffer, mark);
-        free (s);
+        parse_to_buffer (buffer, text, text_len);
     }
 }
-#undef insert_text_with_tags
+
+static void
+create_tags (GtkTextBuffer *buffer)
+{
+    /* create tags */
+    GdkRGBA color;
+    
+    gdk_rgba_parse (&color, "rgb(0,119,187)");
+    gtk_text_buffer_create_tag (buffer, "title",
+        "size-points",      10.0,
+        "weight",           800,
+        "foreground-rgba",  &color,
+        NULL);
+    
+    gtk_text_buffer_create_tag (buffer, "bold",
+        "weight",           800,
+        NULL);
+    
+    gdk_rgba_parse (&color, "rgb(255,255,221)");
+    gtk_text_buffer_create_tag (buffer, "code",
+        "family",           "Monospace",
+        "background-rgba",  &color,
+        NULL);
+    
+    gdk_rgba_parse (&color, "rgb(221,255,221)");
+    gtk_text_buffer_create_tag (buffer, "pre",
+        "family",           "Monospace",
+        "background-rgba",  &color,
+        NULL);
+    
+    gtk_text_buffer_create_tag (buffer, "italic",
+        "style",            PANGO_STYLE_ITALIC,
+        NULL);
+}
 
 static gboolean
 parse_xml (gchar *xml, gboolean for_updates, gpointer data_out, GError **error)
@@ -361,31 +486,7 @@ parse_xml (gchar *xml, gboolean for_updates, gpointer data_out, GError **error)
         parse_news_data_t *data = data_out;
         GtkTextBuffer *buffer = data->buffer;
         
-        /* create tags */
-        GdkRGBA color;
-        
-        gdk_rgba_parse (&color, "rgb(0,119,187)");
-        gtk_text_buffer_create_tag (buffer, "title",
-            "size-points",      10.0,
-            "weight",           800,
-            "foreground-rgba",  &color,
-            NULL);
-        
-        gtk_text_buffer_create_tag (buffer, "bold",
-            "weight",           800,
-            NULL);
-        
-        gdk_rgba_parse (&color, "rgb(255,255,221)");
-        gtk_text_buffer_create_tag (buffer, "code",
-            "family",           "Monospace",
-            "background-rgba",  &color,
-            NULL);
-        
-        gdk_rgba_parse (&color, "rgb(221,255,221)");
-        gtk_text_buffer_create_tag (buffer, "pre",
-            "family",           "Monospace",
-            "background-rgba",  &color,
-            NULL);
+        create_tags (buffer);
         
         if (data->only_updates)
         {
@@ -574,7 +675,7 @@ new_window (gboolean only_updates, GtkWidget **window, GtkWidget **textview)
     g_signal_connect (G_OBJECT (*window), "destroy",
                       G_CALLBACK (window_destroy_cb), NULL);
     /* add to list of open windows */
-    add_open_window (window);
+    add_open_window (*window);
     /* icon */
     GdkPixbuf *pixbuf;
     pixbuf = gtk_widget_render_icon_pixbuf (*window, "kalu-logo", GTK_ICON_SIZE_DIALOG);
@@ -722,4 +823,158 @@ news_has_updates (alpm_list_t **titles,
         *titles = data.titles;
         return TRUE;
     }
+}
+
+gboolean
+show_help (GError **error)
+{
+    GError        *local_err = NULL;
+    GtkWidget     *window;
+    GtkWidget     *textview;
+    GtkTextBuffer *buffer;
+    gchar         *text, *t, *s, *e;
+    
+    new_window (FALSE, &window, &textview);
+    gtk_window_set_title (GTK_WINDOW (window), "Help - kalu");
+    gtk_window_set_default_size (GTK_WINDOW (window), 600, 420);
+    buffer = gtk_text_view_get_buffer (GTK_TEXT_VIEW (textview));
+    
+    if (!g_file_get_contents (HTML_MAN_PAGE, &text, NULL, &local_err))
+    {
+        g_propagate_error (error, local_err);
+        gtk_widget_destroy (window);
+        return FALSE;
+    }
+    
+    t = text;
+    /* skip HTML headers, style & TOC */
+    if ((s = strstr (text, "<hr>")))
+    {
+        text = s + 4;
+    }
+    
+    /* convert some HTML stuff */
+    s = text;
+    while ((s = strchr (s, '&')))
+    {
+        e = strchr (++s, ';');
+        if (!e)
+        {
+            break;
+        }
+        *e = '\0';
+        if (strcmp (s, "minus") == 0)
+        {
+            *--s = '-';
+            ++e;
+            memmove (++s, e, strlen (e) + 1);
+        }
+        else if (strcmp (s, "lsquo") == 0)
+        {
+            *--s = '`';
+            ++e;
+            memmove (++s, e, strlen (e) + 1);
+        }
+        else if (strcmp (s, "rsquo") == 0)
+        {
+            *--s = '\'';
+            ++e;
+            memmove (++s, e, strlen (e) + 1);
+        }
+        else if (strcmp (s, "quot") == 0)
+        {
+            *--s = '"';
+            ++e;
+            memmove (++s, e, strlen (e) + 1);
+        }
+        else if (strcmp (s, "amp") == 0)
+        {
+            *--s = '&';
+            ++e;
+            memmove (++s, e, strlen (e) + 1);
+        }
+        else if (strcmp (s, "lt") == 0)
+        {
+            *--s = '<';
+            *e = '>';
+        }
+        else if (strcmp (s, "gt") == 0)
+        {
+            *--s = '<';
+            *e = '>';
+        }
+        else
+        {
+            *e = ';';
+            s = e + 1;
+        }
+    }
+    
+    create_tags (buffer);
+    parse_to_buffer (buffer, text, (gsize) strlen (text));
+    g_free (t);
+    gtk_widget_show (window);
+    return TRUE;
+}
+
+gboolean
+show_history (GError **error)
+{
+    GError        *local_err = NULL;
+    GtkWidget     *window;
+    GtkWidget     *textview;
+    GtkTextBuffer *buffer;
+    gchar         *text, *s;
+    
+    new_window (FALSE, &window, &textview);
+    gtk_window_set_title (GTK_WINDOW (window), "History - kalu");
+    gtk_window_set_default_size (GTK_WINDOW (window), 600, 420);
+    buffer = gtk_text_view_get_buffer (GTK_TEXT_VIEW (textview));
+    
+    if (!g_file_get_contents (HISTORY, &text, NULL, &local_err))
+    {
+        g_propagate_error (error, local_err);
+        gtk_widget_destroy (window);
+        return FALSE;
+    }
+    
+    /* to preserve LF-s */
+    s = strreplace (text, "\n", " <br>");
+    g_free (text);
+    text = s;
+    
+    /* to preserves '<' */
+    s = strreplace (text, "<", " <lt>");
+    g_free (text);
+    text = s;
+    
+    /* to preserves '>' */
+    s = strreplace (text, ">", " <gt>");
+    g_free (text);
+    text = s;
+    
+    /* to turn date/version number into titles (w/ some styling) */
+    while ((s = strstr (text, "<br>#")))
+    {
+        *(s + 0) = ' ';
+        *(s + 1) = '<';
+        *(s + 2) = 'h';
+        *(s + 3) = '2';
+        *(s + 4) = '>';
+        s = strstr (s, " <br>");
+        if (s)
+        {
+            *(s + 0) = '<';
+            *(s + 1) = '/';
+            *(s + 2) = 'h';
+            *(s + 3) = '2';
+            *(s + 4) = '>';
+        }
+    }
+    
+    create_tags (buffer);
+    parse_to_buffer (buffer, text, (gsize) strlen (text));
+    g_free (text);
+    gtk_widget_show (window);
+    return TRUE;
 }

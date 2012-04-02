@@ -770,6 +770,30 @@ menu_news_cb (GtkMenuItem *item _UNUSED_, gpointer data _UNUSED_)
 }
 
 static void
+menu_help_cb (GtkMenuItem *item _UNUSED_, gpointer data _UNUSED_)
+{
+    GError *error = NULL;
+    
+    if (!show_help (&error))
+    {
+        show_error ("Unable to show help", error->message, NULL);
+        g_clear_error (&error);
+    }
+}
+
+static void
+menu_history_cb (GtkMenuItem *item _UNUSED_, gpointer data _UNUSED_)
+{
+    GError *error = NULL;
+    
+    if (!show_history (&error))
+    {
+        show_error ("Unable to show change log", error->message, NULL);
+        g_clear_error (&error);
+    }
+}
+
+static void
 menu_prefs_cb (GtkMenuItem *item _UNUSED_, gpointer data _UNUSED_)
 {
     show_prefs ();
@@ -880,6 +904,24 @@ icon_popup_cb (GtkStatusIcon *_icon _UNUSED_, guint button, guint activate_time,
     gtk_widget_set_tooltip_text (item, "Edit preferences");
     g_signal_connect (G_OBJECT (item), "activate",
                       G_CALLBACK (menu_prefs_cb), NULL);
+    gtk_widget_show (item);
+    gtk_menu_attach (GTK_MENU (menu), item, 0, 1, pos, pos + 1); ++pos;
+    
+    item = gtk_separator_menu_item_new ();
+    gtk_widget_show (item);
+    gtk_menu_attach (GTK_MENU (menu), item, 0, 1, pos, pos + 1); ++pos;
+    
+    item = gtk_image_menu_item_new_from_stock (GTK_STOCK_HELP, NULL);
+    gtk_widget_set_tooltip_text (item, "Show help (man page)");
+    g_signal_connect (G_OBJECT (item), "activate",
+                      G_CALLBACK (menu_help_cb), NULL);
+    gtk_widget_show (item);
+    gtk_menu_attach (GTK_MENU (menu), item, 0, 1, pos, pos + 1); ++pos;
+    
+    item = gtk_image_menu_item_new_with_label ("Change log");
+    gtk_widget_set_tooltip_text (item, "Show change log");
+    g_signal_connect (G_OBJECT (item), "activate",
+                      G_CALLBACK (menu_history_cb), (gpointer) TRUE);
     gtk_widget_show (item);
     gtk_menu_attach (GTK_MENU (menu), item, 0, 1, pos, pos + 1); ++pos;
     
