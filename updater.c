@@ -1805,7 +1805,7 @@ window_destroy_cb (GtkWidget *window _UNUSED_, gpointer data _UNUSED_)
 }
 
 void
-updater_run (alpm_list_t *cmdline_post)
+updater_run (const gchar *conffile, alpm_list_t *cmdline_post)
 {
     updater = calloc (1, sizeof (*updater));
     updater->cmdline_post = cmdline_post;
@@ -2115,11 +2115,11 @@ updater_run (alpm_list_t *cmdline_post)
     /* parse pacman.conf */
     GError *error = NULL;
     pacman_config_t *pac_conf = NULL;
-    add_log (LOGTYPE_UNIMPORTANT, "Parsing pacman.conf...");
-    if (!parse_pacman_conf ("/etc/pacman.conf", NULL, 0, 0, &pac_conf, &error))
+    add_log (LOGTYPE_UNIMPORTANT, "Parsing %s ...", conffile);
+    if (!parse_pacman_conf (conffile, NULL, 0, 0, &pac_conf, &error))
     {
         add_log (LOGTYPE_UNIMPORTANT, " failed\n");
-        _show_error ("Unable to parse pacman.conf", "%s", error->message);
+        _show_error ("Unable to parse pacman.conf", "%s: %s", conffile, error->message);
         g_clear_error (&error);
         free_pacman_config (pac_conf);
         gtk_widget_destroy (window);

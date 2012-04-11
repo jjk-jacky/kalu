@@ -31,6 +31,6 @@
 #include <alpm_list.h>
 
 void
-updater_run (alpm_list_t *cmdline_post);
+updater_run (const gchar *conffile, alpm_list_t *cmdline_post);
 
 #endif /* _KALU_UPDATER_H */

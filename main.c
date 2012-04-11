@@ -62,7 +62,8 @@ config_t *config = NULL;
 #ifndef DISABLE_UPDATER
 #define run_updater()   do {                \
         set_kalpm_busy (TRUE);              \
-        updater_run (config->cmdline_post); \
+        updater_run (config->pacmanconf,    \
+                     config->cmdline_post); \
     } while (0)
 #endif
 
@@ -1574,7 +1575,7 @@ main (int argc, char *argv[])
     snprintf (conffile, MAX_PATH - 1, "%s/.config/kalu/kalu.conf", g_get_home_dir ());
     if (!parse_config_file (conffile, CONF_FILE_KALU, &error))
     {
-        show_error ("Unable to parse configuration", error->message, NULL);
+        show_error ("Errors while parsing configuration", error->message, NULL);
         g_clear_error (&error);
     }
     /* parse watched */

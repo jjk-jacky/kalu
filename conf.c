@@ -669,8 +669,15 @@ setstringoption (char *value, const char *option, char **cfg)
     debug ("config: %s: %s", option, value);
 }
 
-#define set_error(fmt, ...)  g_set_error (error, KALU_ERROR, 1, \
-    "Config file %s, line %d: " fmt, file, linenum, __VA_ARGS__);
+#define add_error(fmt, ...) do {                                        \
+        if (!err_msg)                                                   \
+        {                                                               \
+            err_msg = g_string_sized_new (1024);                        \
+        }                                                               \
+        g_string_append_printf (err_msg,                                \
+                                "Config file %s, line %d: " fmt "\n",   \
+                                file, linenum, __VA_ARGS__);            \
+    } while (0)
 /** inspired from pacman's function */
 gboolean
 parse_config_file (const char       *file,
@@ -682,6 +689,7 @@ parse_config_file (const char       *file,
 	int         linenum         = 0;
     char       *section         = NULL;
 	int         success         = TRUE;
+    GString    *err_msg         = NULL;
 
 	debug ("config: attempting to read file %s", file);
 	fp = fopen (file, "r");
@@ -720,11 +728,13 @@ parse_config_file (const char       *file,
 			/* only possibility here is a line == '[]' */
 			if (line_len <= 2)
             {
-                set_error ("%s", "bad section name");
-				success = FALSE;
-				goto cleanup;
+                add_error ("%s", "bad section name");
+                free (section);
+                section = NULL;
+                continue;
 			}
 			/* new config section, skip the '[' */
+            free (section);
 			section = strdup (line + 1);
 			section[line_len - 2] = '\0';
             
@@ -742,9 +752,8 @@ parse_config_file (const char       *file,
 
 		if (key == NULL)
         {
-            set_error ("%s", "syntax error: missing key");
-			success = FALSE;
-			goto cleanup;
+            add_error ("%s", "syntax error: missing key");
+			continue;
 		}
         
         /* kalu.conf*/
@@ -752,9 +761,8 @@ parse_config_file (const char       *file,
         {
             if (value == NULL)
             {
-                set_error ("value missing for %s", key);
-                success = FALSE;
-                goto cleanup;
+                add_error ("value missing for %s", key);
+                continue;
             }
             else if (strcmp ("options", section) == 0)
             {
@@ -791,9 +799,8 @@ parse_config_file (const char       *file,
                         int timeout = atoi (value);
                         if (timeout < 4 || timeout > 42)
                         {
-                            set_error ("Invalid timeout delay: %s", value);
-                            success = FALSE;
-                            goto cleanup;
+                            add_error ("Invalid timeout delay: %s", value);
+                            continue;
                         }
                         config->timeout = timeout * 1000; /* from seconds to ms */
                     }
@@ -811,9 +818,8 @@ parse_config_file (const char       *file,
                             || end_hour < 0 || end_hour > 23
                             || end_minute < 0 || end_minute > 59)
                         {
-                            set_error ("invalid value for SkipPeriod: %s", value);
-                            success = FALSE;
-                            goto cleanup;
+                            add_error ("invalid value for SkipPeriod: %s", value);
+                            continue;
                         }
                         config->has_skip = TRUE;
                         config->skip_begin_hour   = begin_hour;
@@ -826,10 +832,9 @@ parse_config_file (const char       *file,
                     }
                     else
                     {
-                        set_error ("unable to parse SkipPeriod (must be HH:MM-HH:MM) : %s",
+                        add_error ("unable to parse SkipPeriod (must be HH:MM-HH:MM) : %s",
                                    value);
-                        success = FALSE;
-                        goto cleanup;
+                        continue;
                     }
                 }
                 else if (strcmp (key, "UpgradeAction") == 0)
@@ -850,9 +855,8 @@ parse_config_file (const char       *file,
                     }
                     else
                     {
-                        set_error ("Invalid value for UpgradeAction: %s", value);
-                        success = FALSE;
-                        goto cleanup;
+                        add_error ("Invalid value for UpgradeAction: %s", value);
+                        continue;
                     }
                     debug ("config: action: %d", config->action);
                 }
@@ -912,9 +916,8 @@ parse_config_file (const char       *file,
                         }
                         else
                         {
-                            set_error ("unknown value for %s: %s", key, v);
-                            success = FALSE;
-                            goto cleanup;
+                            add_error ("unknown value for %s: %s", key, v);
+                            continue;
                         }
                         
                         if (s)
@@ -965,9 +968,8 @@ parse_config_file (const char       *file,
                     }
                     else
                     {
-                        set_error ("unknown value for %s: %s", key, value);
-                        success = FALSE;
-                        goto cleanup;
+                        add_error ("unknown value for %s: %s", key, value);
+                        continue;
                     }
                     debug ("config: %s: %d", key, *on_click);
                 }
@@ -983,9 +985,8 @@ parse_config_file (const char       *file,
                 }
                 else
                 {
-                    set_error ("unknown option: %s", key);
-                    success = FALSE;
-                    goto cleanup;
+                    add_error ("unknown option: %s", key);
+                    continue;
                 }
             }
             else
@@ -1013,9 +1014,8 @@ parse_config_file (const char       *file,
                 }
                 else
                 {
-                    set_error ("unknown section: %s", section);
-                    success = FALSE;
-                    goto cleanup;
+                    add_error ("unknown section: %s", section);
+                    continue;
                 }
                 
                 /* we're in a valid template */
@@ -1039,9 +1039,8 @@ parse_config_file (const char       *file,
         {
             if (value == NULL)
             {
-                set_error ("watched package %s: version number missing", key);
-                success = FALSE;
-                goto cleanup;
+                add_error ("watched package %s: version number missing", key);
+                continue;
             }
             else
             {
@@ -1069,9 +1068,8 @@ parse_config_file (const char       *file,
         {
             if (value == NULL)
             {
-                set_error ("news data: value missing for %s", key);
-                success = FALSE;
-                goto cleanup;
+                add_error ("news data: value missing for %s", key);
+                continue;
             }
             else if (strcmp ("Last", key) == 0)
             {
@@ -1091,6 +1089,7 @@ cleanup:
     {
 		fclose(fp);
 	}
+    free (section);
     if (config->action == UPGRADE_ACTION_CMDLINE && config->cmdline == NULL)
     {
         #ifndef DISABLE_UPDATER
@@ -1100,7 +1099,14 @@ cleanup:
         #endif
         debug ("config: action: no cmdline set, reverting to %d", config->action);
     }
+    if (err_msg)
+    {
+        g_set_error (error, KALU_ERROR, 1, "%s", err_msg->str);
+        g_string_free (err_msg, TRUE);
+        err_msg = NULL;
+        success = FALSE;
+    }
 	debug ("config: finished parsing %s", file);
 	return success;
 }
-#undef set_error
+#undef add_error
