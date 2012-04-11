@@ -1,7 +1,7 @@
 /**
  * kalu - Copyright (C) 2012 Olivier Brunel
  *
- * config.c
+ * conf.c
  * Copyright (C) 2012 Olivier Brunel <i.am.jack.mail@gmail.com>
  * Copyright (c) 2006-2011 Pacman Development Team <pacman-dev@archlinux.org>
  * 
@@ -21,7 +21,7 @@
  * kalu. If not, see http://www.gnu.org/licenses/
  */
 
-#define _BSD_SOURCE /* for strdup w/ -std=c99 */
+#include <config.h>
 
 /* C */
 #include <string.h>
@@ -35,9 +35,8 @@
 
 /* kalu */
 #include "kalu.h"
-#include "config.h"
+#include "conf.h"
 #include "util.h"
-#include "alpm.h"
 
 /* some default values */
 #define PACMAN_ROOTDIR      "/"
@@ -839,10 +838,12 @@ parse_config_file (const char       *file,
                     {
                         config->action = UPGRADE_NO_ACTION;
                     }
+                    #ifndef DISABLE_UPDATER
                     else if (strcmp (value, "KALU") == 0)
                     {
                         config->action = UPGRADE_ACTION_KALU;
                     }
+                    #endif
                     else if (strcmp (value, "CMDLINE") == 0)
                     {
                         config->action = UPGRADE_ACTION_CMDLINE;
@@ -863,12 +864,14 @@ parse_config_file (const char       *file,
                 {
                     setstringoption (value, "cmdline_aur", &(config->cmdline_aur));
                 }
+                #ifndef DISABLE_UPDATER
                 else if (strcmp (key, "PostSysUpgrade") == 0)
                 {
                     config->cmdline_post = alpm_list_add (config->cmdline_post,
                         strdup (value));
                     debug ("config: postsysupgrade: %s", value);
                 }
+                #endif
                 else if (strcmp (key, "AurIgnore") == 0)
                 {
                     setrepeatingoption (value, "aur_ignore", &(config->aur_ignore));
@@ -966,7 +969,7 @@ parse_config_file (const char       *file,
                         success = FALSE;
                         goto cleanup;
                     }
-                    debug ("config: %s: %s", key, *on_click);
+                    debug ("config: %s: %d", key, *on_click);
                 }
                 else if (strcmp (key, "SaneSortOrder") == 0)
                 {
@@ -1090,7 +1093,11 @@ cleanup:
 	}
     if (config->action == UPGRADE_ACTION_CMDLINE && config->cmdline == NULL)
     {
+        #ifndef DISABLE_UPDATER
         config->action = UPGRADE_ACTION_KALU;
+        #else
+        config->action = UPGRADE_NO_ACTION;
+        #endif
         debug ("config: action: no cmdline set, reverting to %d", config->action);
     }
 	debug ("config: finished parsing %s", file);

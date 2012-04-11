@@ -1,7 +1,7 @@
 /**
  * kalu - Copyright (C) 2012 Olivier Brunel
  *
- * alpm.c
+ * kalu-alpm.c
  * Copyright (C) 2012 Olivier Brunel <i.am.jack.mail@gmail.com>
  * 
  * This file is part of kalu.
@@ -20,7 +20,7 @@
  * kalu. If not, see http://www.gnu.org/licenses/
  */
 
-#define _BSD_SOURCE /* for strdup w/ -std=c99 */
+#include <config.h>
 
 /* C */
 #include <stdio.h>
@@ -41,9 +41,9 @@
 
 /* kalu */
 #include "kalu.h"
-#include "alpm.h"
+#include "kalu-alpm.h"
 #include "util.h"
-#include "config.h"
+#include "conf.h"
 
 /* global variable */
 unsigned short alpm_verbose;

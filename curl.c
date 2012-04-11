@@ -20,6 +20,8 @@
  * kalu. If not, see http://www.gnu.org/licenses/
  */
 
+#include <config.h>
+
 /* C */
 #include <string.h>
 
@@ -73,7 +75,7 @@ curl_download (const char *url, GError **error)
         return NULL;
     }
     
-    curl_easy_setopt (curl, CURLOPT_USERAGENT, "kalu/" KALU_VERSION);
+    curl_easy_setopt (curl, CURLOPT_USERAGENT, PACKAGE_NAME "/" PACKAGE_VERSION);
     curl_easy_setopt (curl, CURLOPT_URL, url);
     curl_easy_setopt (curl, CURLOPT_NOPROGRESS, 1);
     curl_easy_setopt (curl, CURLOPT_WRITEFUNCTION, curl_write);

@@ -1,7 +1,7 @@
 /**
  * kalu - Copyright (C) 2012 Olivier Brunel
  *
- * config.h
+ * conf.h
  * Copyright (C) 2012 Olivier Brunel <i.am.jack.mail@gmail.com>
  * 
  * This file is part of kalu.

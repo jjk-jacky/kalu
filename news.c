@@ -20,6 +20,8 @@
  * kalu. If not, see http://www.gnu.org/licenses/
  */
 
+#include <config.h>
+
 /* C */
 #include <string.h>
 
@@ -36,10 +38,8 @@
 #include "util.h"
 #include "util-gtk.h"
 
-#define NEWS_RSS_URL        "http://www.archlinux.org/feeds/news/"
-
-#define HTML_MAN_PAGE       "/usr/share/doc/kalu/html/index.html"
-#define HISTORY             "/usr/share/doc/kalu/HISTORY"
+#define HTML_MAN_PAGE       DOCDIR "/html/index.html"
+#define HISTORY             DOCDIR "/HISTORY"
 
 typedef struct _parse_updates_data_t {
     gboolean     is_last_reached;
@@ -938,11 +938,6 @@ show_history (GError **error)
         return FALSE;
     }
     
-    /* to preserve LF-s */
-    s = strreplace (text, "\n", " <br>");
-    g_free (text);
-    text = s;
-    
     /* to preserves '<' */
     s = strreplace (text, "<", " <lt>");
     g_free (text);
@@ -950,6 +945,11 @@ show_history (GError **error)
     
     /* to preserves '>' */
     s = strreplace (text, ">", " <gt>");
+    g_free (text);
+    text = s;
+    
+    /* to preserve LF-s */
+    s = strreplace (text, "\n", " <br>");
     g_free (text);
     text = s;
     

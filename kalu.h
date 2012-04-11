@@ -35,8 +35,7 @@
 
 #define _UNUSED_            __attribute__ ((unused)) 
 
-#define KALU_VERSION        "0.1.4"
-#define KALU_TAG            "Keeping Arch Linux Up-to-date"
+#define PACKAGE_TAG         "Keeping Arch Linux Up-to-date"
 
 #define MAX_PATH            255
 
@@ -67,8 +66,10 @@
 
 typedef enum {
     UPGRADE_NO_ACTION = 0,
+    UPGRADE_ACTION_CMDLINE,
+    #ifndef DISABLE_UPDATER
     UPGRADE_ACTION_KALU,
-    UPGRADE_ACTION_CMDLINE
+    #endif
 } upgrade_action_t;
 
 typedef enum {
@@ -108,7 +109,9 @@ typedef struct _config_t {
     upgrade_action_t action;
     char            *cmdline;
     char            *cmdline_aur;
+    #ifndef DISBALE_UPDATER
     alpm_list_t     *cmdline_post;
+    #endif
     gboolean         sane_sort_order;
     on_click_t       on_sgl_click;
     on_click_t       on_dbl_click;

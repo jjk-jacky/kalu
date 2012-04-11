@@ -20,6 +20,8 @@
  * kalu. If not, see http://www.gnu.org/licenses/
  */
 
+#include <config.h>
+
 /* C */
 #include <string.h> /* strdup */
 
@@ -37,7 +39,7 @@
 #include "util.h"
 #include "kalu-updater.h"
 #include "kupdater.h"
-#include "config.h"
+#include "conf.h"
 
 /* split of pctg of each step in the global progress of the sysupgrade */
 #define PCTG_DOWNLOAD           0.42

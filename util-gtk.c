@@ -20,6 +20,8 @@
  * kalu. If not, see http://www.gnu.org/licenses/
  */
 
+#include <config.h>
+
 /* C */
 #include <stdlib.h>
 #include <string.h>

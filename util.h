@@ -27,10 +27,11 @@
 #include <glib.h>
 
 /* alpm */
-#include "alpm.h"
+#include <alpm.h>
 
 /* kalu */
 #include "kalu.h"
+#include "kalu-alpm.h"
 
 typedef struct _replacement_t {
     const char *name;

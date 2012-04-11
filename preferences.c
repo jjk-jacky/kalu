@@ -20,6 +20,8 @@
  * kalu. If not, see http://www.gnu.org/licenses/
  */
 
+#include <config.h>
+
 /* C */
 #include <string.h>
 
@@ -63,11 +65,15 @@ static GtkWidget *news_package_entry        = NULL;
 static GtkWidget *news_sep_entry            = NULL;
 /* Upgrades */
 static GtkWidget *button_upg_action         = NULL;
+#ifndef DISABLE_UPDATER
 static GtkWidget *upg_action_combo          = NULL;
+#endif
 static GtkWidget *cmdline_label             = NULL;
 static GtkWidget *cmdline_entry             = NULL;
+#ifndef DISABLE_UPDATER
 static GtkWidget *cmdline_post_hbox         = NULL;
 static GtkListStore *cmdline_post_store     = NULL;
+#endif
 static GtkWidget *upg_title_entry           = NULL;
 static GtkWidget *upg_package_entry         = NULL;
 static GtkWidget *upg_sep_entry             = NULL;
@@ -144,9 +150,13 @@ static void
 upg_action_toggled_cb (GtkToggleButton *button, gpointer data _UNUSED_)
 {
     gboolean is_active = gtk_toggle_button_get_active (button);
+    #ifndef DISABLE_UPDATER
     gtk_widget_set_sensitive (upg_action_combo, is_active);
+    #endif
     gtk_widget_set_sensitive (cmdline_entry, is_active);
+    #ifndef DISABLE_UPDATER
     gtk_widget_set_sensitive (cmdline_post_hbox, is_active);
+    #endif
 }
 
 static void
@@ -157,13 +167,17 @@ upg_action_changed_cb (GtkComboBox *combo, gpointer data _UNUSED_)
     {
         gtk_widget_hide (cmdline_label);
         gtk_widget_hide (cmdline_entry);
+        #ifndef DISABLE_UPDATER
         gtk_widget_show (cmdline_post_hbox);
+        #endif
     }
     else if (choice == 1)
     {
         gtk_widget_show (cmdline_label);
         gtk_widget_show (cmdline_entry);
+        #ifndef DISABLE_UPDATER
         gtk_widget_hide (cmdline_post_hbox);
+        #endif
     }
 }
 
@@ -705,7 +719,9 @@ btn_save_cb (GtkButton *button _UNUSED_, gpointer data _UNUSED_)
     new_config.pacmanconf       = NULL;
     new_config.cmdline          = NULL;
     new_config.cmdline_aur      = NULL;
+    #ifndef DISABLE_UPDATER
     new_config.cmdline_post     = NULL;
+    #endif
     new_config.tpl_upgrades     = calloc (1, sizeof (templates_t));
     new_config.tpl_watched      = calloc (1, sizeof (templates_t));
     new_config.tpl_aur          = calloc (1, sizeof (templates_t));
@@ -862,6 +878,7 @@ btn_save_cb (GtkButton *button _UNUSED_, gpointer data _UNUSED_)
     s = (char *) gtk_entry_get_text (GTK_ENTRY (cmdline_entry));
     if (gtk_toggle_button_get_active (GTK_TOGGLE_BUTTON (button_upg_action)))
     {
+        #ifndef DISABLE_UPDATER
         if (gtk_combo_box_get_active (GTK_COMBO_BOX (upg_action_combo)) == 0)
         {
             add_to_conf ("UpgradeAction = KALU\n");
@@ -869,13 +886,16 @@ btn_save_cb (GtkButton *button _UNUSED_, gpointer data _UNUSED_)
         }
         else
         {
+        #endif
             add_to_conf ("UpgradeAction = CMDLINE\n");
             new_config.action = UPGRADE_ACTION_CMDLINE;
             if (s == NULL || *s == '\0')
             {
                 error_on_page (2, "You need to specify the command-line.");
             }
+        #ifndef DISABLE_UPDATER
         }
+        #endif
     }
     else
     {
@@ -888,6 +908,7 @@ btn_save_cb (GtkButton *button _UNUSED_, gpointer data _UNUSED_)
         new_config.cmdline = strdup (s);
     }
     
+    #ifndef DISABLE_UPDATER
     model = GTK_TREE_MODEL (cmdline_post_store);
     if (gtk_tree_model_get_iter_first (model, &iter))
     {
@@ -902,6 +923,7 @@ btn_save_cb (GtkButton *button _UNUSED_, gpointer data _UNUSED_)
             }
         } while (gtk_tree_model_iter_next (model, &iter));
     }
+    #endif
     
     /* AUR */
     
@@ -1041,7 +1063,9 @@ btn_save_cb (GtkButton *button _UNUSED_, gpointer data _UNUSED_)
     free (config->pacmanconf);
     free (config->cmdline);
     free (config->cmdline_aur);
+    #ifndef DISABLE_UPDATER
     FREELIST (config->cmdline_post);
+    #endif
     free_tpl (config->tpl_upgrades);
     free_tpl (config->tpl_watched);
     free_tpl (config->tpl_aur);
@@ -1068,10 +1092,12 @@ clean_on_error:
     {
         free (new_config.cmdline_aur);
     }
+    #ifndef DISABLE_UPDATER
     if (new_config.cmdline_post)
     {
         FREELIST (new_config.cmdline_post);
     }
+    #endif
     free_tpl (new_config.tpl_upgrades);
     free_tpl (new_config.tpl_watched);
     free_tpl (new_config.tpl_aur);
@@ -1508,6 +1534,7 @@ show_prefs (void)
     g_signal_connect (G_OBJECT (button_upg_action), "toggled",
                       G_CALLBACK (upg_action_toggled_cb), NULL);
     
+    #ifndef DISABLE_UPDATER
     ++top;
     label = gtk_label_new ("When clicking the button/menu :");
     gtk_widget_set_tooltip_text (label, "When clicking the button \"Upgrade system\" on notifications, or the menu \"System upgrade\"");
@@ -1531,6 +1558,7 @@ show_prefs (void)
     {
         gtk_combo_box_set_active (GTK_COMBO_BOX (upg_action_combo), 0);
     }
+    #endif
     
     ++top;
     /* CmdLine */
@@ -1545,12 +1573,17 @@ show_prefs (void)
     }
     gtk_grid_attach (GTK_GRID (grid), cmdline_entry, 2, top, 2, 1);
     
+    #ifndef DISABLE_UPDATER
     if (config->action == UPGRADE_ACTION_CMDLINE)
     {
+    #endif
         gtk_widget_show (cmdline_label);
         gtk_widget_show (cmdline_entry);
+    #ifndef DISABLE_UPDATER
     }
+    #endif
     
+    #ifndef DISABLE_UPDATER
     ++top;
     /* PostSysUpgrade */
     add_list (grid, top, &cmdline_post_store, &cmdline_post_hbox,
@@ -1564,6 +1597,7 @@ show_prefs (void)
     /* doing this now otherwise it's triggered with non-yet-existing widgets to hide/show */
     g_signal_connect (G_OBJECT (upg_action_combo), "changed",
                       G_CALLBACK (upg_action_changed_cb), NULL);
+    #endif
     
     ++top;
     add_template (grid, top,

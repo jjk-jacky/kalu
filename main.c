@@ -20,7 +20,7 @@
  * kalu. If not, see http://www.gnu.org/licenses/
  */
 
-#define _BSD_SOURCE /* for strdup w/ -std=c99 */
+#include <config.h>
 
 /* C */
 #include <string.h>
@@ -41,14 +41,16 @@
 
 /* kalu */
 #include "kalu.h"
-#include "alpm.h"
-#include "config.h"
+#include "kalu-alpm.h"
+#include "conf.h"
 #include "util.h"
 #include "util-gtk.h"
 #include "watched.h"
 #include "arch_linux.h"
+#ifndef DISABLE_UPDATER
 #include "kalu-updater.h"
 #include "updater.h"
+#endif
 #include "aur.h"
 #include "news.h"
 #include "preferences.h"
@@ -57,11 +59,12 @@
 /* global variable */
 config_t *config = NULL;
 
+#ifndef DISABLE_UPDATER
 #define run_updater()   do {                \
         set_kalpm_busy (TRUE);              \
         updater_run (config->cmdline_post); \
     } while (0)
-
+#endif
 
 static void action_upgrade (NotifyNotification *notification, const char *action, gpointer data);
 static void action_watched (NotifyNotification *notification, char *action, alpm_list_t *packages);
@@ -112,14 +115,18 @@ action_upgrade (NotifyNotification *notification, const char *action, gpointer d
     
     if (strcmp ("do_updates", action) == 0)
     {
+        #ifndef DISABLE_UPDATER
         if (config->action == UPGRADE_ACTION_KALU)
         {
             run_updater ();
         }
         else /* if (config->action == UPGRADE_ACTION_CMDLINE) */
         {
+        #endif
             cmdline = config->cmdline;
+        #ifndef DISABLE_UPDATER
         }
+        #endif
     }
     else /* if (strcmp ("do_updates_aur", action) == 0) */
     {
@@ -741,14 +748,18 @@ kalu_sysupgrade (void)
         return;
     }
     
+    #ifndef DISABLE_UPDATER
     if (config->action == UPGRADE_ACTION_KALU)
     {
         run_updater ();
     }
     else /* if (config->action == UPGRADE_ACTION_CMDLINE) */
     {
+    #endif
         run_cmdline (config->cmdline);
+    #ifndef DISABLE_UPDATER
     }
+    #endif
 }
 
 static void
@@ -814,9 +825,9 @@ menu_about_cb (GtkMenuItem *item _UNUSED_, gpointer data _UNUSED_)
     gtk_about_dialog_set_logo (about, pixbuf);
     g_object_unref (G_OBJECT (pixbuf));
     
-    gtk_about_dialog_set_program_name (about, "kalu");
-    gtk_about_dialog_set_version (about, KALU_VERSION);
-    gtk_about_dialog_set_comments (about, KALU_TAG);
+    gtk_about_dialog_set_program_name (about, PACKAGE_NAME);
+    gtk_about_dialog_set_version (about, PACKAGE_VERSION);
+    gtk_about_dialog_set_comments (about, PACKAGE_TAG);
     gtk_about_dialog_set_website (about, "https://bitbucket.org/jjacky/kalu");
     gtk_about_dialog_set_website_label (about, "https://bitbucket.org/jjacky/kalu");
     gtk_about_dialog_set_copyright (about, "Copyright (C) 2012 Olivier Brunel");
@@ -1185,48 +1196,21 @@ free_config (void)
     free (config->pacmanconf);
     
     /* tpl */
-    if (NULL != config->tpl_upgrades->title)
-    {
-        free (config->tpl_upgrades->title);
-    }
-    if (NULL != config->tpl_upgrades->package)
-    {
-        free (config->tpl_upgrades->package);
-    }
-    if (NULL != config->tpl_upgrades->sep)
-    {
-        free (config->tpl_upgrades->sep);
-    }
+    free (config->tpl_upgrades->title);
+    free (config->tpl_upgrades->package);
+    free (config->tpl_upgrades->sep);
     free (config->tpl_upgrades);
     
     /* tpl watched */
-    if (NULL != config->tpl_watched->title)
-    {
-        free (config->tpl_watched->title);
-    }
-    if (NULL != config->tpl_watched->package)
-    {
-        free (config->tpl_watched->package);
-    }
-    if (NULL != config->tpl_watched->sep)
-    {
-        free (config->tpl_watched->sep);
-    }
+    free (config->tpl_watched->title);
+    free (config->tpl_watched->package);
+    free (config->tpl_watched->sep);
     free (config->tpl_watched);
     
     /* tpl aur */
-    if (NULL != config->tpl_aur->title)
-    {
-        free (config->tpl_aur->title);
-    }
-    if (NULL != config->tpl_aur->package)
-    {
-        free (config->tpl_aur->package);
-    }
-    if (NULL != config->tpl_aur->sep)
-    {
-        free (config->tpl_aur->sep);
-    }
+    free (config->tpl_aur->title);
+    free (config->tpl_aur->package);
+    free (config->tpl_aur->sep);
     free (config->tpl_aur);
     
     /* watched */
@@ -1238,11 +1222,12 @@ free_config (void)
     /* aur ignore */
     FREELIST (config->aur_ignore);
     
+    #ifndef DISABLE_UPDATER
+    FREELIST (config->cmdline_post);
+    #endif
+    
     /* news */
-    if (NULL != config->news_last)
-    {
-        free (config->news_last);
-    }
+    free (config->news_last);
     FREELIST (config->news_read);
     
     free (config);
@@ -1523,7 +1508,7 @@ main (int argc, char *argv[])
     {
         if (strcmp (argv[1], "-h") == 0 || strcmp (argv[1], "--help") == 0)
         {
-            printf ("kalu - " KALU_TAG " v" KALU_VERSION "\n\n");
+            printf ("kalu - " PACKAGE_TAG " v" PACKAGE_VERSION "\n\n");
             printf (" -h, --help        Show this help screen and exit\n");
             printf (" -V, --version     Show version information and exit\n");
             printf (" -d, --debug       Enable debug mode\n");
@@ -1532,7 +1517,7 @@ main (int argc, char *argv[])
         }
         else if (strcmp (argv[1], "-V") == 0 || strcmp (argv[1], "--version") == 0)
         {
-            printf ("kalu - " KALU_TAG " v" KALU_VERSION "\n");
+            printf ("kalu - " PACKAGE_TAG " v" PACKAGE_VERSION "\n");
             printf ("Copyright (C) 2012 Olivier Brunel\n");
             printf ("License GPLv3+: GNU GPL version 3 or later"
                     " <http://gnu.org/licenses/gpl.html>\n");
@@ -1557,7 +1542,11 @@ main (int argc, char *argv[])
                             | CHECK_WATCHED_AUR | CHECK_NEWS;
     config->checks_auto   = CHECK_UPGRADES | CHECK_WATCHED | CHECK_AUR
                             | CHECK_WATCHED_AUR | CHECK_NEWS;
+    #ifndef DISABLE_UPDATER
     config->action = UPGRADE_ACTION_KALU;
+    #else
+    config->action = UPGRADE_NO_ACTION;
+    #endif
     config->on_sgl_click = DO_CHECK;
     config->on_dbl_click = DO_SYSUPGRADE;
     config->sane_sort_order = TRUE;
