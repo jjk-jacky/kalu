@@ -79,31 +79,57 @@ static void free_config (void);
 
 static kalpm_state_t kalpm_state = { FALSE, 0, 0, NULL, 0, 0, 0, 0, 0, 0 };
 
+static gboolean
+show_error_cmdline (gchar *arg[])
+{
+    GtkWidget *dialog;
+    
+    dialog = gtk_message_dialog_new (NULL,
+                                     GTK_DIALOG_DESTROY_WITH_PARENT,
+                                     GTK_MESSAGE_ERROR,
+                                     GTK_BUTTONS_OK,
+                                     "%s",
+                                     "Unable to start process");
+    gtk_message_dialog_format_secondary_markup (GTK_MESSAGE_DIALOG (dialog),
+            "Error while trying to run command line: %s\n\nThe error was: <b>%s</b>",
+            arg[0], arg[1]);
+    gtk_window_set_title (GTK_WINDOW (dialog), "kalu: Unable to start process");
+    gtk_window_set_decorated (GTK_WINDOW (dialog), FALSE);
+    gtk_window_set_skip_taskbar_hint (GTK_WINDOW (dialog), FALSE);
+    gtk_window_set_skip_pager_hint (GTK_WINDOW (dialog), FALSE);
+    gtk_dialog_run (GTK_DIALOG (dialog));
+    gtk_widget_destroy (dialog);
+    free (arg[0]);
+    free (arg[1]);
+    free (arg);
+    return FALSE;
+}
+
 static void
 run_cmdline (const char *cmdline)
 {
     GError *error = NULL;
     
-    if (!g_spawn_command_line_async (cmdline, &error))
+    set_kalpm_busy (TRUE);
+    if (!g_spawn_command_line_sync (cmdline, NULL, NULL, NULL, &error))
     {
-        GtkWidget *dialog;
-        
-        dialog = gtk_message_dialog_new (NULL,
-                                         GTK_DIALOG_DESTROY_WITH_PARENT,
-                                         GTK_MESSAGE_ERROR,
-                                         GTK_BUTTONS_OK,
-                                         "%s",
-                                         "Unable to start process");
-        gtk_message_dialog_format_secondary_markup (GTK_MESSAGE_DIALOG (dialog),
-                "Error while trying to run command line: %s\n\nThe error was: <b>%s</b>",
-                cmdline, error->message);
-        gtk_window_set_title (GTK_WINDOW (dialog), "kalu: Unable to start process");
-        gtk_window_set_decorated (GTK_WINDOW (dialog), FALSE);
-        gtk_window_set_skip_taskbar_hint (GTK_WINDOW (dialog), FALSE);
-        gtk_window_set_skip_pager_hint (GTK_WINDOW (dialog), FALSE);
-        gtk_dialog_run (GTK_DIALOG (dialog));
-        gtk_widget_destroy (dialog);
-        g_error_free (error);
+        /* we can't just show the error message from here, because this is ran
+         * from another thread, hence no gtk_* functions can be used. */
+        char **arg;
+        arg = malloc (2 * sizeof (char *));
+        arg[0] = strdup (cmdline);
+        arg[1] = strdup (error->message);
+        g_main_context_invoke (NULL, (GSourceFunc) show_error_cmdline, (gpointer) arg);
+    }
+    set_kalpm_busy (FALSE);
+    if (G_UNLIKELY (error))
+    {
+        g_clear_error (&error);
+    }
+    else
+    {
+        /* check again, to refresh the state (since an upgrade was probably just done) */
+        kalu_check (TRUE);
     }
 }
 
@@ -136,7 +162,8 @@ action_upgrade (NotifyNotification *notification, const char *action, gpointer d
     
     if (cmdline)
     {
-        run_cmdline (cmdline);
+        /* run in a separate thread, to not block/make GUI unresponsive */
+        g_thread_create ((GThreadFunc) run_cmdline, (gpointer) cmdline, FALSE, NULL);
     }
 }
 
@@ -757,7 +784,8 @@ kalu_sysupgrade (void)
     else /* if (config->action == UPGRADE_ACTION_CMDLINE) */
     {
     #endif
-        run_cmdline (config->cmdline);
+        /* run in a separate thread, to not block/make GUI unresponsive */
+        g_thread_create ((GThreadFunc) run_cmdline, (gpointer) config->cmdline, FALSE, NULL);
     #ifndef DISABLE_UPDATER
     }
     #endif
