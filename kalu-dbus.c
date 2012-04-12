@@ -330,12 +330,9 @@ log_cb (alpm_loglevel_t level, const char *fmt, va_list args)
     if (level & ALPM_LOG_DEBUG || level & ALPM_LOG_FUNCTION)
         return;
     
-    gchar buf[1024];
-    if (vsnprintf (buf, 1024, fmt, args) >= 1024)
-    {
-        buf[1023] = '\0';
-    }
-    emit_signal ("Log", "is", (gint) level, buf);
+    gchar *s = g_strdup_vprintf (fmt, args);
+    emit_signal ("Log", "is", (gint) level, s);
+    g_free (s);
 }
 
 /* callback to handle questions from libalpm */
@@ -585,7 +582,7 @@ init_alpm (GVariant *parameters)
     int ret;
     
     /* init alpm */
-    handle = alpm_initialize(rootdir, dbpath, &err);
+    handle = alpm_initialize (rootdir, dbpath, &err);
     if (!handle)
     {
         method_failed ("InitAlpm", "Failed to initialize alpm library: %s\n",
