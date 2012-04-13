@@ -26,9 +26,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-/* notify */
-#include <libnotify/notify.h>
-
 /* alpm list */
 #include <alpm_list.h>
 
@@ -185,24 +182,55 @@ show_error (const gchar *message, const gchar *submessage, GtkWindow *parent)
     gtk_widget_show (dialog);
 }
 
+NotifyNotification *
+new_notification (const gchar *summary, const gchar *text)
+{
+    NotifyNotification *notification;
+    
+    notification = notify_notification_new (summary, text, NULL);
+    if (config->notif_icon != ICON_NONE)
+    {
+        GtkWidget *w = NULL;
+        GdkPixbuf *pixbuf = NULL;
+        
+        if (config->notif_icon == ICON_USER)
+        {
+            GError *error = NULL;
+            
+            debug ("new notification, loading user icon: %s", config->notif_icon_user);
+            pixbuf = gdk_pixbuf_new_from_file (config->notif_icon_user, &error);
+            if (!pixbuf)
+            {
+                debug ("new notification: failed to load user icon: %s", error->message);
+                g_clear_error (&error);
+            }
+        }
+        /* ICON_KALU || failed to load ICON_USER */
+        if (!pixbuf)
+        {
+            w = gtk_label_new (NULL);
+            g_object_ref_sink (w);
+            debug ("new notification: using kalu's icon (small)");
+            pixbuf = gtk_widget_render_icon_pixbuf (w, "kalu-logo", GTK_ICON_SIZE_BUTTON);
+        }
+        notify_notification_set_image_from_pixbuf (notification, pixbuf);
+        g_object_unref (pixbuf);
+        if (w)
+        {
+            gtk_widget_destroy (w);
+            g_object_unref (w);
+        }
+    }
+    notify_notification_set_timeout (notification, config->timeout);
+    return notification;
+}
+
 void
 notify_error (const gchar *summary, const gchar *text)
 {
     NotifyNotification *notification;
-    GtkWidget          *w;
-    GdkPixbuf          *pixbuf;
     
-    notification = notify_notification_new (summary,
-                                            text,
-                                            NULL);
-    w = gtk_label_new (NULL);
-    g_object_ref_sink (w);
-    pixbuf = gtk_widget_render_icon_pixbuf (w, "kalu-logo", GTK_ICON_SIZE_BUTTON);
-    notify_notification_set_image_from_pixbuf (notification, pixbuf);
-    g_object_unref (pixbuf);
-    gtk_widget_destroy (w);
-    g_object_unref (w);
-    notify_notification_set_timeout (notification, config->timeout);
+    notification = new_notification (summary, text);
     notify_notification_show (notification, NULL);
     g_object_unref (notification);
 }

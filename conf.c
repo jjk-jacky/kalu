@@ -837,6 +837,29 @@ parse_config_file (const char       *file,
                         continue;
                     }
                 }
+                else if (strcmp (key, "NotificationIcon") == 0)
+                {
+                    if (strcmp (value, "KALU") == 0)
+                    {
+                        config->notif_icon = ICON_KALU;
+                    }
+                    else if (strcmp (value, "NONE") == 0)
+                    {
+                        config->notif_icon = ICON_NONE;
+                    }
+                    else if (value[0] == '/')
+                    {
+                        config->notif_icon = ICON_USER;
+                        config->notif_icon_user = strdup (value);
+                    }
+                    else
+                    {
+                        add_error ("invalid value for %s: %s", key, value);
+                        continue;
+                    }
+                    debug ("config: NotifIcon: %d", config->notif_icon);
+                    debug ("config: NotifIconUser: %s", config->notif_icon_user);
+                }
                 else if (strcmp (key, "UpgradeAction") == 0)
                 {
                     if (strcmp (value, "NONE") == 0)

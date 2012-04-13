@@ -42,6 +42,8 @@ static GtkWidget *window                    = NULL;
 static GtkWidget *notebook                  = NULL;
 /* General */
 static GtkWidget *filechooser               = NULL;
+static GtkWidget *notif_icon_combo          = NULL;
+static GtkWidget *notif_icon_filechooser    = NULL;
 static GtkWidget *combo_interval            = NULL;
 static GtkWidget *timeout_scale             = NULL;
 static GtkWidget *button_skip               = NULL;
@@ -178,6 +180,20 @@ upg_action_changed_cb (GtkComboBox *combo, gpointer data _UNUSED_)
         #ifndef DISABLE_UPDATER
         gtk_widget_hide (cmdline_post_hbox);
         #endif
+    }
+}
+
+static void
+notif_icon_combo_changed_cb (GtkComboBox *combo, gpointer data _UNUSED_)
+{
+    int choice = gtk_combo_box_get_active (combo);
+    if (choice == 2)
+    {
+        gtk_widget_show (notif_icon_filechooser);
+    }
+    else if (choice == 1)
+    {
+        gtk_widget_hide (notif_icon_filechooser);
     }
 }
 
@@ -717,6 +733,7 @@ btn_save_cb (GtkButton *button _UNUSED_, gpointer data _UNUSED_)
     memcpy (&new_config, config, sizeof (config_t));
     /* and set to NULL all that matters (strings/lists/templates we'll re-set) */
     new_config.pacmanconf       = NULL;
+    new_config.notif_icon_user  = NULL;
     new_config.cmdline          = NULL;
     new_config.cmdline_aur      = NULL;
     #ifndef DISABLE_UPDATER
@@ -737,6 +754,28 @@ btn_save_cb (GtkButton *button _UNUSED_, gpointer data _UNUSED_)
     }
     add_to_conf ("PacmanConf = %s\n", s);
     new_config.pacmanconf = strdup (s);
+    
+    if (gtk_combo_box_get_active (GTK_COMBO_BOX (notif_icon_combo)) == 0)
+    {
+        add_to_conf ("NotificationIcon = NONE\n");
+        new_config.notif_icon = ICON_NONE;
+    }
+    else if (gtk_combo_box_get_active (GTK_COMBO_BOX (notif_icon_combo)) == 1)
+    {
+        add_to_conf ("NotificationIcon = KALU\n");
+        new_config.notif_icon = ICON_KALU;
+    }
+    else /* if (gtk_combo_box_get_active (GTK_COMBO_BOX (notif_icon_combo_changed_cb)) == 2) */
+    {
+        s = gtk_file_chooser_get_filename (GTK_FILE_CHOOSER (notif_icon_filechooser));
+        if (NULL == s)
+        {
+            error_on_page (0, "You need to select the file to use as icon on notifications");
+        }
+        add_to_conf ("NotificationIcon = %s\n", s);
+        new_config.notif_icon = ICON_USER;
+        new_config.notif_icon_user = strdup (s);
+    }
     
     s = gtk_combo_box_text_get_active_text (GTK_COMBO_BOX_TEXT (combo_interval));
     if (*s == '\0')
@@ -1061,6 +1100,7 @@ btn_save_cb (GtkButton *button _UNUSED_, gpointer data _UNUSED_)
     
     /* free the now unneeded strings/lists */
     free (config->pacmanconf);
+    free (config->notif_icon_user);
     free (config->cmdline);
     free (config->cmdline_aur);
     #ifndef DISABLE_UPDATER
@@ -1080,18 +1120,10 @@ btn_save_cb (GtkButton *button _UNUSED_, gpointer data _UNUSED_)
     return;
     
 clean_on_error:
-    if (new_config.pacmanconf)
-    {
-        free (new_config.pacmanconf);
-    }
-    if (new_config.cmdline)
-    {
-        free (new_config.cmdline);
-    }
-    if (new_config.cmdline_aur)
-    {
-        free (new_config.cmdline_aur);
-    }
+    free (new_config.pacmanconf);
+    free (new_config.notif_icon_user);
+    free (new_config.cmdline);
+    free (new_config.cmdline_aur);
     #ifndef DISABLE_UPDATER
     if (new_config.cmdline_post)
     {
@@ -1262,6 +1294,7 @@ show_prefs (void)
     GtkWidget *box;
     GtkWidget *button;
     GtkWidget *hbox;
+    GtkFileFilter *file_filter;
     
     /* [ General ] */
     top = 0;
@@ -1278,6 +1311,57 @@ show_prefs (void)
     gtk_grid_attach (GTK_GRID (grid), filechooser, 1, top, 1, 1);
     gtk_file_chooser_set_filename (GTK_FILE_CHOOSER (filechooser), config->pacmanconf);
     gtk_widget_show (filechooser);
+    
+    ++top;
+    /* NotificationIcon */
+    label = gtk_label_new ("Icon used on notifications :");
+    gtk_grid_attach (GTK_GRID (grid), label, 0, top, 1, 1);
+    gtk_widget_show (label);
+    
+    notif_icon_combo = gtk_combo_box_text_new ();
+    gtk_combo_box_text_append (GTK_COMBO_BOX_TEXT (notif_icon_combo), "1",
+        "No icon");
+    gtk_combo_box_text_append (GTK_COMBO_BOX_TEXT (notif_icon_combo), "2",
+        "kalu's icon (small)");
+    gtk_combo_box_text_append (GTK_COMBO_BOX_TEXT (notif_icon_combo), "3",
+        "Select file:");
+    gtk_grid_attach (GTK_GRID (grid), notif_icon_combo, 1, top, 1, 1);
+    gtk_widget_show (notif_icon_combo);
+    if (config->notif_icon == ICON_KALU)
+    {
+        gtk_combo_box_set_active (GTK_COMBO_BOX (notif_icon_combo), 1);
+    }
+    else if (config->notif_icon == ICON_USER)
+    {
+        gtk_combo_box_set_active (GTK_COMBO_BOX (notif_icon_combo), 2);
+    }
+    else /* if (config->notif_icon == ICON_NONE) */
+    {
+        gtk_combo_box_set_active (GTK_COMBO_BOX (notif_icon_combo), 0);
+    }
+    
+    ++top;
+    notif_icon_filechooser = gtk_file_chooser_button_new (
+        "Select notification icon",
+        GTK_FILE_CHOOSER_ACTION_OPEN);
+    file_filter = gtk_file_filter_new ();
+    gtk_file_filter_set_name (file_filter, "Supported Images");
+    gtk_file_filter_add_pixbuf_formats (file_filter);
+    gtk_file_chooser_add_filter (GTK_FILE_CHOOSER (notif_icon_filechooser),
+                                 file_filter);
+    gtk_grid_attach (GTK_GRID (grid), notif_icon_filechooser, 0, top, 2, 1);
+    if (config->notif_icon_user)
+    {
+        gtk_file_chooser_set_filename (GTK_FILE_CHOOSER (notif_icon_filechooser),
+                                       config->notif_icon_user);
+    }
+    if (config->notif_icon == ICON_USER)
+    {
+        gtk_widget_show (notif_icon_filechooser);
+    }
+    /* doing this now otherwise it's triggered with non-yet-existing widgets to hide/show */
+    g_signal_connect (G_OBJECT (notif_icon_combo), "changed",
+                      G_CALLBACK (notif_icon_combo_changed_cb), NULL);
     
     ++top;
     /* Timeout */
@@ -1759,7 +1843,12 @@ show_prefs (void)
     gtk_combo_box_text_append (GTK_COMBO_BOX_TEXT (on_sgl_click), "2",
         "System upgrade...");
     gtk_combo_box_text_append (GTK_COMBO_BOX_TEXT (on_sgl_click), "3",
-        "Hide/show opened windows (except kalu's updater)");
+        #ifndef DISABLE_UPDATER
+        "Hide/show opened windows (except kalu's updater)"
+        #else
+        "Hide/show opened windows"
+        #endif
+        );
     gtk_grid_attach (GTK_GRID (grid), on_sgl_click, 1, top, 1, 1);
     gtk_widget_show (on_sgl_click);
     if (config->on_sgl_click == DO_CHECK)
@@ -1792,7 +1881,12 @@ show_prefs (void)
     gtk_combo_box_text_append (GTK_COMBO_BOX_TEXT (on_dbl_click), "2",
         "System upgrade...");
     gtk_combo_box_text_append (GTK_COMBO_BOX_TEXT (on_dbl_click), "3",
-        "Hide/show opened windows (except kalu's updater)");
+        #ifndef DISABLE_UPDATER
+        "Hide/show opened windows (except kalu's updater)"
+        #else
+        "Hide/show opened windows"
+        #endif
+        );
     gtk_grid_attach (GTK_GRID (grid), on_dbl_click, 1, top, 1, 1);
     gtk_widget_show (on_dbl_click);
     if (config->on_dbl_click == DO_CHECK)

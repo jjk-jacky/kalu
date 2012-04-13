@@ -409,20 +409,8 @@ notify_updates (alpm_list_t *packages, check_t type, gchar *xml_news)
     }
     
     NotifyNotification *notification;
-    GtkWidget          *w;
-    GdkPixbuf          *pixbuf;
     
-    notification = notify_notification_new (summary,
-                                            text,
-                                            NULL);
-    w = gtk_label_new (NULL);
-    g_object_ref_sink (w);
-    pixbuf = gtk_widget_render_icon_pixbuf (w, "kalu-logo", GTK_ICON_SIZE_BUTTON);
-    notify_notification_set_image_from_pixbuf (notification, pixbuf);
-    g_object_unref (pixbuf);
-    gtk_widget_destroy (w);
-    g_object_unref (w);
-    notify_notification_set_timeout (notification, config->timeout);
+    notification = new_notification (summary, text);
     if (type & CHECK_UPGRADES)
     {
         if (config->action != UPGRADE_NO_ACTION)
@@ -559,21 +547,10 @@ kalu_check_work (gboolean is_auto)
                     /* we do the notification (instead of calling notify_error) because
                      * we need to add the "Update system" button/action. */
                     NotifyNotification *notification;
-                    GtkWidget          *w;
-                    GdkPixbuf          *pixbuf;
                     
-                    notification = notify_notification_new (
+                    notification = new_notification (
                         "Unable to compile list of packages",
-                        error->message,
-                        NULL);
-                    w = gtk_label_new (NULL);
-                    g_object_ref_sink (w);
-                    pixbuf = gtk_widget_render_icon_pixbuf (w, "kalu-logo", GTK_ICON_SIZE_BUTTON);
-                    notify_notification_set_image_from_pixbuf (notification, pixbuf);
-                    g_object_unref (pixbuf);
-                    gtk_widget_destroy (w);
-                    g_object_unref (w);
-                    notify_notification_set_timeout (notification, config->timeout);
+                        error->message);
                     if (config->action != UPGRADE_NO_ACTION)
                     {
                         notify_notification_add_action (notification, "do_updates",
@@ -1561,11 +1538,10 @@ main (int argc, char *argv[])
         }
     }
     
-    /* defaults -- undefined "sub"templates will use the corresponding main ones */
-    /* (e.g. tpl_sep_watched_verbose defaults to tpl_sep_verbose) */
     config->pacmanconf = strdup ("/etc/pacman.conf");
     config->interval = 3600; /* 1 hour */
     config->timeout = NOTIFY_EXPIRES_DEFAULT;
+    config->notif_icon = ICON_KALU;
     config->syncdbs_in_tooltip = TRUE;
     config->checks_manual = CHECK_UPGRADES | CHECK_WATCHED | CHECK_AUR
                             | CHECK_WATCHED_AUR | CHECK_NEWS;

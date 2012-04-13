@@ -87,6 +87,12 @@ typedef enum {
     DO_TOGGLE_WINDOWS
 } on_click_t;
 
+typedef enum {
+    ICON_NONE = 0,
+    ICON_KALU,
+    ICON_USER
+} notif_icon_t;
+
 typedef struct _templates_t {
     char *title;
     char *package;
@@ -106,6 +112,8 @@ typedef struct _config_t {
     int              skip_begin_minute;
     int              skip_end_hour;
     int              skip_end_minute;
+    notif_icon_t     notif_icon;
+    char            *notif_icon_user;
     upgrade_action_t action;
     char            *cmdline;
     char            *cmdline_aur;
