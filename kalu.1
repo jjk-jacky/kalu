@@ -156,6 +156,21 @@ Management (ALPM) library (whose most famous front end is no other than pacman).
 .RE
 .P
 .RS 4
+\fIIcon used on notifications\fR
+.RS 4
+Specify the icon to be used on notifications. Can be none, kalu's icon (small)
+or selecting a file to load it from.
+.P
+When loading icon from a file, the icon will be used "full size" so you can use
+a small or a large one, as you like. E.g. using \fI/usr/share/pixmaps/kalu.png\fP
+will use kalu's icon at its full (48x48) size.
+.P
+If loading the icon fails, kalu will silently fall back to using it own icon
+(small).
+.RE
+.RE
+.P
+.RS 4
 \fINotifications expire after (seconds)\fR
 .RS 4
 The delay after which the notification should expire/be automatically closed
