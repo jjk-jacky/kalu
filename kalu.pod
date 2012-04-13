@@ -1,0 +1,576 @@
+=head1 NAME
+
+kalu - Keeping Arch Linux Up-to-date
+
+=head1 SYNOPSIS
+
+B<kalu> [I<OPTION>...]
+
+=head1 OPTIONS
+
+=over
+
+=item B<-h, --help>
+
+Show a little help text and exit
+
+=item B<-V, --version>
+
+Show version information and exit
+
+=item B<-d, --debug>
+
+Enable debug mode. Debugging messages will then be sent to kalu's stdout,
+prefixed with a timestamp.
+
+=back
+
+=head1 DESCRIPTION
+
+B<kalu> is (yet another) upgrade notifier for Arch Linux. Once started, it
+will add an icon into your systray, and regularly check if any upgrade is
+available, and if so show a notification to inform you about it.
+
+You can know whether anything was found during kalu's last check or not by
+its icon: if gray nothing was found. If blue, you can mouse over it to see (in
+the tooltip) what was found.
+
+If the icon happens to blink from gray to blue, it means kalu is currently busy.
+
+kalu can check for a few things, each one resulting in a separate
+notification (if something is found) :
+
+=over
+
+=item B<* Upgrades>
+
+kalu will check for upgrades of any of the installed packages, similarly to
+what a `pacman -Syu` would do. To do so, kalu does not requires root
+privileges to do its checking. In order to determine whether or not upgrades
+are available, it will create a temporary copy of your sync databases and
+synchronize those copies, and of course remove them once done.
+
+That way not only can all this be done as user, but it avoids putting you
+in a situation where you'd risk messing up your system, as you might otherwise
+unknowingly end up basically doing a `pacman -Sy foobar` (which is pretty
+generally understood to be a bad idea).
+
+(Because if your databases were synchronized and upgrades were available,
+yet you did not upgrade right away - e.g. because you didn't see the
+notification or were busy on something - then your next -S operation would
+really be a -Sy even though you might not even realize it.)
+
+=item B<* Watched packages>
+
+kalu will check for upgrades of packages that aren't currently installed.
+This is done by simply maintaining a list of packages (name & version) and
+checking it against the online repos (after synchronization).
+
+When upgrades are available, you will be able to easily "mark them" - i.e.
+kalu can auto-update the list with the latest version number. You will of
+course be able to select which of the packages to update, if any.
+
+If so, and a newer version is available, you will be notified. If you have
+foreign packages which you know are not in the AUR (and therefore checking
+for them is useless), you can put them on an ignore list, see L<B<PREFERENCES>|/PREFERENCES>
+below.
+
+=item B<* AUR packages>
+
+kalu will compile the list of foreign packages on the system (i.e. not found
+in any repo, or what you'd have from running `pacman -Qm`) and check to see
+if they are available in the AUR. If so, it will check whether the AUR
+version is more recent than the one installed.
+
+=item B<* Watched AUR packages>
+
+Just as with "official" packages, you can maintain a list of non-installed
+packages that kalu should check the AUR for.
+
+=item B<* Arch Linux News>
+
+kalu will check the news from the Arch Linux website (L<http://www.archlinux.org>)
+and show a notification whenever something new has been posted.
+
+The notification can only feature titles, but using the button "Show news"
+will show the complete news. Note that this is done through kalu's own
+rendering (i.e. there is no HTML engine used) and as such the rendering
+might differ.
+For instance, neither images nor links are supported.
+
+=back
+
+=head1 DATA LOCATION
+
+Every setting/data kalu stores will be done in folder F<~/.config/kalu/> which
+can contain the following files :
+
+=over
+
+=item - I<kalu.conf> : your preferences
+
+=item - I<watched.conf> : the list of watched packages
+
+=item - I<watched-aur.conf> : the list of watched AUR packages
+
+=item - I<news.conf> : information about which news you have already read
+
+=back
+
+=head1 PREFERENCES
+
+Preferences are presented under a few tabs. Most of those represent a type of
+check/notification supported by kalu, and as such include a template definition
+allowing you to tweak the content of said notifications.
+
+The only required template is I<Upgrades>. All others, or more specifically,
+each of their fields, are optional.
+
+If a field is not defined, kalu will simply fall back and use the corresponding
+field from the I<Upgrades> template. One exception: the template I<Watched AUR>
+will fall back to the I<AUR> template, and only if nothing was defined there will
+I<Upgrades> be used.
+
+All templates are made of 3 fields: Title, Package (or News item), and Separator.
+B<Title> will be the title of the notification. B<Package> (B<News item>) is the
+text corresponding to one package/news item. It will be repeated for each
+package/news item, separated using B<Separator>, to make the body of the
+notification.
+
+Each field can have none, one or more variables. They are not the same for all
+templates, so they'll be described in each of them below.
+
+In addition to \n for a new line, you can use some markup tags, but only in
+the body of the notification (i.e. in the fields B<Package/News item> and
+B<Separator> but not in B<Title>), such as <b> ... </b> for bold, <i> ... </i> for
+italic or <u> ... </u> for underline.
+
+Note that though support is recommanded, whether or not those will actually be
+applied on the notifications depends on your notification daemon.
+
+Preferences are presented under the following tabs :
+
+=head2 General
+
+=over
+
+=item I<Configuration file (pacman.conf)>
+
+This is the configuration file used to initialize the Arch Linux Package
+Management (ALPM) library (whose most famous front end is no other than
+pacman).
+
+=item I<Icon used on notifications>
+
+Specify the icon to be used on notifications. Can be none, kalu's icon (small)
+or selecting a file to load it from.
+
+When loading icon from a file, the icon will be used "full size" so you can use
+a small or a large one, as you like. E.g. using F</usr/share/pixmaps/kalu.png>
+will use kalu's icon at its full (48x48) size.
+
+If loading the icon fails, kalu will silently fall back to using it own icon
+(small).
+
+=item I<Notifications expire after (seconds)>
+
+The delay after which the notification should expire/be automatically
+closed by the daemon. The left-most value will use the default (from
+the daemon), while the right-most value will set notifications to never
+expires, i.e. they will stay opened until either you manually close them,
+or for notifications with an action button until kalu is closed.
+
+=item I<Check for upgrades every (minutes)>
+
+How often must kalu run its automatic check. Select from the list, or
+type in what you want.
+
+=item I<Do not check between .. and ..>
+
+This is e.g. in case you keep your computer on 24/7, yet go to sleep at
+some point. It would then make sense that you not want kalu to do its
+checks while you're sleeping.
+
+Specify here the period during which no (automatic) checks will be
+performed (Of course, you can always ask for one manually).
+
+=item I<During an automatic check, check for ..>
+
+Select one or more checks that will be performed during every automatic
+check, i.e. run on start or at the interval specified above.
+
+=item I<During a manual check, check for ..>
+
+Select one or more checks that will be performed when you start a manual
+check, i.e. using menu "Check for Upgrades"
+
+=back
+
+=head2 News
+
+=over
+
+=item I<Notification template>
+
+=over
+
+=item Title
+
+=over
+
+=item B<$NB>   : number of news items
+
+=back
+
+=item News item
+
+=over
+
+=item B<$NEWS> : the title of the news
+
+=back
+
+=item Separator
+
+No variables available.
+
+=back
+
+=back
+
+=head2 Upgrades
+
+=over
+
+=item I<Show a button "Upgrade system" on notifications (and on kalu's menu)>
+
+Whether or not notifications should feature a button "Upgrade system" and
+kalu's menu (right-click on its systray icon) feature an item "System upgrade"
+
+=item I<When clicking the button>
+
+Clicking the button can either start kalu's own updater (see L<B<PREFERENCES>|/PREFERENCES>
+below), or simply run the program of your choice.
+
+=item I<Command-line>
+
+The command line to start when pressing the button "Upgrade system" from the
+notification.
+
+=item I<After completing a system upgrade, ask whether to start the following>
+
+When using kalu's updater, you can define one or more processes to be ran after
+a system upgrade was completed. Specify their command-line in the list, and
+after a succesful system upgrade kalu will ask whether to start them or not.
+
+In case you specify more than one, the full list will be featured and you will
+be able to determine which (if any) to start each time.
+
+=item I<Notification template>
+
+=over
+
+=item Title
+
+=over
+
+=item B<$NB>  : the number of packages
+
+=item B<$DL>  : the total download size
+
+=item B<$INS> : the total installed size
+
+=item B<$NET> : the total net (post-install difference) size
+
+=back
+
+=item Package
+
+=over
+
+=item B<$PKG> : the name of the package
+
+=item B<$OLD> : the version number of the currently installed version
+
+=item B<$NET> : the version number of the version available in the repo
+
+=item B<$DL>  : the download size
+
+=item B<$INS> : the installed size
+
+=item B<$NET> : the net (post-install difference) size
+
+=back
+
+=item Separator
+
+No variables available.
+
+=back
+
+=back
+
+=head2 Watched
+
+=over
+
+=item I<Manage watched packages>
+
+Does the same as the menu by the same name, that is open the window to manage
+(add, edit, remove) the list of watched packages. This list is independent from
+the preferences, as data are saved in a different file, as saving the list will
+not have an effect on preferences, and vice versa.
+
+=item I<Notification template>
+
+=over
+
+=item Title
+
+=over
+
+=item B<$NB>  : the number of packages
+
+=item B<$DL>  : the total download size
+
+=item B<$INS> : the total installed size
+
+=item B<$NET> : the total net (post-install difference) size
+
+=back
+
+=item Package
+
+=over
+
+=item B<$PKG> : the name of the package
+
+=item B<$OLD> : the version number from the list of watched packages
+
+=item B<$NET> : the version number of the version available in the repo
+
+=item B<$DL>  : the download size
+
+=item B<$INS> : the installed size
+
+=item B<$NET> : the net (post-install difference) size
+
+=back
+
+=item Separator
+
+No variables available.
+
+=back
+
+=back
+
+=head2 AUR
+
+=over
+
+=item I<Show a button "Update AUR packages" on notifications>
+
+If enabled, notifications for AUR packages will feature a button "Update AUR
+packages" which will start the specified command-line. If not, no button will
+be featured.
+
+=item I<When clicking the button, run the following>
+
+The command line to start when pressing the button "Update AUR packages" from the
+notification.
+
+=item I<Do not check the AUR for the following packages>
+
+By default kalu determines the list of all foreign packages (i.e. not found
+in any repo, or what you'd have from running `pacman -Qm`) and check to see
+if they are available in the AUR.
+
+If you have packages which you know are not there (or simply for which you do
+not want to be notified), simply add their names to this list.
+
+=item I<Notification template>
+
+=over
+
+=item Title
+
+=over
+
+=item B<$NB>  : the number of packages
+
+=back
+
+=item Package
+
+=over
+
+=item B<$PKG> : the name of the package
+
+=item B<$OLD> : the version number of the currently installed version
+
+=item B<$NET> : the version number of the version available in the AUR
+
+=back
+
+=item Separator
+
+No variables available.
+
+=back
+
+=back
+
+=head2 Watched AUR
+
+=over
+
+=item I<Manage watched AUR packages>
+
+Does the same as the menu by the same name, that is open the window to manage
+(add, edit, remove) the list of watched AUR packages. This list is independent
+from the preferences, as data are saved in a different file, as saving the list
+will not have an effect on preferences, and vice versa.
+
+=item I<Notification template>
+
+=over
+
+=item Title
+
+=over
+
+=item B<$NB>  : the number of packages
+
+=back
+
+=item Package
+
+=over
+
+=item B<$PKG> : the name of the package
+
+=item B<$OLD> : the version number from the list of watched AUR packages
+
+=item B<$NET> : the version number of the version available in the AUR
+
+=back
+
+=item Separator
+
+No variables available.
+
+=back
+
+=back
+
+=head2 Misc
+
+=over
+
+=item I<Use sane indicator>
+
+Because in the Linux world, when a list is ordered descendingly, the arrow points...
+up!? This option restores sanity and have it point down.
+
+This is used when sorting packages in kalu's updater.
+
+=item I<Show if databases can be synchronized in tooltip>
+
+An indication of how many databases can by synchronized (i.e. are not up-to-date)
+will be featured on the tooltip, regardless of whether upgrades are available or
+not.
+
+=item I<When (double) clicking the systray icon>
+
+Defines the action to be done when you single/double click on kalu's systray icon.
+
+=over
+
+=item B<* Do nothing>
+
+Does exactly that
+
+=item B<* Check for Upgrades>
+
+Start a manual check
+
+=item B<* System Upgrade>
+
+Start a system upgrade. This will do the same as using menu "System Upgrade" or
+the button "Upgrade system" on notification; i.e. the specified action done
+depends on your settings under B<Upgrades>
+
+Note that if no button "Upgrade system" is shown on notification, this option
+will have the same effect as B<Do nothing>
+
+=item B<* Hide/show opened windows (except kalu's updater)>
+
+Will hide all opened windows (except for kalu's updater). If at least one
+window is hidden, an indication will be featured on the tooltip (" +" next to
+"kalu") and triggering the action again will then show all hidden windows.
+
+=back
+
+=back
+
+=head1 SYSTEM UPGRADE
+
+An item "System Upgrade" on kalu's menu, as well as a button "Upgrade system"
+on notifications for available upgrades, can be featured. This button can start
+a process of your choice, or kalu's own system upgrader. (See L<B<PREFERENCES>|PREFERENCES>
+above.)
+
+The later will first synchronize your databases, then upgrade all packages that
+are out of date. In other words, it does what a `pacman -Syu` would do, only
+in a GTK GUI.
+
+In order to synchronize databases and upgrades packages, root privileges are
+obviously required. The way this is handled is as follows: kalu itself only
+contains the GUI, and therefore can work running under your (user) account.
+
+The part that does interact with libalpm (to actually synchronize databases and
+upgrade packages) is in a secondary library (I<kalu-dbus>), that is the only
+one to require root privileges.
+
+This binary will be executed automatically, with root privileges, through DBus
+when needed, and PolicyKit will be used to ensure that you are authorized to
+upgrade the system.
+
+When upgrading your system with kalu's updater, your log file (e.g. pacman.log,
+as defined in pacman.conf) will be updated. kalu adds an entry for each
+database synchronized, one when starting the upgrade, one after the upgrade
+was completed, and one after each package operation (installed, upgraded,
+removed).
+
+This is all very much like pacman itself, only all those will be prefixed with
+I<kalu:> so that you can identify them easily. Note however that other log
+entries added during an upgrade with kalu's updater might not have such prefix,
+specifically all those coming from libalpm directly, such as warnings, errors
+or scriptlet output.
+
+=head1 BUGS
+
+They're probably crawling somewhere in there... if you happen to catch one,
+(or more) report it and I'll do my best to squash it.
+
+=head1 REPOSITORY
+
+You can find the latest source code of B<kalu> as well as report bugs and/or
+suggest features on its BitBucket repository, available at L<https://bitbucket.org/jjacky/kalu>
+
+=head1 AUTHORS
+
+=over
+
+=item Olivier Brunel <i.am.jack.mail AT gmail DOT com>
+
+=item Dave Gamble
+
+=item Pacman Development Team <pacman-dev AT archlinux DOT org>
+
+=back
+
+=head1 ARTWORK
+
+Icon by Painless Rob (L<https://bbs.archlinux.org/viewtopic.php?id=130839>)
