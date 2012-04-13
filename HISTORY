@@ -1,47 +1,107 @@
 
+# 04/14/2012, v0.1.5
+
+- Now using automake & autoconf. (Hopefully) this shouldn't really change
+much for most people, but if you don't care for kalu's updater and only want
+to use kalu as update notifier, you can use option --disable-updater to configure.
+You'll get a smaller binary, no second binary (kalu-dbus) nor dependency to
+DBus/PolicyKit.
+
+- When starting an external process to perform sysupgrade (or AUR upgrade), kalu
+now waits for the process to end (being "busy" meanwhile), and runs another check
+right after, to refresh its state. Closes #5.
+
+- kalu always shipped with a man page, and recently a (this) changelog. Both can
+both easily be read using menus Help & Change log.
+
+- Added new option to customize icon used on notification: none, kalu's default,
+or specifying a file to load the icon from. The icon will be shown full size, so
+e.g. using /usr/share/pixmaps/kalu.png will uses kalu's icon at 48x48 (if
+loading icon fails, silently falls back to kalu's default icon). Closes #6.
+
+- kalu's updater always used /etc/pacman.conf (instead of whatever is set in
+Preferences), fixed
+
+- Parsing kalu.conf would report & stop on first error, now it ignores the line,
+continues parsing, and report all errors (at once)
+
+- kalu's updater: log messages longer than 1023 characters would be truncated, fixed
+
+- Other minor fixes
+
+
 # 03/26/2012, v0.1.4
 
-- added section "Misc" under Preferences, with options to define action on single- & double-click on systray icon: nothing, check for upgrades, system upgrade, hide/show opened windows
+- added section "Misc" under Preferences, with options to define action on
+single- & double-click on systray icon: nothing, check for upgrades, system
+upgrade, hide/show opened windows
+
 - kalu updater: one can now click on columns to sort packages
+
 - Preferences/Misc: option to disable sane sort indicator
-- tooltip: now indicates if/how many dbs can be synchronized (regardless of upgrades avability). Can be disabled via option under "Misc" in Preferences
+
+- tooltip: now indicates if/how many dbs can be synchronized (regardless of
+upgrades avability). Can be disabled via option under "Misc" in Preferences
+
 - fixed possible memory leak if showing news failed on parsing
-- showing Preferences without "Upgrade system" button enabled didn't have PostSysUpgrade list disabled, fixed
+
+- showing Preferences without "Upgrade system" button enabled didn't have
+PostSysUpgrade list disabled, fixed
 
 
 # 03/20/2012, v0.1.3
 
-- when saving Preferences, \n in templates wasn't resolved to newline (for current run), fixed
+- when saving Preferences, \n in templates wasn't resolved to newline (for
+current run), fixed
 
 
 # 03/18/2012, v0.1.2
 
-- saving preferences if the folder (~/.config/kalu) did not already exist would fail, fixed
+- saving preferences if the folder (~/.config/kalu) did not already exist would
+fail, fixed
 
 
 # 03/11/2012, v0.1.1
 
-- kalu-updater: environment variables were unset, which could cause issues on some post_{install,upgrade} scripts, fixed
+- kalu-updater: environment variables were unset, which could cause issues on
+some post_{install,upgrade} scripts, fixed
 
-The sysupgrade is ran from kalu-dbus, which is automatically started through DBus. When starting something, DBus does clear all environment variables, which could cause problems is some scripts (e.g. mkinitcpio with autodetect hook, and the lack of a PATH defined).
-This is fixed by using a bash script to source /etc/profile (and therefore restore a proper environment) before launching kalu-dbus (See https://bbs.archlinux.org/viewtopic.php?id=136784)
+The sysupgrade is ran from kalu-dbus, which is automatically started through DBus.
+When starting something, DBus does clear all environment variables, which could
+cause problems is some scripts (e.g. mkinitcpio with autodetect hook, and the
+lack of a PATH defined).
+This is fixed by using a bash script to source /etc/profile (and therefore
+restore a proper environment) before launching kalu-dbus
+(See https://bbs.archlinux.org/viewtopic.php?id=136784)
 
 
 # 03/06/2012, v0.1.0
 
 - first stable release
-- The menu "System upgrade" was always present and running kalu's system updater. It now relies on the preferences for Upgrade notifications: only visible if enabled, and starts either kalu's updater or the specified command line. IOW those two (notifications' button & menu item) are 2 GUI elements of the same feature.
+
+- The menu "System upgrade" was always present and running kalu's system updater.
+It now relies on the preferences for Upgrade notifications: only visible if
+enabled, and starts either kalu's updater or the specified command line.
+IOW those two (notifications' button & menu item) are 2 GUI elements of the same
+feature.
 
 
 # 03/03/2012, v0.0.6
 
-- When performing a sysupgrade through kalu's updater, when (new) optionnal dependencies were to be listed, kalu would crash. Note that "only" kalu (aka the GUI) would crash, the updater part would still run fine and complete the upgrade, as the log (pacman.log) would show. Still pretty bad, and fixed.
-- When starting a sysupgrade, the message in the log (pacman.log) is now "starting sysupgrade" to be more consistent with the message upon completion ("sysupgrade completed")
+- When performing a sysupgrade through kalu's updater, when (new) optionnal
+dependencies were to be listed, kalu would crash. Note that "only" kalu (aka the
+GUI) would crash, the updater part would still run fine and complete the upgrade,
+as the log (pacman.log) would show. Still pretty bad, and fixed.
+
+- When starting a sysupgrade, the message in the log (pacman.log) is now
+"starting sysupgrade" to be more consistent with the message upon completion
+("sysupgrade completed")
 
 
 # 02/23/2012, v0.0.5
 
 - added man page
+
 - Preferences: added notification expiration delay
 
 
@@ -53,24 +113,31 @@ This is fixed by using a bash script to source /etc/profile (and therefore resto
 # 02/21/2012, v0.0.4
 
 - added window Preferences to configure things
+
 - checking the news did not report error on failure, fixed
+
 - news were always checked regardless of settings, fixed
+
 - templates were overly complicated, rewrote the whole thing
 
 
 # 02/17/2012, v0.0.3
 
-- when creating local copy of dbs, it would fail if there were folders (in sync/); fixed (only copy files now)
+- when creating local copy of dbs, it would fail if there were folders (in sync/);
+fixed (only copy files now)
+
 - added basic command-line parser, and option -d/--debug to enable debug mode
 
 
 # 02/15/2012, v0.0.2
 
-- saving data (marking (AUR) watched packages, read news, managing (AUR) watched packages) would silently failed if the folder did not exists (yet kalu acted as if it had worked), which was pretty much always the case on a new installation, fixed
+- saving data (marking (AUR) watched packages, read news, managing (AUR) watched
+packages) would silently failed if the folder did not exists (yet kalu acted as
+if it had worked), which was pretty much always the case on a new installation, fixed
+
 - template Title was missing $INS (total install size), fixed
 
 
 # 02/14/2012, v0.0.1
 
 - first release, still in development phase
-

@@ -949,18 +949,21 @@ show_history (GError **error)
     text = s;
     
     /* to preserve LF-s */
-    s = strreplace (text, "\n", " <br>");
+    s = strreplace (text, "\n\n", " <br>");
+    g_free (text);
+    text = s;
+    
+    /* add empty line before each new line (change) */
+    s = strreplace (text, "<br>-", "<br><br>-");
     g_free (text);
     text = s;
     
     /* to turn date/version number into titles (w/ some styling) */
-    while ((s = strstr (text, "<br>#")))
+    s = strreplace (text, "\n# ", "<br><h2>");
+    g_free (text);
+    text = s;
+    while ((s = strstr (s, "<h2>")))
     {
-        *(s + 0) = ' ';
-        *(s + 1) = '<';
-        *(s + 2) = 'h';
-        *(s + 3) = '2';
-        *(s + 4) = '>';
         s = strstr (s, " <br>");
         if (s)
         {
