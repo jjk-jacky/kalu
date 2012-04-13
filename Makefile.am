@@ -7,7 +7,7 @@ bin_PROGRAMS += kalu-dbus
 dist_bin_SCRIPTS = kalu-dbus-launcher
 endif
 
-dist_man_MANS = kalu.1
+nodist_man_MANS = kalu.1
 dist_doc_DATA = AUTHORS COPYING HISTORY LICENSE README.md
 doc_DATA = index.html
 
@@ -31,6 +31,7 @@ install-data-hook:
 	mv $(DESTDIR)$(docdir)/index.html $(DESTDIR)$(docdir)/html/
 
 dist-hook:
+	cp $(srcdir)/kalu.pod $(distdir)/
 	cp $(srcdir)/org.jjk.kalu.service.tpl $(distdir)/
 	cp $(srcdir)/arch_linux_48x48_icon_by_painlessrob.png $(distdir)/
 
