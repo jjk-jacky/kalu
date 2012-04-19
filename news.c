@@ -981,3 +981,33 @@ show_history (GError **error)
     gtk_widget_show (window);
     return TRUE;
 }
+
+void
+show_pacman_conflict ()
+{
+    GtkWidget     *window;
+    GtkWidget     *textview;
+    GtkTextBuffer *buffer;
+    const gchar   *text = "<h2>Possible pacman/kalu conflict</h2>"
+        "<p>The pending system upgrade is likely to fail due to kalu's dependency "
+        "on the current version of pacman. This is because the new pacman introduces "
+        "API changes in libalpm (on which kalu relies).</p>"
+        "<h2>How to upgrade?</h2>"
+        "<p>In order to upgrade your system, you will need to :"
+        "<br> <b>1.</b> Remove kalu (<pre>pacman -R kalu</pre>) This will <b>not</b> "
+        "remove your preferences, watched lists, etc"
+        "<br> <b>2.</b> Upgrade your system (<pre>pacman -Syu</pre>)"
+        "<br> <b>3.</b> Install a new version of kalu, compatible with the new "
+        "version of pacman.</p>"
+        "<p>If a new version of kalu for the new pacman isn't available on the "
+        "AUR yet, make sure to flag it as out-of-date.</p>"
+        ;
+    
+    new_window (FALSE, &window, &textview);
+    gtk_window_set_title (GTK_WINDOW (window), "Possible pacman/kalu conflict - kalu");
+    gtk_window_set_default_size (GTK_WINDOW (window), 600, 230);
+    buffer = gtk_text_view_get_buffer (GTK_TEXT_VIEW (textview));
+    create_tags (buffer);
+    parse_to_buffer (buffer, text, (gsize) strlen (text));
+    gtk_widget_show (window);
+}

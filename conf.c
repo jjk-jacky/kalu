@@ -1006,6 +1006,12 @@ parse_config_file (const char       *file,
                     config->syncdbs_in_tooltip = (*value == '1');
                     debug ("config: syncdbs in tooltip: %d", config->syncdbs_in_tooltip);
                 }
+                else if (strcmp (key, "CheckPacmanConflict") == 0)
+                {
+                    config->check_pacman_conflict = (*value == '1');
+                    debug ("config: check for pacman/kalu conflict: %d",
+                           config->check_pacman_conflict);
+                }
                 else
                 {
                     add_error ("unknown option: %s", key);

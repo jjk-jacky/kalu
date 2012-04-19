@@ -121,6 +121,7 @@ typedef struct _config_t {
     alpm_list_t     *cmdline_post;
     #endif
     gboolean         sane_sort_order;
+    gboolean         check_pacman_conflict;
     on_click_t       on_sgl_click;
     on_click_t       on_dbl_click;
     

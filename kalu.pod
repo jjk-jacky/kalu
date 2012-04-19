@@ -242,6 +242,15 @@ No variables available.
 
 =over
 
+=item I<Check for pacman/kalu conflict>
+
+When showing the notification, kalu will check if there's an upgrade of pacman
+likely to prevent the system upgrade due to kalu's dependency to the current
+version of pacman (i.e. due to API changes in libalpm).
+
+If so, a button will be featured on the notification, to show a little message
+about the reason for such a conflict, and how to perform the system upgrade.
+
 =item I<Show a button "Upgrade system" on notifications (and on kalu's menu)>
 
 Whether or not notifications should feature a button "Upgrade system" and

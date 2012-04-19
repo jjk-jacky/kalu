@@ -43,4 +43,7 @@ show_help (GError **error);
 gboolean
 show_history (GError **error);
 
+void
+show_pacman_conflict (void);
+
 #endif /* _KALU_NEWS_H */

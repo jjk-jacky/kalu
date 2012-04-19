@@ -72,6 +72,7 @@ static void action_watched (NotifyNotification *notification, char *action, alpm
 static void notify_updates (alpm_list_t *packages, check_t type, gchar *xml_news);
 static void kalu_check (gboolean is_auto);
 static void kalu_auto_check (void);
+static inline gboolean is_pacman_conflicting (alpm_list_t *packages);
 static void menu_check_cb (GtkMenuItem *item, gpointer data);
 static void menu_quit_cb (GtkMenuItem *item, gpointer data);
 static void icon_popup_cb (GtkStatusIcon *icon, guint button, guint activate_time, gpointer data);
@@ -413,6 +414,13 @@ notify_updates (alpm_list_t *packages, check_t type, gchar *xml_news)
     notification = new_notification (summary, text);
     if (type & CHECK_UPGRADES)
     {
+        if (config->check_pacman_conflict && is_pacman_conflicting (packages))
+        {
+            notify_notification_add_action (notification, "do_conflict_warn",
+                "Possible pacman/kalu conflict...",
+                (NotifyActionCallback) show_pacman_conflict,
+                NULL, NULL);
+        }
         if (config->action != UPGRADE_NO_ACTION)
         {
             notify_notification_add_action (notification, "do_updates",
@@ -463,6 +471,97 @@ notify_updates (alpm_list_t *packages, check_t type, gchar *xml_news)
     notify_notification_show (notification, NULL);
     free (summary);
     free (text);
+}
+
+static inline gboolean
+is_pacman_conflicting (alpm_list_t *packages)
+{
+    gboolean ret = FALSE;
+    alpm_list_t *i;
+    kalu_package_t *pkg;
+    char *s, *ss, *old, *new, *so, *sn;
+    
+    for (i = packages; i; i = alpm_list_next (i))
+    {
+        pkg = i->data;
+        if (strcmp ("pacman", pkg->name) == 0)
+        {
+            /* because we'll mess with it */
+            old = strdup (pkg->old_version);
+            /* locate begining of (major) version number (might have epoch: before) */
+            s = strchr (old, ':');
+            if (s)
+            {
+                so = s + 1;
+            }
+            else
+            {
+                so = old;
+            }
+            
+            s = strrchr (so, '-');
+            if (!s)
+            {
+                /* should not be possible */
+                free (old);
+                break;
+            }
+            *s = '.';
+            
+            /* because we'll mess with it */
+            new = strdup (pkg->new_version);
+            /* locate begining of (major) version number (might have epoch: before) */
+            s = strchr (new, ':');
+            if (s)
+            {
+                sn = s + 1;
+            }
+            else
+            {
+                sn = new;
+            }
+            
+            s = strrchr (sn, '-');
+            if (!s)
+            {
+                /* should not be possible */
+                free (old);
+                free (new);
+                break;
+            }
+            *s = '.';
+            
+            int nb = 0; /* to know which part (major/minor) we're dealing with */
+            while ((s = strchr (so, '.')) && (ss = strchr (sn, '.')))
+            {
+                *s = '\0';
+                *ss = '\0';
+                ++nb;
+                
+                /* if major or minor goes up, API changes is likely and kalu's
+                 * dependency will kick in */
+                if (atoi (sn) > atoi (so))
+                {
+                    ret = TRUE;
+                    break;
+                }
+                
+                /* if nb is 2 this was the minor number, past this we don't care */
+                if (nb == 2)
+                {
+                    break;
+                }
+                so = s + 1;
+                sn = ss + 1;
+            }
+            
+            free (old);
+            free (new);
+            break;
+        }
+    }
+    
+    return ret;
 }
 
 static void
@@ -1555,6 +1654,7 @@ main (int argc, char *argv[])
     config->on_sgl_click = DO_CHECK;
     config->on_dbl_click = DO_SYSUPGRADE;
     config->sane_sort_order = TRUE;
+    config->check_pacman_conflict = TRUE;
     
     config->tpl_upgrades = calloc (1, sizeof (templates_t));
     config->tpl_upgrades->title = strdup ("$NB updates available (D: $DL; N: $NET)");

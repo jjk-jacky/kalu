@@ -66,6 +66,7 @@ static GtkWidget *news_title_entry          = NULL;
 static GtkWidget *news_package_entry        = NULL;
 static GtkWidget *news_sep_entry            = NULL;
 /* Upgrades */
+static GtkWidget *check_pacman_conflict     = NULL;
 static GtkWidget *button_upg_action         = NULL;
 #ifndef DISABLE_UPDATER
 static GtkWidget *upg_action_combo          = NULL;
@@ -914,6 +915,10 @@ btn_save_cb (GtkButton *button _UNUSED_, gpointer data _UNUSED_)
     new_config.checks_manual = type;
     
     /* Upgrades */
+    new_config.check_pacman_conflict = gtk_toggle_button_get_active (
+        GTK_TOGGLE_BUTTON (check_pacman_conflict));
+    add_to_conf ("CheckPacmanConflict = %d\n", new_config.check_pacman_conflict);
+    
     s = (char *) gtk_entry_get_text (GTK_ENTRY (cmdline_entry));
     if (gtk_toggle_button_get_active (GTK_TOGGLE_BUTTON (button_upg_action)))
     {
@@ -1608,6 +1613,18 @@ show_prefs (void)
     grid = gtk_grid_new ();
     lbl_page = gtk_label_new ("Upgrades");
     
+    /* CheckPacmanConflict */
+    check_pacman_conflict = gtk_check_button_new_with_label ("Check for pacman/kalu conflict");
+    gtk_widget_set_tooltip_text (check_pacman_conflict, 
+        "Check whether an upgrade of pacman is likely to fail due to kalu's dependency, "
+        "and if so adds a button on to notification to show a message about why "
+        "and how to upgrade.");
+    gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON (check_pacman_conflict),
+                                  config->check_pacman_conflict);
+    gtk_grid_attach (GTK_GRID (grid), check_pacman_conflict, 0, top, 4, 1);
+    gtk_widget_show (check_pacman_conflict);
+    
+    ++top;
     /* UpgradeAction */
     button_upg_action = gtk_check_button_new_with_label ("Show a button \"Upgrade system\" on notifications (and on kalu's menu)");
     gtk_widget_set_tooltip_text (button_upg_action, "Whether or not to show a button \"Upgrade system\" on notifications, as well as an item \"System upgrade\" on kalu's menu");
