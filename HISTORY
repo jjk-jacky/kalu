@@ -1,4 +1,17 @@
 
+# 04/19/2012, v0.1.5.1
+
+- Preferences: option SyncDbsInTooltip could not be changed, fixed
+
+- Preferences, Upgrades: added Check for pacman/kalu conflict. When enabled,
+kalu will check if there's an upgrade of pacman likely to prevent the system
+upgrade due to kalu's dependency to the current version of pacman (i.e. due to
+API changes in libalpm).
+
+If so, a button will be featured on the notification, to show a little message
+about the reason for such a conflict, and how to perform the system upgrade.
+
+
 # 04/14/2012, v0.1.5
 
 - Now using automake & autoconf. (Hopefully) this shouldn't really change
