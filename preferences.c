@@ -999,7 +999,7 @@ btn_save_cb (GtkButton *button _UNUSED_, gpointer data _UNUSED_)
         GTK_TOGGLE_BUTTON (sane_sort_order));
     add_to_conf ("SaneSortOrder = %d\n", new_config.sane_sort_order);
     
-    new_config.sane_sort_order = gtk_toggle_button_get_active (
+    new_config.syncdbs_in_tooltip = gtk_toggle_button_get_active (
         GTK_TOGGLE_BUTTON (syncdbs_in_tooltip));
     add_to_conf ("SyncDbsInTooltip = %d\n", new_config.syncdbs_in_tooltip);
     
@@ -1824,7 +1824,7 @@ show_prefs (void)
     gtk_widget_show (sane_sort_order);
     
     ++top;
-    syncdbs_in_tooltip = gtk_check_button_new_with_label ("Show if databases can by synchronized in tooltip");
+    syncdbs_in_tooltip = gtk_check_button_new_with_label ("Show if databases can be synchronized in tooltip");
     gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON (syncdbs_in_tooltip),
                                   config->syncdbs_in_tooltip);
     gtk_grid_attach (GTK_GRID (grid), syncdbs_in_tooltip, 0, top, 2, 1);
