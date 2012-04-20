@@ -231,11 +231,12 @@ notify_updates (alpm_list_t *packages, check_t type, gchar *xml_news)
     templates_t template;
     const char *unit;
     double      size_h;
-    replacement_t *replacements[6];
+    replacement_t *replacements[7];
     
     templates_t *t, *tt;
     /* tpl_upgrades is the ref/fallback for pretty much everything */
     t = config->tpl_upgrades;
+    tt = NULL;
     if (type & CHECK_UPGRADES)
     {
         tt = config->tpl_upgrades;
@@ -259,9 +260,9 @@ notify_updates (alpm_list_t *packages, check_t type, gchar *xml_news)
         tt = config->tpl_news;
     }
     /* set the templates to use */
-    template.title = (tt->title) ? tt->title : t->title;
-    template.package = (tt->package) ? tt->package : t->package;
-    template.sep = (tt->sep) ? tt->sep : t->sep;
+    template.title = (tt && tt->title) ? tt->title : t->title;
+    template.package = (tt && tt->package) ? tt->package : t->package;
+    template.sep = (tt && tt->sep) ? tt->sep : t->sep;
     /* watched-aur might have fallen back to aur, which itself needs to fallback */
     if (type & CHECK_WATCHED_AUR)
     {
@@ -1506,7 +1507,7 @@ set_kalpm_busy (gboolean busy)
         {
             GDateTime *now, *begin, *end, *next;
             gint year, month, day;
-            gboolean is_within_skip;
+            gboolean is_within_skip = FALSE;
             
             now = g_date_time_new_now_local ();
             /* create GDateTime for begin & end of skip period */
