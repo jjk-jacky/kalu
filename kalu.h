@@ -157,7 +157,7 @@ typedef struct _kalu_package_t {
 } kalu_package_t;
 
 typedef struct _kalpm_state_t {
-    gboolean    is_busy;
+    gint        is_busy;
     guint       timeout;
     guint       timeout_icon;
     GDateTime  *last_check;

@@ -78,7 +78,7 @@ static void menu_quit_cb (GtkMenuItem *item, gpointer data);
 static void icon_popup_cb (GtkStatusIcon *icon, guint button, guint activate_time, gpointer data);
 static void free_config (void);
 
-static kalpm_state_t kalpm_state = { FALSE, 0, 0, NULL, 0, 0, 0, 0, 0, 0 };
+static kalpm_state_t kalpm_state = { 0, 0, 0, NULL, 0, 0, 0, 0, 0, 0 };
 
 static gboolean
 show_error_cmdline (gchar *arg[])
@@ -1463,7 +1463,23 @@ switch_status_icon (void)
 void
 set_kalpm_busy (gboolean busy)
 {
-    if (busy == kalpm_state.is_busy)
+    gint old = kalpm_state.is_busy;
+    
+    /* we use an counter because when using a cmdline for both upgrades & AUR,
+     * and both are triggered at the same time (from notifications) then we
+     * should only bo back to not busy when *both* are done; fixes #8 */
+    if (busy)
+    {
+        ++kalpm_state.is_busy;
+    }
+    else if (kalpm_state.is_busy > 0)
+    {
+        --kalpm_state.is_busy;
+    }
+    
+    /* make sure the state changed/there's something to do */
+    if ((old > 0  && kalpm_state.is_busy > 0)
+     || (old == 0 && kalpm_state.is_busy == 0))
     {
         return;
     }
@@ -1480,8 +1496,6 @@ set_kalpm_busy (gboolean busy)
         /* set timeout for status icon */
         kalpm_state.timeout_icon = g_timeout_add (420,
             (GSourceFunc) switch_status_icon, NULL);
-        
-        kalpm_state.is_busy = TRUE;
     }
     else
     {
@@ -1566,8 +1580,6 @@ set_kalpm_busy (gboolean busy)
             /* ensure icon is right */
             set_kalpm_nb (0, 0);
         }
-        
-        kalpm_state.is_busy = FALSE;
     }
 }
 
