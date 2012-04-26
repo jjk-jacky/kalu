@@ -684,31 +684,38 @@ parse_config_file (const char       *file,
                    conf_file_t       conf_file,
                    GError          **error)
 {
-	FILE       *fp              = NULL;
-	char        line[MAX_PATH];
+	char       *data            = NULL;
+	char       *line;
+    gchar     **lines           = NULL;
+    gchar     **l;
 	int         linenum         = 0;
     char       *section         = NULL;
 	int         success         = TRUE;
     GString    *err_msg         = NULL;
+    GError     *local_err       = NULL;
 
 	debug ("config: attempting to read file %s", file);
-	fp = fopen (file, "r");
-	if (fp == NULL)
+    if (!g_file_get_contents (file, &data, NULL, &local_err))
     {
         /* not an error if file does not exists */
-        if (errno != ENOENT)
+        if (local_err->domain != G_FILE_ERROR || local_err->code != G_FILE_ERROR_NOENT)
         {
-            g_set_error (error, KALU_ERROR, 1, "Config file %s could not be read", file);
             success = FALSE;
+            g_set_error (error, KALU_ERROR, 1, "Config file %s could not be read: %s",
+                         file, local_err->message);
         }
-		goto cleanup;
-	}
-
-	while (fgets (line, MAX_PATH, fp))
+        g_clear_error (&local_err);
+        goto cleanup;
+    }
+    
+    lines = g_strsplit (data, "\n", 0);
+    g_free (data);
+    for (l = lines; *l; ++l)
     {
 		char *key, *value, *ptr;
 		size_t line_len;
 
+        line = *l;
 		++linenum;
 		strtrim (line);
 		line_len = strlen(line);
@@ -1114,10 +1121,7 @@ parse_config_file (const char       *file,
 	}
 
 cleanup:
-	if (fp)
-    {
-		fclose(fp);
-	}
+	g_strfreev (lines);
     free (section);
     if (config->action == UPGRADE_ACTION_CMDLINE && config->cmdline == NULL)
     {
