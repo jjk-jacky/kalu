@@ -1328,25 +1328,46 @@ updater_sysupgrade_cb (KaluUpdater *kupdater _UNUSED_, const gchar *errmsg)
             }
         }
         
-        for (i = cmdlines; i; i = alpm_list_next (i))
-        {
-            add_log (LOGTYPE_NORMAL, "Starting: '%s' ..", i->data);
-            if (!g_spawn_command_line_async (i->data, &error))
-            {
-                add_log (LOGTYPE_NORMAL, " failed\n");
-                _show_error ("Unable to start post-sysupgrade process.",
-                    "Command-line: %s\nError: %s",
-                    i->data, error->message);
-                g_clear_error (&error);
-            }
-            else
-            {
-                add_log (LOGTYPE_NORMAL, " ok\n");
-            }
-        }
         if (cmdlines)
         {
+            /* construct list of "upgraded" packages */
+            GtkTreeIter iter;
+            GtkTreeModel *model = GTK_TREE_MODEL (updater->store);
+            GString *string;
+            char *s;
+            
+            string = g_string_sized_new (255);
+            gtk_tree_model_get_iter_first (model, &iter);
+            do
+            {
+                gtk_tree_model_get (model, &iter, UCOL_PACKAGE, &s, -1);
+                string = g_string_append (string, s);
+                string = g_string_append_c (string, ' ');
+            } while (gtk_tree_model_iter_next (model, &iter));
+            
+            /* start */
+            for (i = cmdlines; i; i = alpm_list_next (i))
+            {
+                s = strreplace (i->data, "$PACKAGES", string->str);
+                
+                add_log (LOGTYPE_NORMAL, "Starting: '%s' ..", s);
+                if (!g_spawn_command_line_async (s, &error))
+                {
+                    add_log (LOGTYPE_NORMAL, " failed\n");
+                    _show_error ("Unable to start post-sysupgrade process.",
+                        "Command-line: %s\nError: %s",
+                        s, error->message);
+                    g_clear_error (&error);
+                }
+                else
+                {
+                    add_log (LOGTYPE_NORMAL, " ok\n");
+                }
+                free (s);
+            }
+            
             FREELIST (cmdlines);
+            g_string_free (string, TRUE);
         }
     }
 }

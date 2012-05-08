@@ -1163,6 +1163,7 @@ add_list (GtkWidget     *grid,
           GtkListStore **store,
           GtkWidget    **hbox,
           const char    *column_title,
+          const char    *tooltip_list,
           const char    *tooltip_add,
           const char    *tooltip_edit,
           const char    *tooltip_remove,
@@ -1173,6 +1174,10 @@ add_list (GtkWidget     *grid,
     tree = gtk_tree_view_new_with_model (GTK_TREE_MODEL (*store));
     g_object_set_data (G_OBJECT (tree), "store", (gpointer) *store);
     g_object_unref (*store);
+    if (tooltip_list)
+    {
+        gtk_widget_set_tooltip_markup (tree, tooltip_list);
+    }
     
     /* vbox - sort of a toolbar but vertical */
     GtkWidget *vbox_tb;
@@ -1695,6 +1700,7 @@ show_prefs (void)
     /* PostSysUpgrade */
     add_list (grid, top, &cmdline_post_store, &cmdline_post_hbox,
               "After completing a system upgrade, start the following :",
+              "You can use <b>$PACKAGES</b> to be replaced by the list of upgraded packages",
               "Add a new command-line",
               "Edit selected command-line",
               "Remove selected command-line",
@@ -1794,6 +1800,7 @@ show_prefs (void)
     ++top;
     add_list (grid, top, &aur_ignore_store, &hbox,
               "Package name",
+              NULL,
               "Add a new package",
               "Edit selected package",
               "Remove selected package",
