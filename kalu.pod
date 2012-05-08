@@ -270,10 +270,17 @@ notification.
 
 When using kalu's updater, you can define one or more processes to be ran after
 a system upgrade was completed. Specify their command-line in the list, and
-after a succesful system upgrade kalu will ask whether to start them or not.
+they'll be started after a succesful system upgrade.
 
-In case you specify more than one, the full list will be featured and you will
-be able to determine which (if any) to start each time.
+You can use B<$PACKAGES> in the command line, which will be replaced by the
+list of all packages involved in the sysupgrade (i.e. packages upgraded, as well
+as those added or removed, for instance when a package is replaced by another one).
+
+=item I<Ask confirmation before starting anything>
+
+If enabled, a confirmation will be asked before any process is started after the
+sysupgrade. In case you specify more than one, the full list will be featured
+and you will be able to determine which (if any) to start each time.
 
 =item I<Notification template>
 
