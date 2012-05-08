@@ -284,9 +284,10 @@ confirm_choices (const gchar *message,
     /* a scrolledwindow for the list */
     GtkWidget *scrolled;
     scrolled = gtk_scrolled_window_new (
-        gtk_tree_view_get_hadjustment (GTK_TREE_VIEW (list)),
-        gtk_tree_view_get_vadjustment (GTK_TREE_VIEW (list)));
+        gtk_scrollable_get_hadjustment (GTK_SCROLLABLE (list)),
+        gtk_scrollable_get_vadjustment (GTK_SCROLLABLE (list)));
     gtk_box_pack_start (GTK_BOX (box), scrolled, TRUE, TRUE, 0);
+    gtk_widget_set_size_request (scrolled, -1, 108);
     gtk_widget_show (scrolled);
     
     /* cell renderer & column(s) */
