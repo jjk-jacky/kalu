@@ -76,6 +76,7 @@ static GtkWidget *cmdline_entry             = NULL;
 #ifndef DISABLE_UPDATER
 static GtkWidget *cmdline_post_hbox         = NULL;
 static GtkListStore *cmdline_post_store     = NULL;
+static GtkWidget *confirm_post              = NULL;
 #endif
 static GtkWidget *upg_title_entry           = NULL;
 static GtkWidget *upg_package_entry         = NULL;
@@ -159,6 +160,7 @@ upg_action_toggled_cb (GtkToggleButton *button, gpointer data _UNUSED_)
     gtk_widget_set_sensitive (cmdline_entry, is_active);
     #ifndef DISABLE_UPDATER
     gtk_widget_set_sensitive (cmdline_post_hbox, is_active);
+    gtk_widget_set_sensitive (confirm_post, is_active);
     #endif
 }
 
@@ -172,6 +174,7 @@ upg_action_changed_cb (GtkComboBox *combo, gpointer data _UNUSED_)
         gtk_widget_hide (cmdline_entry);
         #ifndef DISABLE_UPDATER
         gtk_widget_show (cmdline_post_hbox);
+        gtk_widget_show (confirm_post);
         #endif
     }
     else if (choice == 1)
@@ -180,6 +183,7 @@ upg_action_changed_cb (GtkComboBox *combo, gpointer data _UNUSED_)
         gtk_widget_show (cmdline_entry);
         #ifndef DISABLE_UPDATER
         gtk_widget_hide (cmdline_post_hbox);
+        gtk_widget_hide (confirm_post);
         #endif
     }
 }
@@ -967,6 +971,8 @@ btn_save_cb (GtkButton *button _UNUSED_, gpointer data _UNUSED_)
             }
         } while (gtk_tree_model_iter_next (model, &iter));
     }
+    new_config.confirm_post = gtk_toggle_button_get_active (GTK_TOGGLE_BUTTON (confirm_post));
+    add_to_conf ("ConfirmPostSysUpgrade = %d\n", new_config.confirm_post);
     #endif
     
     /* AUR */
@@ -1220,8 +1226,8 @@ add_list (GtkWidget     *grid,
     /* a scrolledwindow for the tree */
     GtkWidget *scrolled;
     scrolled = gtk_scrolled_window_new (
-        gtk_tree_view_get_hadjustment (GTK_TREE_VIEW (tree)),
-        gtk_tree_view_get_vadjustment (GTK_TREE_VIEW (tree)));
+        gtk_scrollable_get_hadjustment (GTK_SCROLLABLE (tree)),
+        gtk_scrollable_get_vadjustment (GTK_SCROLLABLE (tree)));
     gtk_scrolled_window_set_shadow_type (GTK_SCROLLED_WINDOW (scrolled),
         GTK_SHADOW_OUT);
     gtk_widget_show (scrolled);
@@ -1688,12 +1694,19 @@ show_prefs (void)
     ++top;
     /* PostSysUpgrade */
     add_list (grid, top, &cmdline_post_store, &cmdline_post_hbox,
-              "After completing a system upgrade, ask whether to start the following :",
+              "After completing a system upgrade, start the following :",
               "Add a new command-line",
               "Edit selected command-line",
               "Remove selected command-line",
               config->cmdline_post);
     gtk_widget_set_sensitive (cmdline_post_hbox, config->action != UPGRADE_NO_ACTION);
+    ++top;
+    /* ConfirmPostSysUpgrade */
+    confirm_post = gtk_check_button_new_with_label ("Ask confirmation before starting anything");
+    gtk_widget_set_tooltip_text (confirm_post, "Confirmation will be asked before starting those processes. With multiple ones, you'll be able to select which one(s) to start.");
+    gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON (confirm_post), config->confirm_post);
+    gtk_grid_attach (GTK_GRID (grid), confirm_post, 0, top, 2, 1);
+    gtk_widget_show (confirm_post);
     
     /* doing this now otherwise it's triggered with non-yet-existing widgets to hide/show */
     g_signal_connect (G_OBJECT (upg_action_combo), "changed",

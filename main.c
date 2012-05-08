@@ -1661,6 +1661,7 @@ main (int argc, char *argv[])
                             | CHECK_WATCHED_AUR | CHECK_NEWS;
     #ifndef DISABLE_UPDATER
     config->action = UPGRADE_ACTION_KALU;
+    config->confirm_post = TRUE;
     #else
     config->action = UPGRADE_NO_ACTION;
     #endif

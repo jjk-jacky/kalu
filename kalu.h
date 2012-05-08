@@ -119,6 +119,7 @@ typedef struct _config_t {
     char            *cmdline_aur;
     #ifndef DISBALE_UPDATER
     alpm_list_t     *cmdline_post;
+    gboolean         confirm_post;
     #endif
     gboolean         sane_sort_order;
     gboolean         check_pacman_conflict;

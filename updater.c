@@ -1271,76 +1271,82 @@ updater_sysupgrade_cb (KaluUpdater *kupdater _UNUSED_, const gchar *errmsg)
     
     if (NULL != updater->cmdline_post)
     {
-        GError *error = NULL;
-        size_t count = alpm_list_count (updater->cmdline_post);
+        GError      *error = NULL;
+        size_t       count = alpm_list_count (updater->cmdline_post);
+        alpm_list_t *cmdlines = NULL, *i;
         
         if (count == 1)
         {
-            add_log (LOGTYPE_INFO, "Do you want to run the post-sysupgrade process ?");
-            if (confirm ("Do you want to run the post-sysupgrade process ?",
-                    updater->cmdline_post->data,
-                    "Yes, Start it now", NULL,
-                    "No", NULL,
-                    updater->window))
+            if (config->confirm_post)
             {
-                add_log (LOGTYPE_INFO, " Yes\n");
-                add_log (LOGTYPE_NORMAL, "Starting: '%s' ..", updater->cmdline_post->data);
-                if (!g_spawn_command_line_async (updater->cmdline_post->data, &error))
+                add_log (LOGTYPE_INFO, "Do you want to run the post-sysupgrade process ?");
+                if (confirm ("Do you want to run the post-sysupgrade process ?",
+                        updater->cmdline_post->data,
+                        "Yes, Start it now", NULL,
+                        "No", NULL,
+                        updater->window))
                 {
-                    add_log (LOGTYPE_NORMAL, " failed\n");
-                    _show_error ("Unable to start post-sysupgrade process.",
-                        "Command-line: %s\nError: %s",
-                        updater->cmdline_post->data, error->message);
-                    g_clear_error (&error);
+                    add_log (LOGTYPE_INFO, " Yes\n");
+                    cmdlines = alpm_list_add (cmdlines, updater->cmdline_post->data);
                 }
                 else
                 {
-                    add_log (LOGTYPE_NORMAL, " ok\n");
+                    add_log (LOGTYPE_INFO, " No\n");
                 }
             }
             else
             {
-                add_log (LOGTYPE_INFO, " No\n");
+                cmdlines = alpm_list_add (cmdlines, updater->cmdline_post->data);
             }
         }
         else
         {
-            alpm_list_t *cmdlines, *i;
-            add_log (LOGTYPE_INFO, "Do you want to run the post-sysupgrade processes ?");
-            cmdlines = confirm_choices (
-            "Do you want to run the following post-sysupgrade processes ?",
-                "Only checked processes will be launch.",
-                "Yes, run checked processes now", NULL,
-                "No", NULL,
-                "Run",
-                "Command-line",
-                updater->cmdline_post,
-                updater->window);
-            if (NULL != cmdlines)
+            if (config->confirm_post)
             {
-                add_log (LOGTYPE_INFO, " Yes\n");
-                for (i = cmdlines; i; i = alpm_list_next (i))
+                add_log (LOGTYPE_INFO, "Do you want to run the post-sysupgrade processes ?");
+                cmdlines = confirm_choices (
+                "Do you want to run the following post-sysupgrade processes ?",
+                    "Only checked processes will be launch.",
+                    "Yes, run checked processes now", NULL,
+                    "No", NULL,
+                    "Run",
+                    "Command-line",
+                    updater->cmdline_post,
+                    updater->window);
+                if (NULL != cmdlines)
                 {
-                    add_log (LOGTYPE_NORMAL, "Starting: '%s' ..", i->data);
-                    if (!g_spawn_command_line_async (i->data, &error))
-                    {
-                        add_log (LOGTYPE_NORMAL, " failed\n");
-                        _show_error ("Unable to start post-sysupgrade process.",
-                            "Command-line: %s\nError: %s",
-                            i->data, error->message);
-                        g_clear_error (&error);
-                    }
-                    else
-                    {
-                        add_log (LOGTYPE_NORMAL, " ok\n");
-                    }
+                    add_log (LOGTYPE_INFO, " Yes\n");
                 }
-                FREELIST (cmdlines);
+                else
+                {
+                    add_log (LOGTYPE_INFO, " No\n");
+                }
             }
             else
             {
-                add_log (LOGTYPE_INFO, " No\n");
+                cmdlines = updater->cmdline_post;
             }
+        }
+        
+        for (i = cmdlines; i; i = alpm_list_next (i))
+        {
+            add_log (LOGTYPE_NORMAL, "Starting: '%s' ..", i->data);
+            if (!g_spawn_command_line_async (i->data, &error))
+            {
+                add_log (LOGTYPE_NORMAL, " failed\n");
+                _show_error ("Unable to start post-sysupgrade process.",
+                    "Command-line: %s\nError: %s",
+                    i->data, error->message);
+                g_clear_error (&error);
+            }
+            else
+            {
+                add_log (LOGTYPE_NORMAL, " ok\n");
+            }
+        }
+        if (cmdlines)
+        {
+            FREELIST (cmdlines);
         }
     }
 }

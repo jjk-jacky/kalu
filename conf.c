@@ -905,6 +905,11 @@ parse_config_file (const char       *file,
                         strdup (value));
                     debug ("config: postsysupgrade: %s", value);
                 }
+                else if (strcmp (key, "ConfirmPostSysUpgrade") == 0)
+                {
+                    config->confirm_post = (*value == '1');
+                    debug ("config: confirm postsysupgrade: %d", config->confirm_post);
+                }
                 #endif
                 else if (strcmp (key, "AurIgnore") == 0)
                 {
