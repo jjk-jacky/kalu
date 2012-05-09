@@ -146,6 +146,7 @@ parse_to_buffer (GtkTextBuffer *buffer, const gchar *text, gsize text_len)
     gchar       *s, *ss, *start, *end;
     gchar        buf[10];
     gint         c, margin;
+    gint         in_ordered_list = -1;
     
     s = malloc ((text_len + 2) * sizeof (gchar));
     snprintf (s, text_len + 1, "%s", text);
@@ -159,6 +160,12 @@ parse_to_buffer (GtkTextBuffer *buffer, const gchar *text, gsize text_len)
     {
         *ss = '\n';
         start = ss + 4;
+        memmove (++ss, start, strlen (start) + 1);
+    }
+    while ((ss = strstr (s, "&quot;")))
+    {
+        *ss = '"';
+        start = ss + 6;
         memmove (++ss, start, strlen (start) + 1);
     }
     
@@ -284,6 +291,50 @@ parse_to_buffer (GtkTextBuffer *buffer, const gchar *text, gsize text_len)
             *start = '\0';
             insert_text_with_tags ();
             tags = alpm_list_remove_str (tags, "italic", NULL);
+        }
+        else if (strcmp (start + 1, "ul") == 0)
+        {
+            *start = '\0';
+            insert_text_with_tags ();
+            gtk_text_buffer_insert (buffer, &iter, "\n", -1);
+        }
+        else if (strcmp (start + 1, "ol") == 0)
+        {
+            *start = '\0';
+            insert_text_with_tags ();
+            gtk_text_buffer_insert (buffer, &iter, "\n", -1);
+            in_ordered_list = 0;
+        }
+        else if (strcmp (start + 1, "li") == 0)
+        {
+            *start = '\0';
+            insert_text_with_tags ();
+            gtk_text_buffer_insert (buffer, &iter, "\n", -1);
+            tags = alpm_list_add (tags, (void *) "listitem");
+            if (in_ordered_list == -1)
+            {
+                ss = (gchar *) "• ";
+            }
+            else
+            {
+                ++in_ordered_list;
+                snprintf (buf, 10, "%d. ", in_ordered_list);
+                ss = buf;
+            }
+            insert_text_with_tags ();
+        }
+        else if (strcmp (start + 1, "/li") == 0)
+        {
+            *start = '\0';
+            insert_text_with_tags ();
+            gtk_text_buffer_insert (buffer, &iter, "\n", -1);
+            tags = alpm_list_remove_str (tags, "listitem", NULL);
+        }
+        else if (strcmp (start + 1, "/ol") == 0)
+        {
+            *start = '\0';
+            insert_text_with_tags ();
+            in_ordered_list = -1;
         }
         else if (strcmp (start + 1, "lt") == 0)
         {
@@ -463,6 +514,10 @@ create_tags (GtkTextBuffer *buffer)
     
     gtk_text_buffer_create_tag (buffer, "italic",
         "style",            PANGO_STYLE_ITALIC,
+        NULL);
+    
+    gtk_text_buffer_create_tag (buffer, "listitem",
+        "left-margin",      15,
         NULL);
 }
 
@@ -698,8 +753,8 @@ new_window (gboolean only_updates, GtkWidget **window, GtkWidget **textview)
     /* scrolled window for the textview */
     GtkWidget *scrolled;
     scrolled = gtk_scrolled_window_new (
-        gtk_text_view_get_hadjustment (GTK_TEXT_VIEW (*textview)),
-        gtk_text_view_get_vadjustment (GTK_TEXT_VIEW (*textview)));
+        gtk_scrollable_get_hadjustment (GTK_SCROLLABLE (*textview)),
+        gtk_scrollable_get_vadjustment (GTK_SCROLLABLE (*textview)));
     gtk_box_pack_start (GTK_BOX (vbox), scrolled, TRUE, TRUE, 0);
     gtk_widget_show (scrolled);
     
