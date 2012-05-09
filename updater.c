@@ -1324,7 +1324,7 @@ updater_sysupgrade_cb (KaluUpdater *kupdater _UNUSED_, const gchar *errmsg)
             }
             else
             {
-                cmdlines = updater->cmdline_post;
+                cmdlines = alpm_list_copy (updater->cmdline_post);
             }
         }
         
@@ -1366,7 +1366,7 @@ updater_sysupgrade_cb (KaluUpdater *kupdater _UNUSED_, const gchar *errmsg)
                 free (s);
             }
             
-            FREELIST (cmdlines);
+            alpm_list_free (cmdlines);
             g_string_free (string, TRUE);
         }
     }
