@@ -191,6 +191,7 @@ action_news (NotifyNotification *notification, char *action _UNUSED_,
     GError *error = NULL;
     
     notify_notification_close (notification, NULL);
+    set_kalpm_busy (TRUE);
     if (!news_show (xml_news, TRUE, &error))
     {
         show_error ("Unable to show the news", error->message, NULL);
