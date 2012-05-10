@@ -26,14 +26,26 @@ kalu can check for a few things :
 
 Of course you don't have to use all of this, and you can define which of those checks kalu should do. Besides maintaining lists of watched (AUR) packages, you can also define a list of foreign packages that kalu should not check the AUR for. Since there's no reason to check for packages you know aren't from the AUR (e.g. packages of your own making).
 
+## More than a notifier: kalu's updater
+
+When a notification is shown, it will feature an action button. This button can be used to simply trigger a process of your choosing, e.g. you could have it start pacman with something like `urxvt -e sudo pacman -Syu`
+
+However, **kalu comes with an integrated system upgrader**, which does exactly the same, only in a GTK GUI. Before being able to synchronize your databases (and possibly upgrade the system) the updater needs root privileges, obviously.
+
+The way it works is: **kalu itself only contains the GUI**, and the part that does interact with libalpm (to actually upgrade your system) is in a secondary binary (`kalu-dbus`). This binary only will require root privileges, and will rely on PolicyKit to ensure you are authorized before doing anything.
+
+You can also define one or more processes to be run after completing a system upgrade (to start e.g. [localepurge](https://aur.archlinux.org/packages.php?ID=11975 "AUR: localepurge: Script to remove disk space wasted for unneeded localizations") and/or [PkgClip](http://mywaytoarch.tumblr.com/post/16005116198/pkgclip-does-your-pacman-cache-need-a-trim "PkgClip: Does your pacman cache need a trim?")), and kalu will start them after each succesfull sysupgrade (and an optional confirmation, which for multiple processes will feature the full list so you can specify which (if any) to start).
+
+Note that if you're not interested in this, you can remove it by specifying `--disable-updater` on the `configure` command line.
+
 ## Want to know more?
 
 Some useful links if you're looking for more info:
 
-- blog post about kalu: http://mywaytoarch.tumblr.com/post/19350380240/keep-arch-linux-up-to-date-with-kalu
+- [blog post about kalu](http://mywaytoarch.tumblr.com/post/19350380240/keep-arch-linux-up-to-date-with-kalu "Keep Arch Linux Up-to-date with kalu")
 
-- source code & issue tracker: https://bitbucket.org/jjacky/kalu
+- [source code & issue tracker](https://bitbucket.org/jjacky/kalu "kalu @ BitBucket.org")
 
-- PKGBUILD in AUR: https://aur.archlinux.org/packages.php?ID=56673
+- [PKGBUILD in AUR](https://aur.archlinux.org/packages.php?ID=56673 "AUR: kalu")
 
 Plus, kalu comes with a man page.
