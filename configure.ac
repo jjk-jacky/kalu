@@ -2,7 +2,7 @@
 # Process this file with autoconf to produce a configure script.
 
 AC_PREREQ([2.68])
-AC_INIT([kalu], [0.1.5.1], [i.am.jack.mail@gmail.com])
+AC_INIT([kalu], [1.0.0], [i.am.jack.mail@gmail.com])
 AM_INIT_AUTOMAKE([-Wall -Werror foreign])
 AC_CONFIG_SRCDIR([kalu.h])
 AC_CONFIG_HEADERS([config.h])
@@ -13,6 +13,7 @@ AC_SYS_LARGEFILE
 AC_PROG_CC_C99
 AC_PROG_INSTALL
 AC_PROG_LN_S
+AM_PROG_CC_C_O
 
 # Option for News URL
 AC_ARG_WITH([news-rss-url],

@@ -67,9 +67,8 @@ kalu_dbus_LDADD = @GTK_LIBS@ @POLKIT_LIBS@ -lalpm
 kalu_dbus_SOURCES = updater-dbus.h kupdater.h kalu-dbus.c
 endif
 
-_bindir = $(subst /,\/,$(bindir))
 org.jjk.kalu.service: org.jjk.kalu.service.tpl
-	@sed 's/@BINDIR@/$(_bindir)/' org.jjk.kalu.service.tpl > org.jjk.kalu.service
+	sed 's|@BINDIR@|$(bindir)|' org.jjk.kalu.service.tpl > org.jjk.kalu.service
 
 kalu.1: kalu.pod
 	pod2man --center='Keeping Arch Linux Up-to-date' --section=1 --release=$(PACKAGE_VERSION) kalu.pod kalu.1

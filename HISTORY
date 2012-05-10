@@ -1,4 +1,27 @@
 
+# 05/10/2012, v1.0.0
+
+- Preferences: kalu's updater: added option to disable confirmation before
+starting PostSysUpgrade processes.
+
+- PostSysUpgrade: now you can use variable $PACKAGES in the command line, to be
+replaced by the list of upgraded packages.
+
+Note that the list actually is of all packages involved in the sysupgrade, i.e.
+also those removed or added (e.g. when a package is replaced by another one).
+
+- When buttons for Upgrades & AUR were both used/clicked at the same time,
+kalu would run a check after each, fixed
+
+- Parsing config file was broken for lines with more than 255 characters, fixed
+
+- News parser: added support for lists and &quot;
+
+- Other minor fixes.
+
+- Bumped to 1.0.0 to follow semantic versioning
+
+
 # 04/19/2012, v0.1.5.1
 
 - Preferences: option SyncDbsInTooltip could not be changed, fixed
