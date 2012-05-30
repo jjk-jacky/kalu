@@ -80,6 +80,34 @@ static void free_config (void);
 
 static kalpm_state_t kalpm_state = { 0, 0, 0, NULL, 0, 0, 0, 0, 0, 0 };
 
+static gboolean is_cli = FALSE;
+
+#define do_notify_error(summary, text)  if (!is_cli)    \
+    {                                                   \
+        notify_error (summary, text);                   \
+    }                                                   \
+    else                                                \
+    {                                                   \
+        fprintf (stderr, "%s\n", summary);              \
+        if (text)                                       \
+        {                                               \
+            fprintf (stderr, "%s\n", text);             \
+        }                                               \
+    }
+
+#define do_show_error(message, submessage, parent)  if (!is_cli)    \
+    {                                                               \
+        show_error (message, submessage, parent);                   \
+    }                                                               \
+    else                                                            \
+    {                                                               \
+        fprintf (stderr, "%s\n", message);                          \
+        if (submessage)                                             \
+        {                                                           \
+            fprintf (stderr, "%s\n", submessage);                   \
+        }                                                           \
+    }
+
 static gboolean
 show_error_cmdline (gchar *arg[])
 {
@@ -411,6 +439,15 @@ notify_updates (alpm_list_t *packages, check_t type, gchar *xml_news)
         free (replacements[3]);
     }
     
+    if (is_cli)
+    {
+        puts (summary);
+        puts (text);
+        free (summary);
+        free (text);
+        return;
+    }
+    
     NotifyNotification *notification;
     
     notification = new_notification (summary, text);
@@ -595,7 +632,7 @@ kalu_check_work (gboolean is_auto)
         }
         else if (error != NULL)
         {
-            notify_error ("Unable to check the news", error->message);
+            do_notify_error ("Unable to check the news", error->message);
             g_clear_error (&error);
         }
     }
@@ -606,8 +643,8 @@ kalu_check_work (gboolean is_auto)
     {
         if (!kalu_alpm_load (config->pacmanconf, &error))
         {
-            notify_error ("Unable to check for updates -- loading alpm library failed",
-                error->message);
+            do_notify_error ("Unable to check for updates -- loading alpm library failed",
+                             error->message);
             g_clear_error (&error);
             set_kalpm_busy (FALSE);
             return;
@@ -617,8 +654,8 @@ kalu_check_work (gboolean is_auto)
         if (checks & (CHECK_UPGRADES | CHECK_WATCHED)
             && !kalu_alpm_syncdbs (&nb_syncdbs, &error))
         {
-            notify_error ("Unable to check for updates -- could not synchronize databases",
-                error->message);
+            do_notify_error ("Unable to check for updates -- could not synchronize databases",
+                             error->message);
             g_clear_error (&error);
             kalu_alpm_free ();
             set_kalpm_busy (FALSE);
@@ -645,28 +682,36 @@ kalu_check_work (gboolean is_auto)
                 /* means the error is likely to come from a dependency issue/conflict */
                 if (error->code == 2)
                 {
-                    /* we do the notification (instead of calling notify_error) because
-                     * we need to add the "Update system" button/action. */
-                    NotifyNotification *notification;
-                    
-                    notification = new_notification (
-                        "Unable to compile list of packages",
-                        error->message);
-                    if (config->action != UPGRADE_NO_ACTION)
+                    if (!is_cli)
                     {
-                        notify_notification_add_action (notification, "do_updates",
-                            "Update system...", (NotifyActionCallback) action_upgrade,
-                            NULL, NULL);
+                        /* we do the notification (instead of calling notify_error) because
+                         * we need to add the "Update system" button/action. */
+                        NotifyNotification *notification;
+                        
+                        notification = new_notification (
+                            "Unable to compile list of packages",
+                            error->message);
+                        if (config->action != UPGRADE_NO_ACTION)
+                        {
+                            notify_notification_add_action (notification, "do_updates",
+                                "Update system...", (NotifyActionCallback) action_upgrade,
+                                NULL, NULL);
+                        }
+                        /* we use a callback on "closed" to unref it, because when there's an action
+                         * we need to keep a ref, otherwise said action won't work */
+                        g_signal_connect (G_OBJECT (notification), "closed",
+                                          G_CALLBACK (notification_closed_cb), NULL);
+                        notify_notification_show (notification, NULL);
                     }
-                    /* we use a callback on "closed" to unref it, because when there's an action
-                     * we need to keep a ref, otherwise said action won't work */
-                    g_signal_connect (G_OBJECT (notification), "closed",
-                                      G_CALLBACK (notification_closed_cb), NULL);
-                    notify_notification_show (notification, NULL);
+                    else
+                    {
+                        do_notify_error ("Unable to compile list of packages",
+                                         error->message);
+                    }
                 }
                 else
                 {
-                    notify_error ("Unable to check for updates", error->message);
+                    do_notify_error ("Unable to check for updates", error->message);
                 }
                 g_clear_error (&error);
             }
@@ -692,8 +737,8 @@ kalu_check_work (gboolean is_auto)
             else
             {
                 got_something = TRUE;
-                notify_error ("Unable to check for updates of watched packages",
-                              error->message);
+                do_notify_error ("Unable to check for updates of watched packages",
+                                 error->message);
                 g_clear_error (&error);
             }
         }
@@ -718,7 +763,7 @@ kalu_check_work (gboolean is_auto)
                 else
                 {
                     got_something = TRUE;
-                    notify_error ("Unable to check for AUR packages", error->message);
+                    do_notify_error ("Unable to check for AUR packages", error->message);
                     g_clear_error (&error);
                 }
                 alpm_list_free (aur_pkgs);
@@ -730,7 +775,7 @@ kalu_check_work (gboolean is_auto)
             else
             {
                 got_something = TRUE;
-                notify_error ("Unable to check for AUR packages", error->message);
+                do_notify_error ("Unable to check for AUR packages", error->message);
                 g_clear_error (&error);
             }
         }
@@ -758,15 +803,15 @@ kalu_check_work (gboolean is_auto)
         else
         {
             got_something = TRUE;
-            notify_error ("Unable to check for updates of watched AUR packages",
-                          error->message);
+            do_notify_error ("Unable to check for updates of watched AUR packages",
+                             error->message);
             g_clear_error (&error);
         }
     }
     
     if (!is_auto && !got_something)
     {
-        notify_error ("No upgrades available.", NULL);
+        do_notify_error ("No upgrades available.", NULL);
     }
     
     /* update state */
@@ -882,7 +927,7 @@ menu_news_cb (GtkMenuItem *item _UNUSED_, gpointer data _UNUSED_)
     
     if (!news_show (NULL, FALSE, &error))
     {
-        show_error ("Unable to show the recent Arch Linxu news", error->message, NULL);
+        show_error ("Unable to show the recent Arch Linux news", error->message, NULL);
         g_clear_error (&error);
     }
 }
@@ -1395,6 +1440,9 @@ static GtkStatusIcon *icon = NULL;
 static gboolean
 set_status_icon (gboolean active)
 {
+    if (is_cli)
+        return FALSE;
+    
     if (active)
     {
         gtk_status_icon_set_from_stock (icon, "kalu-logo");
@@ -1480,7 +1528,8 @@ set_kalpm_busy (gboolean busy)
     }
     
     /* make sure the state changed/there's something to do */
-    if ((old > 0  && kalpm_state.is_busy > 0)
+    if (is_cli
+     || (old > 0  && kalpm_state.is_busy > 0)
      || (old == 0 && kalpm_state.is_busy == 0))
     {
         return;
@@ -1619,36 +1668,57 @@ main (int argc, char *argv[])
     GdkPixbuf       *pixbuf;
     gchar            conffile[MAX_PATH];
     
-    gtk_init (&argc, &argv);
     config = calloc (1, sizeof(*config));
     
-    /* parse command line -- very basic stuff */
+    /* parse command line */
+    gboolean         show_version       = FALSE;
+    gboolean         run_manual_checks  = FALSE;
+    gboolean         run_auto_checks    = FALSE;
+    GOptionEntry     options[] = {
+        { "version", 'V', 0, G_OPTION_ARG_NONE, &show_version,
+            "Show version information", NULL },
+        { "debug", 'd', 0, G_OPTION_ARG_NONE, &config->is_debug,
+            "Enable debug mode", NULL },
+        { "manual-checks", 'm', 0, G_OPTION_ARG_NONE, &run_manual_checks,
+            "Run manual checks", NULL },
+        { "auto-checks", 'a', 0, G_OPTION_ARG_NONE, &run_auto_checks,
+            "Run automatic checks", NULL },
+        { NULL }
+    };
+    
     if (argc > 1)
     {
-        if (strcmp (argv[1], "-h") == 0 || strcmp (argv[1], "--help") == 0)
+        GOptionContext *context;
+        
+        context = g_option_context_new (NULL);
+        g_option_context_add_main_entries (context, options, NULL);
+        g_option_context_add_group (context, gtk_get_option_group (TRUE));
+        
+        if (!g_option_context_parse (context, &argc, &argv, &error))
         {
-            printf ("kalu - " PACKAGE_TAG " v" PACKAGE_VERSION "\n\n");
-            printf (" -h, --help        Show this help screen and exit\n");
-            printf (" -V, --version     Show version information and exit\n");
-            printf (" -d, --debug       Enable debug mode\n");
-            printf ("\nFor more, please refer to the man page: man kalu\n");
+            fprintf (stderr, "option parsing failed: %s\n", error->message);
+            g_option_context_free (context);
+            return 1;
+        }
+        if (show_version)
+        {
+            puts ("kalu - " PACKAGE_TAG " v" PACKAGE_VERSION);
+            puts ("Copyright (C) 2012 Olivier Brunel");
+            puts ("License GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>");
+            puts ("This is free software: you are free to change and redistribute it.");
+            puts ("There is NO WARRANTY, to the extent permitted by law.");
+            g_option_context_free (context);
             return 0;
         }
-        else if (strcmp (argv[1], "-V") == 0 || strcmp (argv[1], "--version") == 0)
+        if (config->is_debug)
         {
-            printf ("kalu - " PACKAGE_TAG " v" PACKAGE_VERSION "\n");
-            printf ("Copyright (C) 2012 Olivier Brunel\n");
-            printf ("License GPLv3+: GNU GPL version 3 or later"
-                    " <http://gnu.org/licenses/gpl.html>\n");
-            printf ("This is free software: you are free to change and redistribute it.\n");
-            printf ("There is NO WARRANTY, to the extent permitted by law.\n");
-            return 0;
-        }
-        else if (strcmp (argv[1], "-d") == 0 || strcmp (argv[1], "--debug") == 0)
-        {
-            config->is_debug = TRUE;
             debug ("debug mode enabled");
         }
+        if (run_manual_checks || run_auto_checks)
+        {
+            is_cli = TRUE;
+        }
+        g_option_context_free (context);
     }
     
     config->pacmanconf = strdup ("/etc/pacman.conf");
@@ -1694,29 +1764,48 @@ main (int argc, char *argv[])
     snprintf (conffile, MAX_PATH - 1, "%s/.config/kalu/kalu.conf", g_get_home_dir ());
     if (!parse_config_file (conffile, CONF_FILE_KALU, &error))
     {
-        show_error ("Errors while parsing configuration", error->message, NULL);
+        do_show_error ("Errors while parsing configuration", error->message, NULL);
         g_clear_error (&error);
     }
     /* parse watched */
     snprintf (conffile, MAX_PATH - 1, "%s/.config/kalu/watched.conf", g_get_home_dir ());
     if (!parse_config_file (conffile, CONF_FILE_WATCHED, &error))
     {
-        show_error ("Unable to parse watched packages", error->message, NULL);
+        do_show_error ("Unable to parse watched packages", error->message, NULL);
         g_clear_error (&error);
     }
     /* parse watched aur */
     snprintf (conffile, MAX_PATH - 1, "%s/.config/kalu/watched-aur.conf", g_get_home_dir ());
     if (!parse_config_file (conffile, CONF_FILE_WATCHED_AUR, &error))
     {
-        show_error ("Unable to parse watched AUR packages", error->message, NULL);
+        do_show_error ("Unable to parse watched AUR packages", error->message, NULL);
         g_clear_error (&error);
     }
     /* parse news */
     snprintf (conffile, MAX_PATH - 1, "%s/.config/kalu/news.conf", g_get_home_dir ());
     if (!parse_config_file (conffile, CONF_FILE_NEWS, &error))
     {
-        show_error ("Unable to parse last news data", error->message, NULL);
+        do_show_error ("Unable to parse last news data", error->message, NULL);
         g_clear_error (&error);
+    }
+    
+    gtk_init (&argc, &argv);
+    if (curl_global_init (CURL_GLOBAL_ALL) == 0)
+    {
+        config->is_curl_init = TRUE;
+    }
+    else
+    {
+        do_show_error ("Unable to initialize cURL",
+                       "kalu will therefore not be able to check the AUR",
+                       NULL);
+    }
+    
+    if (run_manual_checks || run_auto_checks)
+    {
+        set_kalpm_busy (TRUE);
+        kalu_check_work (run_auto_checks);
+        goto eop;
     }
     
     /* icon stuff: so we'll be able to use "kalu-logo" from stock, and it will
@@ -1754,17 +1843,8 @@ main (int argc, char *argv[])
     kalpm_state.timeout = g_timeout_add_seconds (2, (GSourceFunc) kalu_auto_check, NULL);
     
     notify_init ("kalu");
-    if (curl_global_init (CURL_GLOBAL_ALL) == 0)
-    {
-        config->is_curl_init = TRUE;
-    }
-    else
-    {
-        show_error ("Unable to initialize cURL",
-            "kalu will therefore not be able to check the AUR",
-            NULL);
-    }
     gtk_main ();
+eop:
     if (config->is_curl_init)
     {
         curl_global_cleanup ();
