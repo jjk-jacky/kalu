@@ -179,6 +179,7 @@ debug (const char *fmt, ...);
 void free_package (kalu_package_t *package);
 void free_watched_package (watched_package_t *w_pkg);
 
+#ifndef DISABLE_GUI
 gboolean reload_watched (gboolean is_aur, GError **error);
 
 void set_kalpm_busy (gboolean busy);
@@ -187,5 +188,7 @@ void set_kalpm_nb_syncdbs (gint nb);
 
 void add_open_window (gpointer window);
 void remove_open_window (gpointer window);
+#endif /* DISABLE_GUI */
+void kalu_check_work (gboolean is_auto);
 
 #endif /* _KALU_H */

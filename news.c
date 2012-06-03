@@ -25,26 +25,39 @@
 /* C */
 #include <string.h>
 
+#ifndef DISABLE_GUI
 /* gtk */
 #include <gtk/gtk.h>
-
+#else
 /* glib */
 #include <glib.h>
+#endif
 
 /* kalu */
 #include "kalu.h"
 #include "news.h"
 #include "curl.h"
 #include "util.h"
+#ifndef DISABLE_GUI
 #include "util-gtk.h"
+#endif
 
-#define HTML_MAN_PAGE       DOCDIR "/html/index.html"
-#define HISTORY             DOCDIR "/HISTORY"
+enum {
+    LIST_TITLES_ALL = 0,
+    LIST_TITLES_SHOWN,
+    LIST_TITLES_READ,
+    NB_LISTS
+};
 
 typedef struct _parse_updates_data_t {
     gboolean     is_last_reached;
     alpm_list_t *titles;
 } parse_updates_data_t;
+
+#ifndef DISABLE_GUI
+
+#define HTML_MAN_PAGE       DOCDIR "/html/index.html"
+#define HISTORY             DOCDIR "/HISTORY"
 
 typedef struct _parse_news_data_t {
     gboolean         only_updates;
@@ -56,12 +69,18 @@ typedef struct _parse_news_data_t {
     alpm_list_t    **lists;
 } parse_news_data_t;
 
-enum {
-    LIST_TITLES_ALL = 0,
-    LIST_TITLES_SHOWN,
-    LIST_TITLES_READ,
-    NB_LISTS
-};
+static void
+create_tags (GtkTextBuffer *buffer);
+
+static void
+xml_parser_news_text (GMarkupParseContext *context,
+                      const gchar         *text,
+                      gsize                text_len,
+                      parse_news_data_t   *parse_news_data,
+                      GError             **error _UNUSED_);
+
+
+#endif /* DISABLE_GUI */
 
 static void
 xml_parser_updates_text (GMarkupParseContext   *context,
@@ -109,6 +128,109 @@ xml_parser_updates_text (GMarkupParseContext   *context,
             strdup (text));
     }
 }
+
+static gboolean
+parse_xml (gchar *xml, gboolean for_updates, gpointer data_out, GError **error)
+{
+    GMarkupParseContext *context;
+    GMarkupParser        parser;
+    GError              *local_err = NULL;
+    
+    memset (&parser, 0, sizeof (GMarkupParser));
+    if (for_updates)
+    {
+        parser.text = xml_parser_updates_text;
+    }
+    else
+    {
+        #ifdef DISABLE_GUI
+        return FALSE;
+        #else
+        parser.text = xml_parser_news_text;
+        parse_news_data_t *data = data_out;
+        GtkTextBuffer *buffer = data->buffer;
+        
+        create_tags (buffer);
+        
+        if (data->only_updates)
+        {
+            /* create a attribute list, for labels of check-titles */
+            PangoAttribute *attr;
+            
+            data->attr_list = pango_attr_list_new ();
+            attr = pango_attr_weight_new (800);
+            pango_attr_list_insert (data->attr_list, attr);
+            attr = pango_attr_size_new (10 * PANGO_SCALE);
+            pango_attr_list_insert (data->attr_list, attr);
+            attr = pango_attr_foreground_new (0, 30583, 48059);
+            pango_attr_list_insert (data->attr_list, attr);
+        }
+        #endif
+
+    }
+    context = g_markup_parse_context_new (&parser, G_MARKUP_TREAT_CDATA_AS_TEXT,
+        data_out, NULL);
+    
+    if (!g_markup_parse_context_parse (context, xml, (gssize) strlen (xml), &local_err))
+    {
+        g_markup_parse_context_free (context);
+        #ifndef DISABLE_GUI
+        if (!for_updates && ((parse_news_data_t *)data_out)->only_updates)
+        {
+            pango_attr_list_unref (((parse_news_data_t *)data_out)->attr_list);
+        }
+        #endif
+        g_propagate_error (error, local_err);
+        return FALSE;
+    }
+    g_markup_parse_context_free (context);
+    #ifndef DISABLE_GUI
+    if (!for_updates && ((parse_news_data_t *)data_out)->only_updates)
+    {
+        pango_attr_list_unref (((parse_news_data_t *)data_out)->attr_list);
+    }
+    #endif
+    return TRUE;
+}
+
+gboolean
+news_has_updates (alpm_list_t **titles,
+                  gchar       **xml_news,
+                  GError      **error)
+{
+    GError               *local_err = NULL;
+    parse_updates_data_t  data;
+    
+    *xml_news = curl_download (NEWS_RSS_URL, &local_err);
+    if (local_err != NULL)
+    {
+        g_propagate_error (error, local_err);
+        return FALSE;
+    }
+    
+    memset (&data, 0, sizeof (parse_updates_data_t));
+    if (!parse_xml (*xml_news, TRUE, (gpointer) &data, &local_err))
+    {
+        free (*xml_news);
+        g_propagate_error (error, local_err);
+        return FALSE;
+    }
+    
+    if (data.titles == NULL)
+    {
+        free (*xml_news);
+        return FALSE;
+    }
+    else
+    {
+        *titles = data.titles;
+        return TRUE;
+    }
+}
+
+/*******************   EVERYTHING BELOW IS NOT DISABLE_GUI *******************/
+
+#ifndef DISABLE_GUI
 
 static void
 title_toggled_cb (GtkToggleButton *button, alpm_list_t **lists)
@@ -374,12 +496,12 @@ xml_parser_news_text (GMarkupParseContext *context,
 {
     GtkTextBuffer   *buffer = parse_news_data->buffer;
     GtkTextIter     iter;
-    gchar           *s;
+    gchar           *s = NULL;
     const GSList    *list;
     alpm_list_t     *i;
     gboolean        is_title = FALSE;
     static gboolean skip_next_description = FALSE;
-    alpm_list_t   **lists;
+    alpm_list_t   **lists = NULL;
     
     /* have we already reached the last unread item */
     if (parse_news_data->only_updates && parse_news_data->is_last_reached)
@@ -446,7 +568,7 @@ xml_parser_news_text (GMarkupParseContext *context,
         gtk_text_buffer_get_end_iter (buffer, &iter);
         gtk_text_buffer_insert (buffer, &iter, "\n", -1);
         
-        if (parse_news_data->only_updates)
+        if (parse_news_data->only_updates && lists)
         {
             GtkTextChildAnchor *anchor;
             GtkWidget *check, *label;
@@ -519,64 +641,6 @@ create_tags (GtkTextBuffer *buffer)
     gtk_text_buffer_create_tag (buffer, "listitem",
         "left-margin",      15,
         NULL);
-}
-
-static gboolean
-parse_xml (gchar *xml, gboolean for_updates, gpointer data_out, GError **error)
-{
-    GMarkupParseContext *context;
-    GMarkupParser        parser;
-    GError              *local_err = NULL;
-
-    
-    
-    memset (&parser, 0, sizeof (GMarkupParser));
-    if (for_updates)
-    {
-        parser.text = xml_parser_updates_text;
-    }
-    else
-    {
-        parser.text = xml_parser_news_text;
-        parse_news_data_t *data = data_out;
-        GtkTextBuffer *buffer = data->buffer;
-        
-        create_tags (buffer);
-        
-        if (data->only_updates)
-        {
-            /* create a attribute list, for labels of check-titles */
-            PangoAttribute *attr;
-            
-            data->attr_list = pango_attr_list_new ();
-            attr = pango_attr_weight_new (800);
-            pango_attr_list_insert (data->attr_list, attr);
-            attr = pango_attr_size_new (10 * PANGO_SCALE);
-            pango_attr_list_insert (data->attr_list, attr);
-            attr = pango_attr_foreground_new (0, 30583, 48059);
-            pango_attr_list_insert (data->attr_list, attr);
-        }
-
-    }
-    context = g_markup_parse_context_new (&parser, G_MARKUP_TREAT_CDATA_AS_TEXT,
-        data_out, NULL);
-    
-    if (!g_markup_parse_context_parse (context, xml, (gssize) strlen (xml), &local_err))
-    {
-        g_markup_parse_context_free (context);
-        if (!for_updates && ((parse_news_data_t *)data_out)->only_updates)
-        {
-            pango_attr_list_unref (((parse_news_data_t *)data_out)->attr_list);
-        }
-        g_propagate_error (error, local_err);
-        return FALSE;
-    }
-    g_markup_parse_context_free (context);
-    if (!for_updates && ((parse_news_data_t *)data_out)->only_updates)
-    {
-        pango_attr_list_unref (((parse_news_data_t *)data_out)->attr_list);
-    }
-    return TRUE;
 }
 
 static void
@@ -846,41 +910,6 @@ news_show (gchar *xml_news, gboolean only_updates, GError **error)
 }
 
 gboolean
-news_has_updates (alpm_list_t **titles,
-                  gchar       **xml_news,
-                  GError      **error)
-{
-    GError               *local_err = NULL;
-    parse_updates_data_t  data;
-    
-    *xml_news = curl_download (NEWS_RSS_URL, &local_err);
-    if (local_err != NULL)
-    {
-        g_propagate_error (error, local_err);
-        return FALSE;
-    }
-    
-    memset (&data, 0, sizeof (parse_updates_data_t));
-    if (!parse_xml (*xml_news, TRUE, (gpointer) &data, &local_err))
-    {
-        free (*xml_news);
-        g_propagate_error (error, local_err);
-        return FALSE;
-    }
-    
-    if (data.titles == NULL)
-    {
-        free (*xml_news);
-        return FALSE;
-    }
-    else
-    {
-        *titles = data.titles;
-        return TRUE;
-    }
-}
-
-gboolean
 show_help (GError **error)
 {
     GError        *local_err = NULL;
@@ -1066,3 +1095,5 @@ show_pacman_conflict ()
     parse_to_buffer (buffer, text, (gsize) strlen (text));
     gtk_widget_show (window);
 }
+
+#endif /* DISABLE_GUI */

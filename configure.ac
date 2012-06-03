@@ -29,19 +29,38 @@ AC_ARG_WITH([url-aur-prefix-pkg],
 		[set the prefix before each package for the AUR URL]),
 	[AUR_URL_PREFIX_PKG=$withval], [AUR_URL_PREFIX_PKG="&arg[[]]="])
 
-# Feature: updater
-AC_ARG_ENABLE([updater],
-	AC_HELP_STRING([--disable-updater],
-		[disable kalu's updater (GTK GUI for system upgrade)]),
+# Feature: GUI
+AC_ARG_ENABLE([gui],
+	AC_HELP_STRING([--disable-gui],
+		[disable kalu's GUI (make a CLI-only binary))]),
 	if test $enableval = "yes"; then
-		with_updater=yes
+		with_gui=yes
 	elif test $enableval = "no"; then
-		with_updater=no
+		with_gui=no
 	else
-		AC_MSG_ERROR([Invalid value given to --enable-updater; must be yes or no])
+		AC_MSG_ERROR([Invalid value given to --enable-gui; must be yes or no])
 	fi
 	,
-	with_updater=yes)
+	with_gui=yes)
+AM_CONDITIONAL([DISABLE_GUI], [test "x$with_gui" = "xno"])
+
+# Feature: updater (unless GUI was disabled)
+if test "x$with_gui" = "xyes"; then
+    AC_ARG_ENABLE([updater],
+        AC_HELP_STRING([--disable-updater],
+            [disable kalu's updater (GTK GUI for system upgrade)]),
+        if test $enableval = "yes"; then
+            with_updater=yes
+        elif test $enableval = "no"; then
+            with_updater=no
+        else
+            AC_MSG_ERROR([Invalid value given to --enable-updater; must be yes or no])
+        fi
+        ,
+        with_updater=yes)
+else
+    with_updater=no
+fi
 AM_CONDITIONAL([DISABLE_UPDATER], [test "x$with_updater" = "xno"])
 
 # Checks for libraries.
@@ -49,17 +68,24 @@ AC_CHECK_LIB([alpm], [alpm_db_get_pkg], ,
 	AC_MSG_ERROR([libalpm is required]))
 AC_CHECK_LIB([m], [fabs], ,
 	AC_MSG_ERROR([libm is required]))
-PKG_CHECK_MODULES(NOTIFY, [libnotify], ,
-	AC_MSG_ERROR([libnotify is required]))
-if test "x$with_updater" = "xyes"; then
-	PKG_CHECK_MODULES(POLKIT, [polkit-gobject-1], ,
-		AC_MSG_ERROR([PolicyKit is required (for kalu's updater)]))
-else
-	        AC_DEFINE([DISABLE_UPDATER], 1, [Disable kalu's udpater])
-fi
-
-# Checks for GTK+3
-PKG_CHECK_MODULES(GTK, [gtk+-3.0], , AC_MSG_ERROR([GTK+3 is required]))
+AS_IF([test "x$with_gui" = "xyes"], [
+    PKG_CHECK_MODULES(NOTIFY, [libnotify], ,
+        AC_MSG_ERROR([libnotify is required]))
+    if test "x$with_updater" = "xyes"; then
+        PKG_CHECK_MODULES(POLKIT, [polkit-gobject-1], ,
+            AC_MSG_ERROR([PolicyKit is required (for kalu's updater)]))
+    else
+        AC_DEFINE([DISABLE_UPDATER], 1, [Disable kalu's udpater])
+    fi
+    
+    # Checks for GTK+3
+    PKG_CHECK_MODULES(GTK, [gtk+-3.0], , AC_MSG_ERROR([GTK+3 is required]))
+], [
+    AC_DEFINE([DISABLE_GUI], 1, [Disable GUI])
+    AC_DEFINE([DISABLE_UPDATER], 1, [Disable kalu's udpater])
+    # No GTK, check for Glib
+    PKG_CHECK_MODULES(GLIB2, [glib-2.0 gobject-2.0 gthread-2.0], , AC_MSG_ERROR([glib2 is required]))
+])
 
 # Check for libcurl
 LIBCURL_CHECK_CONFIG([yes], , , AC_MSG_ERROR([libcurl is required]))
@@ -94,6 +120,7 @@ echo "
  Build information:
    source code location		: ${srcdir}
    prefix			: ${prefix}
+   GUI				: ${with_gui}
    kalu's updater		: ${with_updater}
 
    Arch Linux News RSS URL	: ${NEWS_RSS_URL}
@@ -104,6 +131,4 @@ echo "
    binaries			: $(eval echo $(eval echo ${bindir}))
    documentation		: $(eval echo $(eval echo ${docdir}))
    man pages			: $(eval echo $(eval echo ${mandir}))
-
 "
-
