@@ -162,11 +162,61 @@ parse_to_buffer (GtkTextBuffer *buffer, const gchar *text, gsize text_len)
         start = ss + 4;
         memmove (++ss, start, strlen (start) + 1);
     }
-    while ((ss = strstr (s, "&quot;")))
+    /* convert some HTML stuff */
+    ss = s;
+    while ((ss = strchr (ss, '&')))
     {
-        *ss = '"';
-        start = ss + 6;
-        memmove (++ss, start, strlen (start) + 1);
+        end = strchr (++ss, ';');
+        if (!end)
+        {
+            break;
+        }
+        *end = '\0';
+        if (strcmp (ss, "minus") == 0)
+        {
+            *--ss = '-';
+            ++end;
+            memmove (++ss, end, strlen (end) + 1);
+        }
+        else if (strcmp (ss, "lsquo") == 0)
+        {
+            *--ss = '`';
+            ++end;
+            memmove (++ss, end, strlen (end) + 1);
+        }
+        else if (strcmp (ss, "rsquo") == 0)
+        {
+            *--ss = '\'';
+            ++end;
+            memmove (++ss, end, strlen (end) + 1);
+        }
+        else if (strcmp (ss, "quot") == 0)
+        {
+            *--ss = '"';
+            ++end;
+            memmove (++ss, end, strlen (end) + 1);
+        }
+        else if (strcmp (ss, "amp") == 0)
+        {
+            *--ss = '&';
+            ++end;
+            memmove (++ss, end, strlen (end) + 1);
+        }
+        else if (strcmp (ss, "lt") == 0)
+        {
+            *--ss = '<';
+            *end = '>';
+        }
+        else if (strcmp (ss, "gt") == 0)
+        {
+            *--ss = '<';
+            *end = '>';
+        }
+        else
+        {
+            *end = ';';
+            ss = end + 1;
+        }
     }
     
     gtk_text_buffer_get_end_iter (buffer, &iter);
@@ -887,7 +937,7 @@ show_help (GError **error)
     GtkWidget     *window;
     GtkWidget     *textview;
     GtkTextBuffer *buffer;
-    gchar         *text, *t, *s, *e;
+    gchar         *text, *t, *s;
     
     new_window (FALSE, &window, &textview);
     gtk_window_set_title (GTK_WINDOW (window), "Help - kalu");
@@ -906,63 +956,6 @@ show_help (GError **error)
     if ((s = strstr (text, "<hr>")))
     {
         text = s + 4;
-    }
-    
-    /* convert some HTML stuff */
-    s = text;
-    while ((s = strchr (s, '&')))
-    {
-        e = strchr (++s, ';');
-        if (!e)
-        {
-            break;
-        }
-        *e = '\0';
-        if (strcmp (s, "minus") == 0)
-        {
-            *--s = '-';
-            ++e;
-            memmove (++s, e, strlen (e) + 1);
-        }
-        else if (strcmp (s, "lsquo") == 0)
-        {
-            *--s = '`';
-            ++e;
-            memmove (++s, e, strlen (e) + 1);
-        }
-        else if (strcmp (s, "rsquo") == 0)
-        {
-            *--s = '\'';
-            ++e;
-            memmove (++s, e, strlen (e) + 1);
-        }
-        else if (strcmp (s, "quot") == 0)
-        {
-            *--s = '"';
-            ++e;
-            memmove (++s, e, strlen (e) + 1);
-        }
-        else if (strcmp (s, "amp") == 0)
-        {
-            *--s = '&';
-            ++e;
-            memmove (++s, e, strlen (e) + 1);
-        }
-        else if (strcmp (s, "lt") == 0)
-        {
-            *--s = '<';
-            *e = '>';
-        }
-        else if (strcmp (s, "gt") == 0)
-        {
-            *--s = '<';
-            *e = '>';
-        }
-        else
-        {
-            *e = ';';
-            s = e + 1;
-        }
     }
     
     create_tags (buffer);
