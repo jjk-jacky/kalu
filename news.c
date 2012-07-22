@@ -147,15 +147,40 @@ parse_to_buffer (GtkTextBuffer *buffer, const gchar *text, gsize text_len)
     gchar        buf[10];
     gint         c, margin;
     gint         in_ordered_list = -1;
+    gint         nb_links = 0;
+    gint         nb_links_alloc = 0;
+    gchar      **links = NULL;
+    gchar       *link = NULL;
     
     s = malloc ((text_len + 2) * sizeof (gchar));
     snprintf (s, text_len + 1, "%s", text);
     
+    /* inside <code> blocs, \n must not be converted to space */
+    start = s;
+    while ((start = strstr (start, "<code>")))
+    {
+        if (!(end = strstr (start, "</code>")))
+        {
+            break;
+        }
+        /* for now, we turn them into \r */
+        while ((ss = strchr (start, '\n')) && ss < end)
+        {
+            *ss = '\r';
+        }
+        start = end;
+    }
     /* \n replaced by space */
     while ((ss = strchr (s, '\n')))
     {
         *ss = ' ';
     }
+    /* turn the \r from <code> blocks into \n */
+    while ((ss = strchr (s, '\r')))
+    {
+        *ss = '\n';
+    }
+    /* now turn <br> into \n */
     while ((ss = strstr (s, "<br>")))
     {
         *ss = '\n';
@@ -400,6 +425,36 @@ parse_to_buffer (GtkTextBuffer *buffer, const gchar *text, gsize text_len)
             ss = (gchar *) ">";
             insert_text_with_tags ();
         }
+        else if (strncmp (start + 1, "a ", 2) == 0)
+        {
+            /* add the text */
+            *start = '\0';
+            insert_text_with_tags ();
+            /* get URL */
+            if ((link = strstr (start + 1, "href")) && (link = strchr (link, '"')))
+            {
+                /* store link info */
+                if (++nb_links > nb_links_alloc)
+                {
+                    nb_links_alloc += 10;
+                    links = realloc (links, (size_t) nb_links_alloc * sizeof (*links));
+                }
+                links[nb_links] = link + 1;
+                link = strchr (links[nb_links], '"');
+                *link = '\0';
+            }
+        }
+        else if (strcmp (start + 1, "/a") == 0)
+        {
+            *start = '\0';
+            insert_text_with_tags ();
+            if (link)
+            {
+                snprintf (buf, 10, "[%d]", nb_links);
+                gtk_text_buffer_insert (buffer, &iter, buf, -1);
+                link = NULL;
+            }
+        }
         else
         {
             /* unknown tag - just skip it */
@@ -409,6 +464,24 @@ parse_to_buffer (GtkTextBuffer *buffer, const gchar *text, gsize text_len)
         ss = end + 1;
     }
     insert_text_with_tags ();
+    
+    /* add links info */
+    if (nb_links)
+    {
+        for (c = 1; c <= nb_links; ++c)
+        {
+            snprintf (buf, 10, "\n[%d] ", c);
+            gtk_text_buffer_insert (buffer, &iter, buf, -1);
+            /* links on Arch's website don't always include the http:// part */
+            if (links[c][0] == '/')
+            {
+                gtk_text_buffer_insert (buffer, &iter, "http://www.archlinux.org", -1);
+            }
+            gtk_text_buffer_insert (buffer, &iter, links[c], -1);
+        }
+        gtk_text_buffer_insert (buffer, &iter, "\n", -1);
+        free (links);
+    }
     
     gtk_text_buffer_delete_mark (buffer, mark);
     free (s);
