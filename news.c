@@ -63,6 +63,14 @@ enum {
     NB_LISTS
 };
 
+/* TRUE when hovering over a link */
+static gboolean hovering_link = FALSE;
+/* standard & hover-link cursors */
+static GdkCursor *cursor_std = NULL;
+static GdkCursor *cursor_link = NULL;
+/* nb of windows open */
+static gint nb_windows = 0;
+
 static void
 xml_parser_updates_text (GMarkupParseContext   *context,
                          const gchar           *text,
@@ -142,18 +150,20 @@ parse_to_buffer (GtkTextBuffer *buffer, const gchar *text, gsize text_len)
 {
     GtkTextIter  iter, iter2;
     GtkTextMark *mark;
+    GtkTextTag  *tag;
     alpm_list_t *i, *tags = NULL;
     gchar       *s, *ss, *start, *end;
     gchar        buf[10];
     gint         c, margin;
     gint         in_ordered_list = -1;
-    gint         nb_links = 0;
-    gint         nb_links_alloc = 0;
-    gchar      **links = NULL;
+    GdkRGBA      color;
     gchar       *link = NULL;
     
     s = malloc ((text_len + 2) * sizeof (gchar));
     snprintf (s, text_len + 1, "%s", text);
+    
+    /* color used for links */
+    gdk_rgba_parse (&color, "rgb(0,119,187)");
     
     /* inside <code> blocs, \n must not be converted to space */
     start = s;
@@ -433,16 +443,9 @@ parse_to_buffer (GtkTextBuffer *buffer, const gchar *text, gsize text_len)
             /* get URL */
             if ((link = strstr (start + 1, "href")) && (link = strchr (link, '"')))
             {
-                /* store link info */
-                if (++nb_links > nb_links_alloc)
-                {
-                    nb_links_alloc += 10;
-                    links = realloc (links, (size_t) nb_links_alloc * sizeof (*links));
-                }
-                links[nb_links] = link + 1;
-                link = strchr (links[nb_links], '"');
-                *link = '\0';
-                tags = alpm_list_add (tags, (void *) "link");
+                /* got one, end it properly */
+                ss = strchr (++link, '"');
+                *ss = '\0';
             }
         }
         else if (strcmp (start + 1, "/a") == 0)
@@ -451,9 +454,26 @@ parse_to_buffer (GtkTextBuffer *buffer, const gchar *text, gsize text_len)
             insert_text_with_tags ();
             if (link)
             {
-                tags = alpm_list_remove_str (tags, "link", NULL);
-                snprintf (buf, 10, "[%d]", nb_links);
-                gtk_text_buffer_insert (buffer, &iter, buf, -1);
+                /* create a new tag, so we can set the link to it */
+                tag = gtk_text_buffer_create_tag (buffer, NULL,
+                                                  "foreground-rgba",  &color,
+                                                  "underline", PANGO_UNDERLINE_SINGLE,
+                                                  NULL);
+                /* links on Arch's website don't always include the http:// part */
+                if (link[0] == '/')
+                {
+                    ss = malloc ((strlen (link) + 25) * sizeof (*ss));
+                    sprintf (ss, "http://www.archlinux.org%s", link);
+                    link = ss;
+                }
+                else
+                {
+                    link = strdup (link);
+                }
+                /* set link, and apply it */
+                g_object_set_data_full (G_OBJECT (tag), "link", link, free);
+                gtk_text_buffer_apply_tag (buffer, tag, &iter, &iter2);
+                /* done */
                 link = NULL;
             }
         }
@@ -466,28 +486,6 @@ parse_to_buffer (GtkTextBuffer *buffer, const gchar *text, gsize text_len)
         ss = end + 1;
     }
     insert_text_with_tags ();
-    
-    /* add links info */
-    if (nb_links)
-    {
-        tags = alpm_list_add (tags, (void *) "link");
-        for (c = 1; c <= nb_links; ++c)
-        {
-            snprintf (buf, 10, "\n[%d] ", c);
-            gtk_text_buffer_insert (buffer, &iter, buf, -1);
-            /* links on Arch's website don't always include the http:// part */
-            if (links[c][0] == '/')
-            {
-                ss = (gchar *) "http://www.archlinux.org";
-                insert_text_with_tags ();
-            }
-            ss = links[c];
-            insert_text_with_tags ();
-        }
-        tags = alpm_list_remove_str (tags, "link", NULL);
-        gtk_text_buffer_insert (buffer, &iter, "\n", -1);
-        free (links);
-    }
     
     gtk_text_buffer_delete_mark (buffer, mark);
     free (s);
@@ -622,10 +620,6 @@ create_tags (GtkTextBuffer *buffer)
     gtk_text_buffer_create_tag (buffer, "title",
         "size-points",      10.0,
         "weight",           800,
-        "foreground-rgba",  &color,
-        NULL);
-    
-    gtk_text_buffer_create_tag (buffer, "link",
         "foreground-rgba",  &color,
         NULL);
     
@@ -829,6 +823,12 @@ window_destroy_cb (GtkWidget *window, gpointer data _UNUSED_)
     alpm_list_t **lists;
     int i;
     
+    if (--nb_windows == 0)
+    {
+        g_object_unref (cursor_link);
+        g_object_unref (cursor_std);
+    }
+    
     /* will be present if this was a only_updates window */
     lists = g_object_get_data (G_OBJECT (window), "lists");
     if (lists)
@@ -850,9 +850,150 @@ window_destroy_cb (GtkWidget *window, gpointer data _UNUSED_)
     remove_open_window (window);
 }
 
+static gboolean
+motion_notify_event_cb (GtkTextView *textview, GdkEventMotion *event)
+{
+    gint x, y;
+    GSList *tags = NULL, *t;
+    GtkTextIter iter;
+    gboolean hovering = FALSE;
+
+    gtk_text_view_window_to_buffer_coords (textview, GTK_TEXT_WINDOW_WIDGET,
+                                           (gint) event->x, (gint) event->y,
+                                           &x, &y);
+    gtk_text_view_get_iter_at_location (textview, &iter, x, y);
+
+    tags = gtk_text_iter_get_tags (&iter);
+    for (t = tags; t; t = t->next)
+    {
+        GtkTextTag *tag = t->data;
+        gchar *link = g_object_get_data (G_OBJECT (tag), "link");
+        if (link)
+        {
+            hovering = TRUE;
+            break;
+        }
+    }
+    if (tags)
+    {
+        g_slist_free (tags);
+    }
+    
+    /* need to update cursor? */
+    if (hovering != hovering_link)
+    {
+        hovering_link = hovering;
+
+        if (hovering_link)
+        {
+            gdk_window_set_cursor (gtk_text_view_get_window (textview,
+                                                             GTK_TEXT_WINDOW_TEXT),
+                                   cursor_link);
+        }
+        else
+        {
+            gdk_window_set_cursor (gtk_text_view_get_window (textview,
+                                                             GTK_TEXT_WINDOW_TEXT),
+                                   cursor_std);
+       }
+    }
+    
+    return FALSE;
+}
+
+static gboolean
+event_after_cb (GtkTextView *textview, GdkEvent *ev)
+{
+    gint x, y;
+    GSList *tags = NULL, *t;
+    GtkTextIter start, end, iter;
+    GtkTextBuffer *buffer;
+    GdkEventButton *event;
+    
+    if (ev->type != GDK_BUTTON_RELEASE)
+    {
+        return FALSE;
+    }
+
+    event = (GdkEventButton *) ev;
+    if (event->button != GDK_BUTTON_PRIMARY)
+    {
+        return FALSE;
+    }
+
+    buffer = gtk_text_view_get_buffer (textview);
+    
+    /* do nothing if the user is selecting something */
+    gtk_text_buffer_get_selection_bounds (buffer, &start, &end);
+    if (gtk_text_iter_get_offset (&start) != gtk_text_iter_get_offset (&end))
+    {
+        return FALSE;
+    }
+    
+    gtk_text_view_window_to_buffer_coords (textview, GTK_TEXT_WINDOW_WIDGET,
+                                           (gint) event->x, (gint) event->y,
+                                           &x, &y);
+    gtk_text_view_get_iter_at_location (textview, &iter, x, y);
+
+    tags = gtk_text_iter_get_tags (&iter);
+    for (t = tags; t != NULL; t = t->next)
+    {
+        GtkTextTag *tag = t->data;
+        gchar *link = g_object_get_data (G_OBJECT (tag), "link");
+        if (link)
+        {
+            gchar buf[1024];
+            snprintf (buf, 1024, "xdg-open '%s'", link);
+            g_spawn_command_line_async (buf, NULL);
+            break;
+        }
+    }
+    if (tags)
+    {
+        g_slist_free (tags);
+    }
+
+    return FALSE;
+}
+
+static gboolean
+query_tooltip_cb (GtkTextView *textview, gint wx, gint wy,
+                  gboolean keyboard _UNUSED_, GtkTooltip *tooltip,
+                  gpointer data _UNUSED_)
+{
+    gint x, y;
+    GtkTextIter iter;
+    GSList *tags = NULL, *t;
+    
+    gtk_text_view_window_to_buffer_coords (textview, GTK_TEXT_WINDOW_WIDGET,
+                                           wx, wy, &x, &y);
+    gtk_text_view_get_iter_at_location (textview, &iter, x, y);
+
+    tags = gtk_text_iter_get_tags (&iter);
+    for (t = tags; t; t = t->next)
+    {
+        GtkTextTag *tag = t->data;
+        gchar *link = g_object_get_data (G_OBJECT (tag), "link");
+        if (link)
+        {
+            gtk_tooltip_set_text (tooltip, link);
+            g_slist_free (tags);
+            return TRUE;
+        }
+    }
+    if (tags)
+    {
+        g_slist_free (tags);
+    }
+    
+    return FALSE;
+}
+
 static void
 new_window (gboolean only_updates, GtkWidget **window, GtkWidget **textview)
 {
+    ++nb_windows;
+    
     /* window */
     *window = gtk_window_new (GTK_WINDOW_TOPLEVEL);
     gtk_window_set_title (GTK_WINDOW (*window),
@@ -882,6 +1023,22 @@ new_window (gboolean only_updates, GtkWidget **window, GtkWidget **textview)
         "editable",     FALSE,
         "wrap-mode",    GTK_WRAP_WORD,
         NULL);
+    
+    /* if this is the only window, create cursors */
+    if (nb_windows == 1)
+    {
+        cursor_std = gdk_cursor_new (GDK_XTERM);
+        cursor_link = gdk_cursor_new (GDK_HAND2);
+    }
+    /* signals for links (change cursor; handle click) */
+    g_signal_connect (*textview, "motion-notify-event",
+                      G_CALLBACK (motion_notify_event_cb), NULL);
+    g_signal_connect (*textview, "event-after",
+                        G_CALLBACK (event_after_cb), NULL);
+    /* to provide URL in tooltip for links */
+    g_object_set (G_OBJECT (*textview), "has-tooltip", TRUE, NULL);
+    g_signal_connect (*textview, "query-tooltip",
+                      G_CALLBACK (query_tooltip_cb), NULL);
     
     /* scrolled window for the textview */
     GtkWidget *scrolled;
