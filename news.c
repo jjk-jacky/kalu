@@ -442,6 +442,7 @@ parse_to_buffer (GtkTextBuffer *buffer, const gchar *text, gsize text_len)
                 links[nb_links] = link + 1;
                 link = strchr (links[nb_links], '"');
                 *link = '\0';
+                tags = alpm_list_add (tags, (void *) "link");
             }
         }
         else if (strcmp (start + 1, "/a") == 0)
@@ -450,6 +451,7 @@ parse_to_buffer (GtkTextBuffer *buffer, const gchar *text, gsize text_len)
             insert_text_with_tags ();
             if (link)
             {
+                tags = alpm_list_remove_str (tags, "link", NULL);
                 snprintf (buf, 10, "[%d]", nb_links);
                 gtk_text_buffer_insert (buffer, &iter, buf, -1);
                 link = NULL;
@@ -468,6 +470,7 @@ parse_to_buffer (GtkTextBuffer *buffer, const gchar *text, gsize text_len)
     /* add links info */
     if (nb_links)
     {
+        tags = alpm_list_add (tags, (void *) "link");
         for (c = 1; c <= nb_links; ++c)
         {
             snprintf (buf, 10, "\n[%d] ", c);
@@ -475,10 +478,13 @@ parse_to_buffer (GtkTextBuffer *buffer, const gchar *text, gsize text_len)
             /* links on Arch's website don't always include the http:// part */
             if (links[c][0] == '/')
             {
-                gtk_text_buffer_insert (buffer, &iter, "http://www.archlinux.org", -1);
+                ss = (gchar *) "http://www.archlinux.org";
+                insert_text_with_tags ();
             }
-            gtk_text_buffer_insert (buffer, &iter, links[c], -1);
+            ss = links[c];
+            insert_text_with_tags ();
         }
+        tags = alpm_list_remove_str (tags, "link", NULL);
         gtk_text_buffer_insert (buffer, &iter, "\n", -1);
         free (links);
     }
@@ -616,6 +622,10 @@ create_tags (GtkTextBuffer *buffer)
     gtk_text_buffer_create_tag (buffer, "title",
         "size-points",      10.0,
         "weight",           800,
+        "foreground-rgba",  &color,
+        NULL);
+    
+    gtk_text_buffer_create_tag (buffer, "link",
         "foreground-rgba",  &color,
         NULL);
     
