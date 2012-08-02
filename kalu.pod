@@ -10,18 +10,26 @@ B<kalu> [I<OPTION>...]
 
 =over
 
-=item B<-h, --help>
+=item B<-a, --auto-checks>
 
-Show a little help text and exit
+Run automatic checks (no GUI, see L<B<NOTES>|/NOTES> below)
 
-=item B<-V, --version>
+=item B<-m, --manual-checks>
 
-Show version information and exit
+Run manual checks (no GUI, see L<B<NOTES>|/NOTES> below)
 
 =item B<-d, --debug>
 
 Enable debug mode. Debugging messages will then be sent to kalu's stdout,
 prefixed with a timestamp.
+
+=item B<-V, --version>
+
+Show version information and exit
+
+=item B<-h, --help>
+
+Show a little help text and exit
 
 =back
 
@@ -564,6 +572,19 @@ I<kalu:> so that you can identify them easily. Note however that other log
 entries added during an upgrade with kalu's updater might not have such prefix,
 specifically all those coming from libalpm directly, such as warnings, errors
 or scriptlet output.
+
+=head1 NOTES
+
+Command-line options B<--auto-checks> and B<--manual-checks> both work without
+any need for GUI. This means any and all output will be show on stdout/stderr,
+and there is no need for a DISPLAY to be available.
+
+In other words, you can run kalu using those options from a tty or through SSH,
+and it will work fine. You can also use kalu in a script that way.
+
+Note that GTK+ and other dependencies are obviously still required, although
+there is a I<configure> option available to disable all GUI completely during
+compilation, in order to produce a CLI-version of kalu.
 
 =head1 BUGS
 

@@ -11,11 +11,13 @@ nodist_man_MANS = kalu.1
 dist_doc_DATA = AUTHORS COPYING HISTORY LICENSE README.md
 doc_DATA = index.html
 
+if ! DISABLE_GUI
 logodir = $(datadir)/pixmaps
 logo_DATA = kalu.png
 
 desktopdir = /usr/share/applications
 dist_desktop_DATA = kalu.desktop
+endif
 
 if ! DISABLE_UPDATER
 policydir = /usr/share/polkit-1/actions
@@ -43,18 +45,27 @@ AM_CFLAGS = -g \
 		-Wuninitialized -Wconversion -Wstrict-prototypes
 AM_CFLAGS += -D_BSD_SOURCE
 
-kalu_CFLAGS = ${AM_CFLAGS} @GTK_CFLAGS@ @NOTIFY_CFLAGS@
-kalu_LDADD = @GTK_LIBS@ @NOTIFY_LIBS@ -lalpm -lm @LIBCURL@
+kalu_CFLAGS = ${AM_CFLAGS}
+kalu_LDADD = -lalpm -lm @LIBCURL@
 kalu_SOURCES = main.c arch_linux.h kalu.h \
 		conf.h conf.c \
-		util.h util.c util-gtk.h util-gtk.c \
+		util.h util.c \
 		kalu-alpm.h kalu-alpm.c \
-		watched.h watched.c  \
 		curl.h curl.c \
 		cJSON.h cJSON.c \
 		aur.h aur.c \
-		news.h news.c \
+		news.h news.c
+if ! DISABLE_GUI
+kalu_CFLAGS += @GTK_CFLAGS@ @NOTIFY_CFLAGS@
+kalu_LDADD += @GTK_LIBS@ @NOTIFY_LIBS@
+kalu_SOURCES += gui.h gui.c \
+		util-gtk.h util-gtk.c \
+		watched.h watched.c  \
 		preferences.h preferences.c
+else
+kalu_CFLAGS += @GLIB2_CFLAGS@
+kalu_LDADD += @GLIB2_LIBS@
+endif
 if ! DISABLE_UPDATER
 kalu_SOURCES += closures.h closures.c \
 		updater-dbus.h kupdater.h \
