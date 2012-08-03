@@ -431,7 +431,10 @@ kalu_check_work (gboolean is_auto)
                              error->message);
             g_clear_error (&error);
             #ifndef DISABLE_GUI
-            set_kalpm_busy (FALSE);
+            if (!is_cli)
+            {
+                set_kalpm_busy (FALSE);
+            }
             #endif
             return;
         }
@@ -445,7 +448,10 @@ kalu_check_work (gboolean is_auto)
             g_clear_error (&error);
             kalu_alpm_free ();
             #ifndef DISABLE_GUI
-            set_kalpm_busy (FALSE);
+            if (!is_cli)
+            {
+                set_kalpm_busy (FALSE);
+            }
             #endif
             return;
         }
@@ -543,7 +549,7 @@ kalu_check_work (gboolean is_auto)
                 packages = NULL;
                 if (aur_has_updates (&packages, aur_pkgs, FALSE, &error))
                 {
-                    got_something = 1;
+                    got_something = TRUE;
                     nb_aur = (gint) alpm_list_count (packages);
                     notify_updates (packages, CHECK_AUR, NULL);
                     FREE_PACKAGE_LIST (packages);
@@ -650,7 +656,9 @@ static void
 free_config (void)
 {
     if (config == NULL)
+    {
         return;
+    }
     
     free (config->pacmanconf);
     
@@ -898,7 +906,6 @@ main (int argc, char *argv[])
     #ifndef DISABLE_GUI
     if (run_manual_checks || run_auto_checks)
     {
-        set_kalpm_busy (TRUE);
     #endif
         kalu_check_work (run_auto_checks);
     #ifndef DISABLE_GUI
@@ -942,7 +949,10 @@ main (int argc, char *argv[])
     notify_init ("kalu");
     gtk_main ();
 eop:
-    notify_uninit ();
+    if (!is_cli)
+    {
+        notify_uninit ();
+    }
     #endif /* DISABLE_GUI */
     if (config->is_curl_init)
     {
