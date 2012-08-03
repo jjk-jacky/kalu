@@ -875,7 +875,13 @@ main (int argc, char *argv[])
     #ifndef DISABLE_GUI
     if (!is_cli)
     {
-        gtk_init (&argc, &argv);
+        if (!gtk_init_check (&argc, &argv))
+        {
+            fputs ("GTK+ initialization failed\n", stderr);
+            puts ("To run kalu on CLI only mode, use --auto-checks or --manual-checks");
+            free_config ();
+            return 1;
+        }
     }
     #endif
     if (curl_global_init (CURL_GLOBAL_ALL) == 0)
