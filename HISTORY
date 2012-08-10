@@ -13,7 +13,7 @@ CLI-only binary (i.e. no dependency to GTK nor libnotify), which could be useful
 on GUIless box (e.g. servers), where kalu can then still be used to check for
 upgrades, watched packages, etc
 
-Running this CLI kalu without arguments will do the same a using --manual-checks
+Running this CLI kalu without arguments will do the same as using --manual-checks
 
 - News parser: a few fixes: LF inside <code> blocks are preserved, correct
 processing of &minus;, &lsquo;, &rsquo;, &amp;, &lt; and &gt;
