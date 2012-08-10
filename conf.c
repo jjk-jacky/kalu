@@ -910,6 +910,10 @@ parse_config_file (const char       *file,
                     config->confirm_post = (*value == '1');
                     debug ("config: confirm postsysupgrade: %d", config->confirm_post);
                 }
+                else if (strcmp (key, "CmdLineLink") == 0)
+                {
+                    setstringoption (value, "cmdline_link", &(config->cmdline_link));
+                }
                 #endif
                 else if (strcmp (key, "AurIgnore") == 0)
                 {

@@ -139,6 +139,9 @@ typedef struct _config_t {
     
     char            *news_last;
     alpm_list_t     *news_read;
+    #ifndef DISBALE_UPDATER
+    char            *cmdline_link;
+    #endif
     
     gboolean         is_curl_init;
 } config_t;

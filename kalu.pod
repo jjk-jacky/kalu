@@ -538,6 +538,11 @@ window is hidden, an indication will be featured on the tooltip (" +" next to
 
 =back
 
+=item I<Command line to open links (in news)>
+
+The command line to be executed when a link (on news) is clicked. Use variable
+B<$URL> as placeholder for the full URL to be opened.
+
 =back
 
 =head1 SYSTEM UPGRADE

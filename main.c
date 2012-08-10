@@ -867,6 +867,7 @@ main (int argc, char *argv[])
     config->on_dbl_click = DO_SYSUPGRADE;
     config->sane_sort_order = TRUE;
     config->check_pacman_conflict = TRUE;
+    config->cmdline_link = strdup ("xdg-open '$URL'");
     
     config->tpl_upgrades = calloc (1, sizeof (templates_t));
     config->tpl_upgrades->title = strdup ("$NB updates available (D: $DL; N: $NET)");

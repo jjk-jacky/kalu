@@ -966,7 +966,7 @@ motion_notify_event_cb (GtkTextView *textview, GdkEventMotion *event)
 }
 
 static gboolean
-event_after_cb (GtkTextView *textview, GdkEvent *ev)
+event_after_cb (GtkTextView *textview, GdkEvent *ev, GtkWidget *window)
 {
     gint x, y;
     GSList *tags = NULL, *t;
@@ -1006,9 +1006,47 @@ event_after_cb (GtkTextView *textview, GdkEvent *ev)
         gchar *link = g_object_get_data (G_OBJECT (tag), "link");
         if (link)
         {
-            gchar buf[1024];
-            snprintf (buf, 1024, "xdg-open '%s'", link);
-            g_spawn_command_line_async (buf, NULL);
+            GError *error = NULL;
+            gchar buf[1024], *b, *s, *ss;
+            size_t len = strlen (link);
+            
+            debug ("click on link: %s", link);
+            
+            if (len + strlen (config->cmdline_link) >= 1024)
+            {
+                b = malloc (sizeof (*b) * (len + strlen (config->cmdline_link)));
+            }
+            else
+            {
+                b = buf;
+            }
+            
+            for (s = config->cmdline_link, ss = b; s && *s != '\0'; ++s, ++ss)
+            {
+                if (*s == '$' && *(s + 1) == 'U' && *(s + 2) == 'R' && *(s + 3) == 'L')
+                {
+                    memcpy (ss, link, len);
+                    ss += len - 1;
+                    s += 3;
+                }
+                else
+                {
+                    *ss = *s;
+                }
+            }
+            *ss = '\0';
+            debug ("cmdline: %s", buf);
+            
+            if (!g_spawn_command_line_async (buf, &error))
+            {
+                show_error ("Unable to open link", error->message, GTK_WINDOW (window));
+                g_clear_error (&error);
+            }
+            
+            if (b != buf)
+            {
+                free (b);
+            }
             break;
         }
     }
@@ -1098,7 +1136,7 @@ new_window (gboolean only_updates, GtkWidget **window, GtkWidget **textview)
     g_signal_connect (*textview, "motion-notify-event",
                       G_CALLBACK (motion_notify_event_cb), NULL);
     g_signal_connect (*textview, "event-after",
-                        G_CALLBACK (event_after_cb), NULL);
+                        G_CALLBACK (event_after_cb), (gpointer) *window);
     /* to provide URL in tooltip for links */
     g_object_set (G_OBJECT (*textview), "has-tooltip", TRUE, NULL);
     g_signal_connect (*textview, "query-tooltip",

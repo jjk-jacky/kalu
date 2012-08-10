@@ -100,6 +100,7 @@ static GtkWidget *sane_sort_order           = NULL;
 static GtkWidget *syncdbs_in_tooltip        = NULL;
 static GtkWidget *on_sgl_click              = NULL;
 static GtkWidget *on_dbl_click              = NULL;
+static GtkWidget *cmdline_link_entry        = NULL;
 
 /* we keep a copy of templates like so, so that we can use it when refreshing
  * the different templates. that is, values shown when a template is not set
@@ -741,6 +742,7 @@ btn_save_cb (GtkButton *button _UNUSED_, gpointer data _UNUSED_)
     new_config.notif_icon_user  = NULL;
     new_config.cmdline          = NULL;
     new_config.cmdline_aur      = NULL;
+    new_config.cmdline_link     = NULL;
     #ifndef DISABLE_UPDATER
     new_config.cmdline_post     = NULL;
     #endif
@@ -1050,6 +1052,18 @@ btn_save_cb (GtkButton *button _UNUSED_, gpointer data _UNUSED_)
         add_to_conf ("OnDblClick = NOTHING\n");
     }
     
+    s = (char *) gtk_entry_get_text (GTK_ENTRY (cmdline_link_entry));
+    if (s == NULL || *s == '\0')
+    {
+        error_on_page (6, "You need to specify the command-line to open links.");
+    }
+    else if (!strstr (s, "$URL"))
+    {
+        error_on_page (6, "You need to use $URL on the command line to open links.");
+    }
+    add_to_conf ("CmdLineLink = %s\n", s);
+    new_config.cmdline_link = strdup (s);
+    
     /* ** TEMPLATES ** */
     
     /* Upgrades */
@@ -1114,6 +1128,7 @@ btn_save_cb (GtkButton *button _UNUSED_, gpointer data _UNUSED_)
     free (config->notif_icon_user);
     free (config->cmdline);
     free (config->cmdline_aur);
+    free (config->cmdline_link);
     #ifndef DISABLE_UPDATER
     FREELIST (config->cmdline_post);
     #endif
@@ -1135,6 +1150,7 @@ clean_on_error:
     free (new_config.notif_icon_user);
     free (new_config.cmdline);
     free (new_config.cmdline_aur);
+    free (new_config.cmdline_link);
     #ifndef DISABLE_UPDATER
     if (new_config.cmdline_post)
     {
@@ -1942,6 +1958,21 @@ show_prefs (void)
     {
         gtk_combo_box_set_active (GTK_COMBO_BOX (on_dbl_click), 0);
     }
+    
+    ++top;
+    label = gtk_label_new ("Command line to open links (in news) :");
+    gtk_grid_attach (GTK_GRID (grid), label, 0, top, 1, 1);
+    gtk_widget_show (label);
+    
+    cmdline_link_entry = gtk_entry_new ();
+    gtk_widget_set_tooltip_markup (cmdline_link_entry,
+        "Use variable <b>$URL</b> for the URL to open");
+    if (config->cmdline_link != NULL)
+    {
+        gtk_entry_set_text (GTK_ENTRY (cmdline_link_entry), config->cmdline_link);
+    }
+    gtk_grid_attach (GTK_GRID (grid), cmdline_link_entry, 1, top, 1, 1);
+    gtk_widget_show (cmdline_link_entry);
     
     /* add page */
     gtk_widget_show (grid);
