@@ -133,6 +133,10 @@ notify_updates (alpm_list_t *packages, check_t type, gchar *xml_news)
     double      size_h;
     replacement_t *replacements[7];
     
+    #ifdef DISABLE_GUI
+    (void) xml_news;
+    #endif
+    
     templates_t *t, *tt;
     /* tpl_upgrades is the ref/fallback for pretty much everything */
     t = config->tpl_upgrades;
@@ -395,11 +399,13 @@ kalu_check_work (gboolean is_auto)
     gchar *xml_news;
     gboolean got_something =  FALSE;
     gint nb_syncdbs     = -1;
+    #ifndef DISABLE_GUI
     gint nb_upgrades    = -1;
     gint nb_watched     = -1;
     gint nb_aur         = -1;
     gint nb_watched_aur = -1;
     gint nb_news        = -1;
+    #endif /* DISABLE_GUI */
     unsigned int checks = (is_auto) ? config->checks_auto : config->checks_manual;
     
     if (checks & CHECK_NEWS)
@@ -408,7 +414,9 @@ kalu_check_work (gboolean is_auto)
         if (news_has_updates (&packages, &xml_news, &error))
         {
             got_something = TRUE;
+            #ifndef DISABLE_GUI
             nb_news = (gint) alpm_list_count (packages);
+            #endif /* DISABLE_GUI */
             notify_updates (packages, CHECK_NEWS, xml_news);
             FREELIST (packages);
             /* we dont free xml_news because it might be used by the notification
@@ -462,15 +470,21 @@ kalu_check_work (gboolean is_auto)
             if (kalu_alpm_has_updates (&packages, &error))
             {
                 got_something = TRUE;
+                #ifndef DISABLE_GUI
                 nb_upgrades = (gint) alpm_list_count (packages);
+                #endif /* DISABLE_GUI */
                 notify_updates (packages, CHECK_UPGRADES, NULL);
                 FREE_PACKAGE_LIST (packages);
             }
+            #ifndef DISABLE_GUI
             else if (error == NULL)
             {
                 nb_upgrades = 0;
             }
             else
+            #else
+            else if (error != NULL)
+            #endif /* DISABLE_GUI */
             {
                 got_something = TRUE;
                 /* means the error is likely to come from a dependency issue/conflict */
@@ -521,18 +535,24 @@ kalu_check_work (gboolean is_auto)
             if (kalu_alpm_has_updates_watched (&packages, config->watched, &error))
             {
                 got_something = TRUE;
+                #ifndef DISABLE_GUI
                 nb_watched = (gint) alpm_list_count (packages);
+                #endif
                 notify_updates (packages, CHECK_WATCHED, NULL);
                 /* watched are a special case, because the list of packages must not be
                  * free-d right now, but later when the notification is over. this is
                  * because the notification might use it to show the "mark packages"
                  * window/list */
             }
+            #ifndef DISABLE_GUI
             else if (error == NULL)
             {
                 nb_watched = 0;
             }
             else
+            #else
+            else if (error != NULL)
+            #endif
             {
                 got_something = TRUE;
                 do_notify_error ("Unable to check for updates of watched packages",
@@ -550,15 +570,21 @@ kalu_check_work (gboolean is_auto)
                 if (aur_has_updates (&packages, aur_pkgs, FALSE, &error))
                 {
                     got_something = TRUE;
+                    #ifndef DISABLE_GUI
                     nb_aur = (gint) alpm_list_count (packages);
+                    #endif
                     notify_updates (packages, CHECK_AUR, NULL);
                     FREE_PACKAGE_LIST (packages);
                 }
+                #ifndef DISABLE_GUI
                 else if (error == NULL)
                 {
                     nb_aur = 0;
                 }
                 else
+                #else
+                else if (error != NULL)
+                #endif
                 {
                     got_something = TRUE;
                     do_notify_error ("Unable to check for AUR packages", error->message);
@@ -566,11 +592,15 @@ kalu_check_work (gboolean is_auto)
                 }
                 alpm_list_free (aur_pkgs);
             }
+            #ifndef DISABLE_GUI
             else if (error == NULL)
             {
                 nb_aur = 0;
             }
             else
+            #else
+            else if (error != NULL)
+            #endif
             {
                 got_something = TRUE;
                 do_notify_error ("Unable to check for AUR packages", error->message);
@@ -587,18 +617,24 @@ kalu_check_work (gboolean is_auto)
         if (aur_has_updates (&packages, config->watched_aur, TRUE, &error))
         {
             got_something = TRUE;
+            #ifndef DISABLE_GUI
             nb_watched_aur = (gint) alpm_list_count (packages);
+            #endif
             notify_updates (packages, CHECK_WATCHED_AUR, NULL);
             /* watched are a special case, because the list of packages must not be
              * free-d right now, but later when the notification is over. this is
              * because the notification might use it to show the "mark packages"
              * window/list */
         }
+        #ifndef DISABLE_GUI
         else if (error == NULL)
         {
             nb_watched_aur = 0;
         }
         else
+        #else
+        else if (error != NULL)
+        #endif
         {
             got_something = TRUE;
             do_notify_error ("Unable to check for updates of watched AUR packages",

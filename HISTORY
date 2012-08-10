@@ -1,4 +1,27 @@
 
+# 08/10/2012, v1.1.0
+
+- Added options --manual-checks (-m) and --auto-checks (-a) to run manual/auto
+checks from command line. No GUI used at all, everything gets printed on
+stderr/stdout (using the same templates as for notifications). 
+
+This can be done without the need for a DISPLAY (no GTK init performed), thus
+works from a tty or through SSH. This can also be useful to use kalu from scripts.
+
+- A configure option --disable-gui is also available, to make kalu a small
+CLI-only binary (i.e. no dependency to GTK nor libnotify), which could be useful
+on GUIless box (e.g. servers), where kalu can then still be used to check for
+upgrades, watched packages, etc
+
+Running this CLI kalu without arguments will do the same a using --manual-checks
+
+- News parser: a few fixes: LF inside <code> blocks are preserved, correct
+processing of &minus;, &lsquo;, &rsquo;, &amp;, &lt; and &gt;
+
+- News parser: links are now supported: showed blue & underlined, URL as tooltip,
+click to open in default browser (via xdg-open)
+
+
 # 05/10/2012, v1.0.0
 
 - Preferences: kalu's updater: added option to disable confirmation before

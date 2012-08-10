@@ -104,7 +104,9 @@ The notification can only feature titles, but using the button "Show news"
 will show the complete news. Note that this is done through kalu's own
 rendering (i.e. there is no HTML engine used) and as such the rendering
 might differ.
-For instance, neither images nor links are supported.
+For example, images are not supported.
+
+Links are processed through B<xdg-open(1)> to be opened in your default browser.
 
 =back
 
@@ -584,7 +586,7 @@ and it will work fine. You can also use kalu in a script that way.
 
 Note that GTK+ and other dependencies are obviously still required, although
 there is a I<configure> option available to disable all GUI completely during
-compilation, in order to produce a CLI-version of kalu.
+compilation, in order to produce a CLI version of kalu.
 
 =head1 BUGS
 

@@ -80,8 +80,6 @@ xml_parser_news_text (GMarkupParseContext *context,
                       GError             **error _UNUSED_);
 
 
-#endif /* DISABLE_GUI */
-
 /* TRUE when hovering over a link */
 static gboolean hovering_link = FALSE;
 /* standard & hover-link cursors */
@@ -89,6 +87,8 @@ static GdkCursor *cursor_std = NULL;
 static GdkCursor *cursor_link = NULL;
 /* nb of windows open */
 static gint nb_windows = 0;
+
+#endif /* DISABLE_GUI */
 
 static void
 xml_parser_updates_text (GMarkupParseContext   *context,
