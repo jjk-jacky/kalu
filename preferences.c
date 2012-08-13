@@ -1795,6 +1795,9 @@ show_prefs (void)
     gtk_widget_show (label);
     
     aur_cmdline_entry = gtk_entry_new ();
+    gtk_widget_set_tooltip_markup (aur_cmdline_entry,
+        "You can use <b>$PACKAGES</b> to be replaced by the list of AUR packages "
+        "with upgrades available");
     if (config->cmdline_aur != NULL)
     {
         gtk_entry_set_text (GTK_ENTRY (aur_cmdline_entry), config->cmdline_aur);

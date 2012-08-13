@@ -406,6 +406,9 @@ be featured.
 The command line to start when pressing the button "Update AUR packages" from the
 notification.
 
+You can use B<$PACKAGES> in the command line, which will be replaced by the
+list of all packages for which an upgrade is available in the AUR.
+
 =item I<Do not check the AUR for the following packages>
 
 By default kalu determines the list of all foreign packages (i.e. not found

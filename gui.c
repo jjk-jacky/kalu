@@ -110,6 +110,9 @@ run_cmdline (char *cmdline)
 void
 action_upgrade (NotifyNotification *notification, const char *action, gchar *_cmdline)
 {
+    /* we need to strdup cmdline because it will be free-d when notification
+     * is destroyed, which won't happen until this function is done, however it
+     * could happen before the other thread (run_cmdline) starts ! */
     char *cmdline = (_cmdline) ? strdup (_cmdline) : NULL;
     
     notify_notification_close (notification, NULL);
