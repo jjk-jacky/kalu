@@ -75,7 +75,7 @@ show_error_cmdline (gchar *arg[])
 }
 
 static void
-run_cmdline (const char *cmdline)
+run_cmdline (char *cmdline)
 {
     GError *error = NULL;
     
@@ -100,39 +100,50 @@ run_cmdline (const char *cmdline)
         /* check again, to refresh the state (since an upgrade was probably just done) */
         kalu_check (TRUE);
     }
+    
+    if (cmdline != config->cmdline && cmdline != config->cmdline_aur)
+    {
+        free (cmdline);
+    }
 }
 
 void
-action_upgrade (NotifyNotification *notification, const char *action, gpointer data _UNUSED_)
+action_upgrade (NotifyNotification *notification, const char *action, gchar *_cmdline)
 {
-    char *cmdline = NULL;
+    char *cmdline = (_cmdline) ? strdup (_cmdline) : NULL;
     
     notify_notification_close (notification, NULL);
     
-    if (strcmp ("do_updates", action) == 0)
+    if (!cmdline)
     {
-        #ifndef DISABLE_UPDATER
-        if (config->action == UPGRADE_ACTION_KALU)
+        if (strcmp ("do_updates", action) == 0)
         {
-            run_updater ();
+            #ifndef DISABLE_UPDATER
+            if (config->action == UPGRADE_ACTION_KALU)
+            {
+                run_updater ();
+            }
+            else /* if (config->action == UPGRADE_ACTION_CMDLINE) */
+            {
+            #endif
+                cmdline = config->cmdline;
+            #ifndef DISABLE_UPDATER
+            }
+            #endif
         }
-        else /* if (config->action == UPGRADE_ACTION_CMDLINE) */
+        else /* if (strcmp ("do_updates_aur", action) == 0) */
         {
-        #endif
-            cmdline = config->cmdline;
-        #ifndef DISABLE_UPDATER
+            cmdline = config->cmdline_aur;
         }
-        #endif
-    }
-    else /* if (strcmp ("do_updates_aur", action) == 0) */
-    {
-        cmdline = config->cmdline_aur;
     }
     
     if (cmdline)
     {
         /* run in a separate thread, to not block/make GUI unresponsive */
-        g_thread_create ((GThreadFunc) run_cmdline, (gpointer) cmdline, FALSE, NULL);
+        g_thread_unref (g_thread_try_new ("action_upgrade",
+                                          (GThreadFunc) run_cmdline,
+                                          (gpointer) cmdline,
+                                          NULL));
     }
 }
 
@@ -275,7 +286,10 @@ kalu_check (gboolean is_auto)
     set_kalpm_busy (TRUE);
     
     /* run in a separate thread, to not block/make GUI unresponsive */
-    g_thread_create ((GThreadFunc) kalu_check_work, GINT_TO_POINTER (is_auto), FALSE, NULL);
+    g_thread_unref (g_thread_try_new ("kalu_check_work",
+                                      (GThreadFunc) kalu_check_work,
+                                      GINT_TO_POINTER (is_auto),
+                                      NULL));
 }
 
 void
@@ -325,7 +339,10 @@ kalu_sysupgrade (void)
     {
     #endif
         /* run in a separate thread, to not block/make GUI unresponsive */
-        g_thread_create ((GThreadFunc) run_cmdline, (gpointer) config->cmdline, FALSE, NULL);
+        g_thread_unref (g_thread_try_new ("cmd_sysupgrade",
+                                          (GThreadFunc) run_cmdline,
+                                          (gpointer) config->cmdline,
+                                          NULL));
     #ifndef DISABLE_UPDATER
     }
     #endif

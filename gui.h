@@ -39,7 +39,7 @@ gboolean
 show_error_cmdline (gchar *arg[]);
 
 void
-action_upgrade (NotifyNotification *notification, const char *action, gpointer data);
+action_upgrade (NotifyNotification *notification, const char *action, gchar *_cmdline);
 
 void
 action_watched (NotifyNotification *notification, char *action, alpm_list_t *packages);

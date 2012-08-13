@@ -132,6 +132,8 @@ notify_updates (alpm_list_t *packages, check_t type, gchar *xml_news)
     const char *unit;
     double      size_h;
     replacement_t *replacements[7];
+    GString    *string_pkgs = NULL;     /* list of AUR packages */
+    gchar      *cmdline;                /* cmdline w/ $PACKAGES replaced */
     
     #ifdef DISABLE_GUI
     (void) xml_news;
@@ -152,6 +154,11 @@ notify_updates (alpm_list_t *packages, check_t type, gchar *xml_news)
     else if (type & CHECK_AUR)
     {
         tt = config->tpl_aur;
+        /* if needed, init the string that will hold the list of packages */
+        if (config->cmdline_aur)
+        {
+            string_pkgs = g_string_sized_new (255);
+        }
     }
     else if (type & CHECK_WATCHED_AUR)
     {
@@ -265,6 +272,13 @@ notify_updates (alpm_list_t *packages, check_t type, gchar *xml_news)
                    pkg->new_version,
                    (int) pkg->dl_size,
                    (int) pkg->new_size);
+            
+            /* construct list of packages, for use in cmdline */
+            if (string_pkgs)
+            {
+                string_pkgs = g_string_append (string_pkgs, pkg->name);
+                string_pkgs = g_string_append_c (string_pkgs, ' ');
+            }
         }
     }
     
@@ -349,9 +363,25 @@ notify_updates (alpm_list_t *packages, check_t type, gchar *xml_news)
     {
         if (config->cmdline_aur)
         {
-            notify_notification_add_action (notification, "do_updates_aur",
-                "Update AUR packages...", (NotifyActionCallback) action_upgrade,
-                NULL, NULL);
+            if (string_pkgs)
+            {
+                /* if we have a list of pkgs, update the cmdline */
+                cmdline = strreplace (config->cmdline_aur, "$PACKAGES", string_pkgs->str);
+                g_string_free (string_pkgs, TRUE);
+            }
+            else
+            {
+                /* else no user data, so it'll default to config->cmdline_aur
+                 * So we'll always be able to call free (cmdline) in action_upgrade */
+                cmdline = NULL;
+            }
+            
+            notify_notification_add_action (notification,
+                                            "do_updates_aur",
+                                            "Update AUR packages...",
+                                            (NotifyActionCallback) action_upgrade,
+                                            cmdline,
+                                            (GFreeFunc) free);
         }
     }
     else if (type & CHECK_WATCHED)
