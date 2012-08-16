@@ -40,6 +40,7 @@
 #include "util.h"
 #ifndef DISABLE_GUI
 #include "util-gtk.h"
+#include "gui.h" /* show_notif() */
 #endif
 
 enum {
@@ -865,6 +866,30 @@ btn_mark_cb (GtkWidget *button _UNUSED_, GtkWidget *window)
             FREELIST (config->news_read);
             config->news_read = news_read;
             
+            /* we go and change the last_notifs. if nb_unread = 0 we can
+             * simply remove it, else we change it to ask to run the checks again
+             * to be up to date */
+            for (i = config->last_notifs; i; i = alpm_list_next (i))
+            {
+                notif_t *notif = i->data;
+                if (notif->type & CHECK_NEWS)
+                {
+                    if (nb_unread == 0)
+                    {
+                        config->last_notifs = alpm_list_remove_item (config->last_notifs, i);
+                        free_notif (notif);
+                    }
+                    else
+                    {
+                        free (notif->data);
+                        notif->data = NULL;
+                        free (notif->text);
+                        notif->text = strdup ("Read news have changed, "
+                            "you need to run the checks again to be up-to-date.");
+                    }
+                    break;
+                }
+            }
             set_kalpm_nb (CHECK_NEWS, nb_unread);
             saved = TRUE;
         }

@@ -40,6 +40,7 @@
 #include "kalu-updater.h"
 #include "kupdater.h"
 #include "conf.h"
+#include "gui.h" /* show_notif() */
 
 /* split of pctg of each step in the global progress of the sysupgrade */
 #define PCTG_DOWNLOAD           0.42
@@ -1251,6 +1252,8 @@ btn_close_cb (GtkButton *button _UNUSED_, gpointer data _UNUSED_)
 static void
 updater_sysupgrade_cb (KaluUpdater *kupdater _UNUSED_, const gchar *errmsg)
 {
+    alpm_list_t *i;
+    
     gtk_widget_set_sensitive (updater->btn_close, TRUE);
     
     if (errmsg != NULL)
@@ -1268,12 +1271,23 @@ updater_sysupgrade_cb (KaluUpdater *kupdater _UNUSED_, const gchar *errmsg)
     
     /* update nb of upgrades in state (used in kalu's systray icon tooltip) */
     set_kalpm_nb (CHECK_UPGRADES, 0);
+    /* we go and change the last_notifs, to remove the notif about packages */
+    for (i = config->last_notifs; i; i = alpm_list_next (i))
+    {
+        notif_t *notif = i->data;
+        if (notif->type & CHECK_UPGRADES)
+        {
+            config->last_notifs = alpm_list_remove_item (config->last_notifs, i);
+            free_notif (notif);
+            break;
+        }
+    }
     
     if (NULL != updater->cmdline_post)
     {
         GError      *error = NULL;
         size_t       count = alpm_list_count (updater->cmdline_post);
-        alpm_list_t *cmdlines = NULL, *i;
+        alpm_list_t *cmdlines = NULL;
         
         if (count == 1)
         {

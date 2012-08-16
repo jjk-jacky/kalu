@@ -36,6 +36,7 @@
 #include "watched.h"
 #include "util.h"
 #include "util-gtk.h"
+#include "gui.h" /* show_notif() */
 
 enum {
     WCOL_UPD,
@@ -242,8 +243,9 @@ watched_package_name_cmp (watched_package_t *w_pkg1, watched_package_t *w_pkg2)
 static void
 monitor_response_cb (GtkWidget *dialog, gint response, alpm_list_t *updates)
 {
-    gtk_widget_destroy (dialog);
+    alpm_list_t *new_watched = g_object_get_data (G_OBJECT (dialog), "new-watched");
     
+    gtk_widget_destroy (dialog);
     if (response == GTK_RESPONSE_YES)
     {
         GtkTreeModel *model;
@@ -289,6 +291,8 @@ monitor_response_cb (GtkWidget *dialog, gint response, alpm_list_t *updates)
         }
     }
     
+    /* free duplicate list */
+    FREELIST (new_watched);
     alpm_list_free (updates);
 }
 
@@ -386,27 +390,61 @@ btn_mark_cb (GtkButton *button _UNUSED_, gboolean is_aur)
                                   "No, keep the list as is.", NULL,
                                   window_manage);
             g_object_set_data (G_OBJECT (dialog), "is-aur", GINT_TO_POINTER (is_aur));
+            /* send new_watched so it can be free-d it (alongside updates) when
+             * the window gets destroyed */
+            g_object_set_data (G_OBJECT (dialog), "new-watched", (gpointer) new_watched);
             g_signal_connect (G_OBJECT (dialog), "response",
                               G_CALLBACK (monitor_response_cb), (gpointer) updates);
             gtk_widget_show (dialog);
         }
         else
         {
+            /* free duplicate list */
+            FREELIST (new_watched);
             alpm_list_free (updates);
         }
         
         /* done */
-        set_kalpm_nb ((is_aur) ? CHECK_WATCHED_AUR : CHECK_WATCHED, nb_watched);
+        check_t type = (is_aur) ? CHECK_WATCHED_AUR : CHECK_WATCHED;
+        /* we go and change the last_notifs. if nb_watched = 0 we can
+         * simply remove it, else we change it to ask to run the checks again
+         * to be up to date */
+        for (i = config->last_notifs; i; i = alpm_list_next (i))
+        {
+            notif_t *notif = i->data;
+            if (notif->type & type)
+            {
+                if (nb_watched == 0)
+                {
+                    config->last_notifs = alpm_list_remove_item (config->last_notifs, i);
+                    free_notif (notif);
+                }
+                else
+                {
+                    FREE_PACKAGE_LIST (notif->data);
+                    free (notif->text);
+                    notif->text = strdup (
+                        (is_aur)
+                        ? "Watched AUR packages have changed, "
+                            "you need to run the checks again to be up-to-date."
+                        : "Watched packages have changed, "
+                            "you need to run the checks again to be up-to-date."
+                        );
+                }
+                break;
+            }
+        }
+        set_kalpm_nb (type, nb_watched);
         gtk_widget_destroy (window_notif);
     }
     else
     {
         gtk_widget_show (window_notif);
         show_error ("Unable to save changes to disk", NULL, GTK_WINDOW (window_notif));
+        /* free duplicate list */
+        FREELIST (new_watched);
+        alpm_list_free (updates);
     }
-    
-    /* free duplicate list */
-    FREELIST (new_watched);
 }
 
 static void

@@ -57,13 +57,13 @@ void
 action_upgrade (NotifyNotification *notification, const char *action, gchar *_cmdline);
 
 void
-action_watched (NotifyNotification *notification, char *action, alpm_list_t *packages);
+action_watched (NotifyNotification *notification, char *action, notif_t *notif);
 
 void
-action_watched_aur (NotifyNotification *notification, char *action, alpm_list_t *packages);
+action_watched_aur (NotifyNotification *notification, char *action, notif_t *notif);
 
 void
-action_news (NotifyNotification *notification, char *action, gchar *xml_news);
+action_news (NotifyNotification *notification, char *action, notif_t *notif);
 
 void
 notification_closed_cb (NotifyNotification *notification, gpointer data);

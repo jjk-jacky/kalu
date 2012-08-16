@@ -79,7 +79,13 @@ show_notif (notif_t *notif)
     
     debug ("showing notif: %s", notif->summary);
     notification = new_notification (notif->summary, notif->text);
-    if (notif->type & CHECK_UPGRADES)
+    if (!notif->data)
+    {
+        /* no data means the notification was modified afterwards, as news/packages
+         * have been marked read. No more data/action button, just a simple
+         * notification (where text explains to re-do checks to be up to date) */
+    }
+    else if (notif->type & CHECK_UPGRADES)
     {
         if (   config->check_pacman_conflict
             && is_pacman_conflicting ((alpm_list_t *) notif->data))
@@ -111,7 +117,7 @@ show_notif (notif_t *notif)
                                         "mark_watched",
                                         "Mark packages...",
                                         (NotifyActionCallback) action_watched,
-                                        notif->data,
+                                        notif,
                                         NULL);
     }
     else if (notif->type & CHECK_WATCHED_AUR)
@@ -120,7 +126,7 @@ show_notif (notif_t *notif)
                                         "mark_watched_aur",
                                         "Mark packages...",
                                         (NotifyActionCallback) action_watched_aur,
-                                        notif->data,
+                                        notif,
                                         NULL);
     }
     else if (notif->type & CHECK_NEWS)
@@ -129,7 +135,7 @@ show_notif (notif_t *notif)
                                         "mark_news",
                                         "Show news...",
                                         (NotifyActionCallback) action_news,
-                                        notif->data,
+                                        notif,
                                         NULL);
     }
     /* we use a callback on "closed" to unref it, because when there's an action
@@ -244,32 +250,61 @@ action_upgrade (NotifyNotification *notification, const char *action, gchar *_cm
 
 void
 action_watched (NotifyNotification *notification, char *action _UNUSED_,
-    alpm_list_t *packages)
+    notif_t *notif)
 {
     notify_notification_close (notification, NULL);
-    watched_update (packages, FALSE);
+    if (notif->data)
+    {
+        watched_update ((alpm_list_t *) notif->data, FALSE);
+    }
+    else
+    {
+        show_error ("Unable to mark watched packages",
+            "Watched packages have changed, "
+                "you need to run the checks again to be up-to-date.",
+            NULL);
+    }
 }
 
 void
 action_watched_aur (NotifyNotification *notification, char *action _UNUSED_,
-    alpm_list_t *packages)
+    notif_t *notif)
 {
     notify_notification_close (notification, NULL);
-    watched_update (packages, TRUE);
+    if (notif->data)
+    {
+        watched_update ((alpm_list_t *) notif->data, TRUE);
+    }
+    else
+    {
+        show_error ("Unable to mark watched AUR packages",
+            "Watched AUR packages have changed, "
+                "you need to run the checks again to be up-to-date.",
+            NULL);
+    }
 }
 
 void
 action_news (NotifyNotification *notification, char *action _UNUSED_,
-    gchar *xml_news)
+    notif_t *notif)
 {
     GError *error = NULL;
     
     notify_notification_close (notification, NULL);
-    set_kalpm_busy (TRUE);
-    if (!news_show (xml_news, TRUE, &error))
+    if (notif->data)
     {
-        show_error ("Unable to show the news", error->message, NULL);
-        g_clear_error (&error);
+        set_kalpm_busy (TRUE);
+        if (!news_show ((gchar *) notif->data, TRUE, &error))
+        {
+            show_error ("Unable to show the news", error->message, NULL);
+            g_clear_error (&error);
+        }
+    }
+    else
+    {
+        show_error ("Unable to show unread news",
+            "Read news have changed, you need to run the checks again to be up-to-date.",
+            NULL);
     }
 }
 
@@ -398,12 +433,18 @@ show_last_notifs (void)
 {
     alpm_list_t *i;
     
+    /* in case e.g. the menu was shown (sensitive) before an auto-check started */
+    if (kalpm_state.is_busy)
+    {
+        return;
+    }
+    
     if (!config->last_notifs)
     {
         notif_t notif;
         
         notif.type = 0;
-        notif.summary = "No notifications to show.";
+        notif.summary = (gchar *) "No notifications to show.";
         notif.text = NULL;
         notif.data = NULL;
         
