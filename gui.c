@@ -48,6 +48,97 @@ static void menu_quit_cb (GtkMenuItem *item, gpointer data);
 
 extern kalpm_state_t kalpm_state;
 
+
+void
+free_notif (notif_t *notif)
+{
+    if (!notif)
+    {
+        return;
+    }
+    
+    free (notif->summary);
+    free (notif->text);
+    if (notif->type == CHECK_NEWS || notif->type == CHECK_AUR)
+    {
+        /* CHECK_NEWS has xml_news; CHECK_AUR has cmdline w/ $PACKAGES replaced */
+        free (notif->data);
+    }
+    else
+    {
+        /* CHECK_UPGRADES, CHECK_WATCHED & CHECK_WATCHED_AUR all use packages */
+        FREE_PACKAGE_LIST (notif->data);
+    }
+    free (notif);
+}
+
+void
+show_notif (notif_t *notif)
+{
+    NotifyNotification *notification;
+    
+    debug ("showing notif: %s", notif->summary);
+    notification = new_notification (notif->summary, notif->text);
+    if (notif->type & CHECK_UPGRADES)
+    {
+        if (   config->check_pacman_conflict
+            && is_pacman_conflicting ((alpm_list_t *) notif->data))
+        {
+            notify_notification_add_action (notification, "do_conflict_warn",
+                "Possible pacman/kalu conflict...",
+                (NotifyActionCallback) show_pacman_conflict,
+                NULL, NULL);
+        }
+        if (config->action != UPGRADE_NO_ACTION)
+        {
+            notify_notification_add_action (notification, "do_updates",
+                "Update system...", (NotifyActionCallback) action_upgrade,
+                NULL, NULL);
+        }
+    }
+    else if (notif->type & CHECK_AUR)
+    {
+        notify_notification_add_action (notification,
+                                        "do_updates_aur",
+                                        "Update AUR packages...",
+                                        (NotifyActionCallback) action_upgrade,
+                                        notif->data,
+                                        NULL);
+    }
+    else if (notif->type & CHECK_WATCHED)
+    {
+        notify_notification_add_action (notification,
+                                        "mark_watched",
+                                        "Mark packages...",
+                                        (NotifyActionCallback) action_watched,
+                                        notif->data,
+                                        NULL);
+    }
+    else if (notif->type & CHECK_WATCHED_AUR)
+    {
+        notify_notification_add_action (notification,
+                                        "mark_watched_aur",
+                                        "Mark packages...",
+                                        (NotifyActionCallback) action_watched_aur,
+                                        notif->data,
+                                        NULL);
+    }
+    else if (notif->type & CHECK_NEWS)
+    {
+        notify_notification_add_action (notification,
+                                        "mark_news",
+                                        "Show news...",
+                                        (NotifyActionCallback) action_news,
+                                        notif->data,
+                                        NULL);
+    }
+    /* we use a callback on "closed" to unref it, because when there's an action
+     * we need to keep a ref, otherwise said action won't work */
+    g_signal_connect (G_OBJECT (notification), "closed",
+                      G_CALLBACK (notification_closed_cb), NULL);
+    notify_notification_show (notification, NULL);
+}
+
 gboolean
 show_error_cmdline (gchar *arg[])
 {
@@ -80,6 +171,7 @@ run_cmdline (char *cmdline)
     GError *error = NULL;
     
     set_kalpm_busy (TRUE);
+    debug ("run cmdline: %s", cmdline);
     if (!g_spawn_command_line_sync (cmdline, NULL, NULL, NULL, &error))
     {
         /* we can't just show the error message from here, because this is ran
@@ -302,6 +394,17 @@ kalu_auto_check (void)
 }
 
 static void
+show_last_notifs (void)
+{
+    alpm_list_t *i;
+    
+    for (i = config->last_notifs; i; i = alpm_list_next (i))
+    {
+        show_notif ((notif_t *) i->data);
+    }
+}
+
+static void
 menu_check_cb (GtkMenuItem *item _UNUSED_, gpointer data _UNUSED_)
 {
     kalu_check (FALSE);
@@ -445,7 +548,21 @@ icon_popup_cb (GtkStatusIcon *_icon _UNUSED_, guint button, guint activate_time,
     GtkWidget   *image;
     guint        pos = 0;
     
-    menu = gtk_menu_new();
+    menu = gtk_menu_new ();
+    
+    item = gtk_image_menu_item_new_with_label ("Re-show last notifications...");
+    gtk_widget_set_sensitive (item, !kalpm_state.is_busy && config->last_notifs);
+    image = gtk_image_new_from_stock (GTK_STOCK_REDO, GTK_ICON_SIZE_MENU);
+    gtk_image_menu_item_set_image (GTK_IMAGE_MENU_ITEM (item), image);
+    gtk_widget_set_tooltip_text (item, "Show notifications from last ran checks");
+    g_signal_connect (G_OBJECT (item), "activate",
+                      G_CALLBACK (show_last_notifs), NULL);
+    gtk_widget_show (item);
+    gtk_menu_attach (GTK_MENU (menu), item, 0, 1, pos, pos + 1); ++pos;
+    
+    item = gtk_separator_menu_item_new ();
+    gtk_widget_show (item);
+    gtk_menu_attach (GTK_MENU (menu), item, 0, 1, pos, pos + 1); ++pos;
     
     item = gtk_image_menu_item_new_with_label ("Check for Upgrades...");
     gtk_widget_set_sensitive (item, !kalpm_state.is_busy);
@@ -601,6 +718,10 @@ static guint icon_press_timeout = 0;
         else if (on_click == DO_TOGGLE_WINDOWS)     \
         {                                           \
             toggle_open_windows ();                 \
+        }                                           \
+        else if (on_click == DO_LAST_NOTIFS)        \
+        {                                           \
+            show_last_notifs ();                    \
         }                                           \
     } while (0)
 

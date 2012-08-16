@@ -35,6 +35,21 @@
 /* notify */
 #include <libnotify/notify.h>
 
+#define FREE_NOTIFS_LIST(p)                                                 \
+            do                                                              \
+            {                                                               \
+                alpm_list_free_inner (p, (alpm_list_fn_free) free_notif);   \
+                alpm_list_free (p);                                         \
+                p = NULL;                                                   \
+            } while(0)
+
+
+void
+free_notif (notif_t *notif);
+
+void
+show_notif (notif_t *notif);
+
 gboolean
 show_error_cmdline (gchar *arg[]);
 

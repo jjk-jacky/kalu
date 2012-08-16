@@ -1005,6 +1005,10 @@ parse_config_file (const char       *file,
                     {
                         *on_click = DO_TOGGLE_WINDOWS;
                     }
+                    else if (strcmp (value, "LAST_NOTIFS") == 0)
+                    {
+                        *on_click = DO_LAST_NOTIFS;
+                    }
                     else
                     {
                         add_error ("unknown value for %s: %s", key, value);

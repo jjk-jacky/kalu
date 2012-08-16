@@ -106,7 +106,8 @@ rendering (i.e. there is no HTML engine used) and as such the rendering
 might differ.
 For example, images are not supported.
 
-Links are processed through B<xdg-open(1)> to be opened in your default browser.
+Links are opened using the command-line specified in B<PREFERENCES>, by default
+using B<xdg-open(1)> to be opened them in your default browser.
 
 =back
 
@@ -217,6 +218,15 @@ check, i.e. using menu "Check for Upgrades"
 =back
 
 =head2 News
+
+=over
+
+=item I<Command line to open links>
+
+The command line to be executed when a link (on news) is clicked. Use variable
+B<$URL> as placeholder for the full URL to be opened.
+
+=back
 
 =over
 
@@ -344,7 +354,7 @@ No variables available.
 
 Does the same as the menu by the same name, that is open the window to manage
 (add, edit, remove) the list of watched packages. This list is independent from
-the preferences, as data are saved in a different file, as saving the list will
+the preferences, its data are saved in a different file, and saving the list will
 not have an effect on preferences, and vice versa.
 
 =item I<Notification template>
@@ -458,7 +468,7 @@ No variables available.
 
 Does the same as the menu by the same name, that is open the window to manage
 (add, edit, remove) the list of watched AUR packages. This list is independent
-from the preferences, as data are saved in a different file, as saving the list
+from the preferences, its data are saved in a different file, and saving the list
 will not have an effect on preferences, and vice versa.
 
 =item I<Notification template>
@@ -539,12 +549,12 @@ Will hide all opened windows (except for kalu's updater). If at least one
 window is hidden, an indication will be featured on the tooltip (" +" next to
 "kalu") and triggering the action again will then show all hidden windows.
 
+=item B<* Re-show last notifications...>
+
+Will re-show all notifications resulting from the last time checks were ran
+(automatic or manual).
+
 =back
-
-=item I<Command line to open links (in news)>
-
-The command line to be executed when a link (on news) is clicked. Use variable
-B<$URL> as placeholder for the full URL to be opened.
 
 =back
 

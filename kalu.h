@@ -84,7 +84,8 @@ typedef enum {
     DO_NOTHING = 0,
     DO_CHECK,
     DO_SYSUPGRADE,
-    DO_TOGGLE_WINDOWS
+    DO_TOGGLE_WINDOWS,
+    DO_LAST_NOTIFS
 } on_click_t;
 
 typedef enum {
@@ -144,6 +145,9 @@ typedef struct _config_t {
     #endif
     
     gboolean         is_curl_init;
+    #ifndef DISBALE_UPDATER
+    alpm_list_t     *last_notifs;
+    #endif
 } config_t;
 
 typedef struct _watched_package_t {
@@ -173,11 +177,17 @@ typedef struct _kalpm_state_t {
     gint        nb_news;
 } kalpm_state_t;
 
+typedef struct _notif_t {
+    check_t     type;
+    gchar      *summary;
+    gchar      *text;
+    gpointer    data;
+} notif_t;
+
 /* global variable */
 extern config_t *config;
 
-void
-debug (const char *fmt, ...);
+void debug (const char *fmt, ...);
 
 void free_package (kalu_package_t *package);
 void free_watched_package (watched_package_t *w_pkg);

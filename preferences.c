@@ -62,6 +62,7 @@ static GtkWidget *manual_aur                = NULL;
 static GtkWidget *manual_watched_aur        = NULL;
 static GtkWidget *manual_news               = NULL;
 /* News */
+static GtkWidget *cmdline_link_entry        = NULL;
 static GtkWidget *news_title_entry          = NULL;
 static GtkWidget *news_package_entry        = NULL;
 static GtkWidget *news_sep_entry            = NULL;
@@ -100,7 +101,6 @@ static GtkWidget *sane_sort_order           = NULL;
 static GtkWidget *syncdbs_in_tooltip        = NULL;
 static GtkWidget *on_sgl_click              = NULL;
 static GtkWidget *on_dbl_click              = NULL;
-static GtkWidget *cmdline_link_entry        = NULL;
 
 /* we keep a copy of templates like so, so that we can use it when refreshing
  * the different templates. that is, values shown when a template is not set
@@ -920,6 +920,19 @@ btn_save_cb (GtkButton *button _UNUSED_, gpointer data _UNUSED_)
                  );
     new_config.checks_manual = type;
     
+    /* News */
+    s = (char *) gtk_entry_get_text (GTK_ENTRY (cmdline_link_entry));
+    if (s == NULL || *s == '\0')
+    {
+        error_on_page (1, "You need to specify the command-line to open links.");
+    }
+    else if (!strstr (s, "$URL"))
+    {
+        error_on_page (1, "You need to use $URL on the command line to open links.");
+    }
+    add_to_conf ("CmdLineLink = %s\n", s);
+    new_config.cmdline_link = strdup (s);
+    
     /* Upgrades */
     new_config.check_pacman_conflict = gtk_toggle_button_get_active (
         GTK_TOGGLE_BUTTON (check_pacman_conflict));
@@ -1029,6 +1042,10 @@ btn_save_cb (GtkButton *button _UNUSED_, gpointer data _UNUSED_)
     {
         add_to_conf ("OnSglClick = TOGGLE_WINDOWS\n");
     }
+    else if (new_config.on_sgl_click == DO_LAST_NOTIFS)
+    {
+        add_to_conf ("OnSglClick = LAST_NOTIFS\n");
+    }
     else /* if (new_config.on_sgl_click == DO_NOTHING) */
     {
         add_to_conf ("OnSglClick = NOTHING\n");
@@ -1047,22 +1064,14 @@ btn_save_cb (GtkButton *button _UNUSED_, gpointer data _UNUSED_)
     {
         add_to_conf ("OnDblClick = TOGGLE_WINDOWS\n");
     }
+    else if (new_config.on_dbl_click == DO_LAST_NOTIFS)
+    {
+        add_to_conf ("OnDblClick = LAST_NOTIFS\n");
+    }
     else /* if (new_config.on_dbl_click == DO_NOTHING) */
     {
         add_to_conf ("OnDblClick = NOTHING\n");
     }
-    
-    s = (char *) gtk_entry_get_text (GTK_ENTRY (cmdline_link_entry));
-    if (s == NULL || *s == '\0')
-    {
-        error_on_page (6, "You need to specify the command-line to open links.");
-    }
-    else if (!strstr (s, "$URL"))
-    {
-        error_on_page (6, "You need to use $URL on the command line to open links.");
-    }
-    add_to_conf ("CmdLineLink = %s\n", s);
-    new_config.cmdline_link = strdup (s);
     
     /* ** TEMPLATES ** */
     
@@ -1622,6 +1631,21 @@ show_prefs (void)
     grid = gtk_grid_new ();
     lbl_page = gtk_label_new ("News");
     
+    label = gtk_label_new ("Command line to open links :");
+    gtk_grid_attach (GTK_GRID (grid), label, 0, top, 1, 1);
+    gtk_widget_show (label);
+    
+    cmdline_link_entry = gtk_entry_new ();
+    gtk_widget_set_tooltip_markup (cmdline_link_entry,
+        "Use variable <b>$URL</b> for the URL to open");
+    if (config->cmdline_link != NULL)
+    {
+        gtk_entry_set_text (GTK_ENTRY (cmdline_link_entry), config->cmdline_link);
+    }
+    gtk_grid_attach (GTK_GRID (grid), cmdline_link_entry, 1, top, 1, 1);
+    gtk_widget_show (cmdline_link_entry);
+    
+    ++top;
     add_template (grid, top,
                   &news_title_entry,
                   &news_package_entry,
@@ -1905,6 +1929,8 @@ show_prefs (void)
         "Hide/show opened windows"
         #endif
         );
+    gtk_combo_box_text_append (GTK_COMBO_BOX_TEXT (on_sgl_click), "4",
+        "Re-show last notifications...");
     gtk_grid_attach (GTK_GRID (grid), on_sgl_click, 1, top, 1, 1);
     gtk_widget_show (on_sgl_click);
     if (config->on_sgl_click == DO_CHECK)
@@ -1918,6 +1944,10 @@ show_prefs (void)
     else if (config->on_sgl_click == DO_TOGGLE_WINDOWS)
     {
         gtk_combo_box_set_active (GTK_COMBO_BOX (on_sgl_click), 3);
+    }
+    else if (config->on_sgl_click == DO_LAST_NOTIFS)
+    {
+        gtk_combo_box_set_active (GTK_COMBO_BOX (on_sgl_click), 4);
     }
     else /* DO_NOTHING */
     {
@@ -1943,6 +1973,8 @@ show_prefs (void)
         "Hide/show opened windows"
         #endif
         );
+    gtk_combo_box_text_append (GTK_COMBO_BOX_TEXT (on_dbl_click), "4",
+        "Re-show last notifications...");
     gtk_grid_attach (GTK_GRID (grid), on_dbl_click, 1, top, 1, 1);
     gtk_widget_show (on_dbl_click);
     if (config->on_dbl_click == DO_CHECK)
@@ -1957,25 +1989,14 @@ show_prefs (void)
     {
         gtk_combo_box_set_active (GTK_COMBO_BOX (on_dbl_click), 3);
     }
+    else if (config->on_sgl_click == DO_LAST_NOTIFS)
+    {
+        gtk_combo_box_set_active (GTK_COMBO_BOX (on_sgl_click), 4);
+    }
     else /* DO_NOTHING */
     {
         gtk_combo_box_set_active (GTK_COMBO_BOX (on_dbl_click), 0);
     }
-    
-    ++top;
-    label = gtk_label_new ("Command line to open links (in news) :");
-    gtk_grid_attach (GTK_GRID (grid), label, 0, top, 1, 1);
-    gtk_widget_show (label);
-    
-    cmdline_link_entry = gtk_entry_new ();
-    gtk_widget_set_tooltip_markup (cmdline_link_entry,
-        "Use variable <b>$URL</b> for the URL to open");
-    if (config->cmdline_link != NULL)
-    {
-        gtk_entry_set_text (GTK_ENTRY (cmdline_link_entry), config->cmdline_link);
-    }
-    gtk_grid_attach (GTK_GRID (grid), cmdline_link_entry, 1, top, 1, 1);
-    gtk_widget_show (cmdline_link_entry);
     
     /* add page */
     gtk_widget_show (grid);

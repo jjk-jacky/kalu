@@ -102,12 +102,6 @@ static gboolean is_cli = FALSE;
         }                                                           \
     }
 
-static void
-free_packages (alpm_list_t *packages)
-{
-    FREE_PACKAGE_LIST (packages);
-}
-
 #endif /* DISABLE_GUI*/
 
 static void
@@ -133,7 +127,6 @@ notify_updates (alpm_list_t *packages, check_t type, gchar *xml_news)
     double      size_h;
     replacement_t *replacements[7];
     GString    *string_pkgs = NULL;     /* list of AUR packages */
-    gchar      *cmdline;                /* cmdline w/ $PACKAGES replaced */
     
     #ifdef DISABLE_GUI
     (void) xml_news;
@@ -340,84 +333,40 @@ notify_updates (alpm_list_t *packages, check_t type, gchar *xml_news)
     #ifndef DISABLE_GUI
     }
     
-    NotifyNotification *notification;
+    notif_t *notif;
+    notif = malloc (sizeof (*notif));
+    notif->type = type;
+    notif->summary = summary;
+    notif->text = text;
+    notif->data = NULL;
     
-    notification = new_notification (summary, text);
-    if (type & CHECK_UPGRADES)
+    if (type & CHECK_AUR)
     {
-        if (config->check_pacman_conflict && is_pacman_conflicting (packages))
+        if (config->cmdline_aur && string_pkgs)
         {
-            notify_notification_add_action (notification, "do_conflict_warn",
-                "Possible pacman/kalu conflict...",
-                (NotifyActionCallback) show_pacman_conflict,
-                NULL, NULL);
+            /* if we have a list of pkgs, update the cmdline */
+            notif->data = strreplace (config->cmdline_aur, "$PACKAGES", string_pkgs->str);
+            g_string_free (string_pkgs, TRUE);
         }
-        if (config->action != UPGRADE_NO_ACTION)
-        {
-            notify_notification_add_action (notification, "do_updates",
-                "Update system...", (NotifyActionCallback) action_upgrade,
-                NULL, NULL);
-        }
-    }
-    else if (type & CHECK_AUR)
-    {
-        if (config->cmdline_aur)
-        {
-            if (string_pkgs)
-            {
-                /* if we have a list of pkgs, update the cmdline */
-                cmdline = strreplace (config->cmdline_aur, "$PACKAGES", string_pkgs->str);
-                g_string_free (string_pkgs, TRUE);
-            }
-            else
-            {
-                /* else no user data, so it'll default to config->cmdline_aur
-                 * So we'll always be able to call free (cmdline) in action_upgrade */
-                cmdline = NULL;
-            }
-            
-            notify_notification_add_action (notification,
-                                            "do_updates_aur",
-                                            "Update AUR packages...",
-                                            (NotifyActionCallback) action_upgrade,
-                                            cmdline,
-                                            (GFreeFunc) free);
-        }
-    }
-    else if (type & CHECK_WATCHED)
-    {
-        notify_notification_add_action (notification,
-                                        "mark_watched",
-                                        "Mark packages...",
-                                        (NotifyActionCallback) action_watched,
-                                        packages,
-                                        (GFreeFunc) free_packages);
-    }
-    else if (type & CHECK_WATCHED_AUR)
-    {
-        notify_notification_add_action (notification,
-                                        "mark_watched_aur",
-                                        "Mark packages...",
-                                        (NotifyActionCallback) action_watched_aur,
-                                        packages,
-                                        (GFreeFunc) free_packages);
+        /* else no user data, so it'll default to config->cmdline_aur
+         * So we'll always be able to call free (cmdline) in action_upgrade */
     }
     else if (type & CHECK_NEWS)
     {
-        notify_notification_add_action (notification,
-                                        "mark_news",
-                                        "Show news...",
-                                        (NotifyActionCallback) action_news,
-                                        xml_news,
-                                        (GFreeFunc) free);
+        notif->data = xml_news;
     }
-    /* we use a callback on "closed" to unref it, because when there's an action
-     * we need to keep a ref, otherwise said action won't work */
-    g_signal_connect (G_OBJECT (notification), "closed",
-                      G_CALLBACK (notification_closed_cb), NULL);
-    notify_notification_show (notification, NULL);
-    free (summary);
-    free (text);
+    else
+    {
+        /* CHECK_UPGRADES, CHECK_WATCHED & CHECK_WATCHED_AUR all use packages */
+        notif->data = packages;
+    }
+    
+    /* add the notif to the last of last notifications, so we can re-show it later */
+    debug ("adding new notif (%s) to last_notifs", notif->summary);
+    config->last_notifs = alpm_list_add (config->last_notifs, notif);
+    /* show it */
+    show_notif (notif);
+    
     #endif /* DISABLE_GUI */
 }
 
@@ -438,6 +387,16 @@ kalu_check_work (gboolean is_auto)
     #endif /* DISABLE_GUI */
     unsigned int checks = (is_auto) ? config->checks_auto : config->checks_manual;
     
+    #ifndef DISABLE_GUI
+    /* drop the list of last notifs, since we'll be making up a new one */
+    debug ("drop last_notifs");
+    FREE_NOTIFS_LIST (config->last_notifs);
+    #endif
+    
+    /* we will not free packages nor xml_news, because they'll be stored in
+     * notif_t (inside config->last_notifs) so we can re-show notifications.
+     * Everything gets free-d through the FREE_NOTIFS_LIST above */
+    
     if (checks & CHECK_NEWS)
     {
         packages = NULL;
@@ -449,8 +408,6 @@ kalu_check_work (gboolean is_auto)
             #endif /* DISABLE_GUI */
             notify_updates (packages, CHECK_NEWS, xml_news);
             FREELIST (packages);
-            /* we dont free xml_news because it might be used by the notification
-             * action (to show the news). hence, it'll be done when the notif is over */
         }
         else if (error != NULL)
         {
@@ -504,7 +461,6 @@ kalu_check_work (gboolean is_auto)
                 nb_upgrades = (gint) alpm_list_count (packages);
                 #endif /* DISABLE_GUI */
                 notify_updates (packages, CHECK_UPGRADES, NULL);
-                FREE_PACKAGE_LIST (packages);
             }
             #ifndef DISABLE_GUI
             else if (error == NULL)
@@ -569,10 +525,6 @@ kalu_check_work (gboolean is_auto)
                 nb_watched = (gint) alpm_list_count (packages);
                 #endif
                 notify_updates (packages, CHECK_WATCHED, NULL);
-                /* watched are a special case, because the list of packages must not be
-                 * free-d right now, but later when the notification is over. this is
-                 * because the notification might use it to show the "mark packages"
-                 * window/list */
             }
             #ifndef DISABLE_GUI
             else if (error == NULL)
@@ -651,10 +603,6 @@ kalu_check_work (gboolean is_auto)
             nb_watched_aur = (gint) alpm_list_count (packages);
             #endif
             notify_updates (packages, CHECK_WATCHED_AUR, NULL);
-            /* watched are a special case, because the list of packages must not be
-             * free-d right now, but later when the notification is over. this is
-             * because the notification might use it to show the "mark packages"
-             * window/list */
         }
         #ifndef DISABLE_GUI
         else if (error == NULL)

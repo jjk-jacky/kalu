@@ -32,6 +32,7 @@
 /* kalu */
 #include "util-gtk.h"
 #include "util.h"
+#include "gui.h" /* show_notif() */
 
 static void renderer_toggle_cb (GtkCellRendererToggle *, gchar *, GtkTreeModel *);
 
@@ -228,11 +229,19 @@ new_notification (const gchar *summary, const gchar *text)
 void
 notify_error (const gchar *summary, const gchar *text)
 {
-    NotifyNotification *notification;
+    notif_t *notif;
     
-    notification = new_notification (summary, text);
-    notify_notification_show (notification, NULL);
-    g_object_unref (notification);
+    notif = malloc (sizeof (*notif));
+    notif->type = 0;
+    notif->summary = strdup (summary);
+    notif->text = strdup (text);
+    notif->data = NULL;
+    
+    /* add the notif to the last of last notifications, so we can re-show it later */
+    debug ("adding new notif (%s) to last_notifs", notif->summary);
+    config->last_notifs = alpm_list_add (config->last_notifs, notif);
+    /* show it */
+    show_notif (notif);
 }
 
 static void
