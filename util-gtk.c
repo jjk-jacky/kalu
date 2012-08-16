@@ -234,7 +234,7 @@ notify_error (const gchar *summary, const gchar *text)
     notif = malloc (sizeof (*notif));
     notif->type = 0;
     notif->summary = strdup (summary);
-    notif->text = strdup (text);
+    notif->text = (text) ? strdup (text) : NULL;
     notif->data = NULL;
     
     /* add the notif to the last of last notifications, so we can re-show it later */

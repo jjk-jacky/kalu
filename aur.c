@@ -88,7 +88,7 @@ aur_has_updates (alpm_list_t **packages,
     void *pkg;
     kalu_package_t *kpkg;
     
-    debug ("looking for AUR updates");
+    debug ((is_watched) ? "looking for Watched AUR updates" : "looking for AUR updates");
     
     /* print start of url */
     max = MAX_URL_LENGTH;

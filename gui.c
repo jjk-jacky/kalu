@@ -398,6 +398,19 @@ show_last_notifs (void)
 {
     alpm_list_t *i;
     
+    if (!config->last_notifs)
+    {
+        notif_t notif;
+        
+        notif.type = 0;
+        notif.summary = "No notifications to show.";
+        notif.text = NULL;
+        notif.data = NULL;
+        
+        show_notif (&notif);
+        return;
+    }
+    
     for (i = config->last_notifs; i; i = alpm_list_next (i))
     {
         show_notif ((notif_t *) i->data);
