@@ -314,10 +314,14 @@ parse_to_buffer (GtkTextBuffer *buffer, const gchar *text, gsize text_len)
         *ss = '\n';
     }
     /* now turn <br> into \n */
-    while ((ss = strstr (s, "<br>")))
+    while ((ss = strstr (s, "<br")))
     {
+        if (!(end = strchr (ss, '>')))
+        {
+            break;
+        }
         *ss = '\n';
-        start = ss + 4;
+        start = end + 1;
         memmove (++ss, start, strlen (start) + 1);
     }
     /* convert some HTML stuff */
