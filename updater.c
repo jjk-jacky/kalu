@@ -152,13 +152,21 @@ add_log (logtype_t type, const gchar *fmt, ...)
 {
     GtkTextMark *mark;
     GtkTextIter iter;
-    gchar buffer[1024];
+    gchar buf[1024], *buffer = buf;
     const char *tag;
     va_list args;
+    int len;
     
     va_start (args, fmt);
-    vsnprintf (buffer, 1024, fmt, args);
+    len = vsnprintf (buffer, 1024, fmt, args);
     va_end (args);
+    if (len >= 1024)
+    {
+        buffer = malloc ((size_t) ++len * sizeof (gchar));
+        va_start (args, fmt);
+        vsprintf (buffer, fmt, args);
+        va_end (args);
+    }
     
     switch (type)
     {
@@ -192,19 +200,33 @@ add_log (logtype_t type, const gchar *fmt, ...)
     /* scrolling to the end using gtk_text_view_scroll_to_iter doesn't work;
      * using a mark like so seems to work better... */
     gtk_text_view_scroll_mark_onscreen ( GTK_TEXT_VIEW (updater->text_view), mark);
+    if (buffer != buf)
+    {
+        free (buffer);
+    }
 }
 
 static void
 _show_error (const gchar *msg, const gchar *fmt, ...)
 {
-    gchar buffer[1024], buf[255];
+    gchar *buffer, bufmsg[1024], buf[255];
     va_list args;
+    int len;
     
     snprintf (buf, 255, "<big><b><span color=\"red\">%s</span></b></big>", msg);
     
+    buffer = bufmsg;
     va_start (args, fmt);
-    vsnprintf (buffer, 1024, fmt, args);
+    len = vsnprintf (buffer, 1024, fmt, args);
     va_end (args);
+    if (len >= 1024)
+    {
+        /* this is one long error message... */
+        buffer = malloc ((size_t) ++len * sizeof (gchar));
+        va_start (args, fmt);
+        vsprintf (buffer, fmt, args);
+        va_end (args);
+    }
     
     add_log (LOGTYPE_ERROR, "Error: %s: %s", msg, buffer);
     
@@ -214,6 +236,10 @@ _show_error (const gchar *msg, const gchar *fmt, ...)
     gtk_widget_show (updater->lbl_action);
     gtk_widget_hide (updater->pbar_action);
     gtk_widget_set_sensitive (updater->btn_close, TRUE);
+    if (buffer != bufmsg)
+    {
+        free (buffer);
+    }
 }
 
 static gboolean

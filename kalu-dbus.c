@@ -462,10 +462,30 @@ question_cb (alpm_question_t event, void *data1, void *data2, void *data3, int *
  * METHODS *
  ***********/
 
-#define method_failed(name, ...)    do {                        \
-        snprintf (buffer, 1024, __VA_ARGS__);                   \
-        emit_signal ("MethodFailed", "ss", name, buffer);       \
-    } while (0)
+static void
+method_failed (const gchar *name, const gchar *fmt, ...)
+{
+    va_list args;
+    gchar *b = buffer;
+    int len;
+    
+    va_start (args, fmt);
+    len = vsnprintf (b, 1024, fmt, args);
+    va_end (args);
+    if (len >= 1024)
+    {
+        /* this is one long error message... */
+        b = malloc ((size_t) ++len * sizeof (gchar));
+        va_start (args, fmt);
+        vsprintf (b, fmt, args);
+        va_end (args);
+    }
+    emit_signal ("MethodFailed", "ss", name, b);
+    if (b != buffer)
+    {
+        free (b);
+    }
+}
 
 #define method_finished(name)   emit_signal ("MethodFinished", "s", name)
 
