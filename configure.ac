@@ -63,6 +63,11 @@ else
 fi
 AM_CONDITIONAL([DISABLE_UPDATER], [test "x$with_updater" = "xno"])
 
+# Option to use git version
+AC_ARG_ENABLE([git-version],
+	AS_HELP_STRING([--enable-git-version], [enable the use of git version]),
+	[wantgitver=$enableval], [wantgitver=no])
+
 # Checks for libraries.
 AC_CHECK_LIB([alpm], [alpm_db_get_pkg], ,
 	AC_MSG_ERROR([libalpm is required]))
@@ -110,6 +115,25 @@ AC_DEFINE_UNQUOTED([AUR_URL_PREFIX], ["$AUR_URL_PREFIX"],
 	[Prefix to construct URL for AUR])
 AC_DEFINE_UNQUOTED([AUR_URL_PREFIX_PKG], ["$AUR_URL_PREFIX_PKG"],
 	[Prefix before each package to construct AUR URL])
+
+# git version
+AC_MSG_CHECKING([whether to use git version if available])
+if test "x$wantgitver" = "xyes"; then
+    AC_CHECK_PROGS([GIT], [git])
+    AC_CHECK_FILE([.git/], hasgitdir=yes)
+    if test $GIT -a "x$hasgitdir" = "xyes"; then
+        AC_MSG_RESULT([yes])
+        usegitver=yes
+        AC_DEFINE([USE_GIT_VERSION], , [Use GIT version])
+    else
+        AC_MSG_RESULT([no, git or .git dir missing])
+        usegitver=no
+    fi
+else
+    AC_MSG_RESULT([no, disabled])
+    usegitver=no
+fi
+AM_CONDITIONAL(USE_GIT_VERSION, test "x$usegitver" = "xyes")
 
 AC_CONFIG_FILES([Makefile])
 AC_OUTPUT

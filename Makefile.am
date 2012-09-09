@@ -28,6 +28,13 @@ dbusconfdir = /etc/dbus-1/system.d
 dist_dbusconf_DATA = org.jjk.kalu.conf
 endif
 
+if USE_GIT_VERSION
+_VERSION = `git describe --abbrev=4 --dirty`
+DEFS += -DGIT_VERSION=\"$(_VERSION)\"
+else
+_VERSION = $(PACKAGE_VERSION)
+endif
+
 install-data-hook:
 	mkdir $(DESTDIR)$(docdir)/html
 	mv $(DESTDIR)$(docdir)/index.html $(DESTDIR)$(docdir)/html/
@@ -82,7 +89,7 @@ org.jjk.kalu.service: org.jjk.kalu.service.tpl
 	sed 's|@BINDIR@|$(bindir)|' org.jjk.kalu.service.tpl > org.jjk.kalu.service
 
 kalu.1: kalu.pod
-	pod2man --center='Keeping Arch Linux Up-to-date' --section=1 --release=$(PACKAGE_VERSION) kalu.pod kalu.1
+	pod2man --center='Keeping Arch Linux Up-to-date' --section=1 --release=$(_VERSION) kalu.pod kalu.1
 
 index.html: kalu.1
 	groff -T html -man kalu.1 > index.html

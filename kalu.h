@@ -35,6 +35,10 @@
 
 #define _UNUSED_            __attribute__ ((unused)) 
 
+#if defined(GIT_VERSION)
+#undef PACKAGE_VERSION
+#define PACKAGE_VERSION GIT_VERSION
+#endif
 #define PACKAGE_TAG         "Keeping Arch Linux Up-to-date"
 
 #define MAX_PATH            255
