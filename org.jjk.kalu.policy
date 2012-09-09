@@ -4,7 +4,7 @@
  "http://www.freedesktop.org/standards/PolicyKit/1/policyconfig.dtd">
 <policyconfig>
   <vendor>jjacky</vendor>
-  <vendor_url>https://bitbucket.org/jjacky</vendor_url>
+  <vendor_url>https://github.com/jjk-jjacky</vendor_url>
 
   <action id="org.jjk.kalu.sysupgrade">
     <description>Upgrade all packages that are out of date (same as `pacman -Syu`)</description>
