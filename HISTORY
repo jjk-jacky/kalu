@@ -1,4 +1,46 @@
 
+# 09/15/2012, v1.2.0
+
+- Instead of hard-coded use of xdg-open, one can now define the command line to
+be used when a link is clicked (in news). Variable $URL will be replaced by the
+URL to be opened.
+
+Additionally an error message will now be shown in case of failure.
+
+- On the command line to be executed on AUR upgrades, a variable $PACKAGES can
+now be used. It will be replaced by the list (space separated) of all AUR packages
+for which an upgrade is available.
+
+- It is now possible to have kalu re-show all notifications from the last ran
+checks. New option is available in the menu, and as action on single/double click.
+
+All notifications from the last ran checks will be shown as they were originally
+(including action buttons), including any error notifications.
+
+Notifications are removed/altered as needed. For instance, when marking watched
+(AUR) packages/news, the corresponding last notification will be removed (if
+nothing remains unread/unmarked), or altered to inform that running checks again
+is required (also, the button is gone).
+
+It should be noted that the tooltip doesn't display status from the last ran check,
+but last known info. Meaning if the last checks failed (e.g. Internet connection
+was down), the tooltip will still show data from the (successful) check before,
+while re-show will only show the error notification(s).
+
+- Fixed a bug in marking watched (AUR) packages, where garbage could end up as new
+version number.
+
+- News parser now handles "all" kinds of new lines (<br>, <br />, etc)
+
+- kalu's updater: error messages of 1024+ characters are no longer being truncated
+
+- kalu's source code moved from a mercurial repo (https://bitbucket.org/jjacky/kalu)
+to a git one (https://github.com/jjk-jacky/kalu)
+
+- Added option --enable-git-version to configure. When enabled, the version used
+in kalu (and man page) will come from `git describe` ran at compile/make time.
+
+
 # 08/10/2012, v1.1.0
 
 - Added options --manual-checks (-m) and --auto-checks (-a) to run manual/auto
