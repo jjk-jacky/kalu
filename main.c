@@ -482,10 +482,15 @@ kalu_check_work (gboolean is_auto)
                         /* we do the notification (instead of calling notify_error) because
                          * we need to add the "Update system" button/action. */
                         NotifyNotification *notification;
+                        notif_t *notif;
                         
-                        notification = new_notification (
-                            "Unable to compile list of packages",
-                            error->message);
+                        notif = malloc (sizeof (*notif));
+                        notif->type = CHECK_UPGRADES;
+                        notif->summary = strdup ("Unable to compile list of packages");
+                        notif->text = strdup (error->message);
+                        notif->data = NULL;
+                        
+                        notification = new_notification (notif->summary, notif->text);
                         if (config->action != UPGRADE_NO_ACTION)
                         {
                             notify_notification_add_action (notification, "do_updates",
@@ -496,6 +501,10 @@ kalu_check_work (gboolean is_auto)
                          * we need to keep a ref, otherwise said action won't work */
                         g_signal_connect (G_OBJECT (notification), "closed",
                                           G_CALLBACK (notification_closed_cb), NULL);
+                        /* add the notif to the last of last notifications, so we can re-show it later */
+                        debug ("adding new notif (%s) to last_notifs", notif->summary);
+                        config->last_notifs = alpm_list_add (config->last_notifs, notif);
+                        /* show notif */
                         notify_notification_show (notification, NULL);
                     }
                     else

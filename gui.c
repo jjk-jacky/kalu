@@ -79,16 +79,15 @@ show_notif (notif_t *notif)
     
     debug ("showing notif: %s", notif->summary);
     notification = new_notification (notif->summary, notif->text);
-    if (!notif->data)
+    if (notif->type & CHECK_UPGRADES)
     {
-        /* no data means the notification was modified afterwards, as news/packages
-         * have been marked read. No more data/action button, just a simple
-         * notification (where text explains to re-do checks to be up to date) */
-    }
-    else if (notif->type & CHECK_UPGRADES)
-    {
-        if (   config->check_pacman_conflict
-            && is_pacman_conflicting ((alpm_list_t *) notif->data))
+        if (!notif->data)
+        {
+            /* no data in this case means this is an error message about a conflict,
+             * in which case we still add the "Update system" button/action */
+        }
+        else if (   config->check_pacman_conflict
+                 && is_pacman_conflicting ((alpm_list_t *) notif->data))
         {
             notify_notification_add_action (notification, "do_conflict_warn",
                 "Possible pacman/kalu conflict...",
@@ -101,6 +100,12 @@ show_notif (notif_t *notif)
                 "Update system...", (NotifyActionCallback) action_upgrade,
                 NULL, NULL);
         }
+    }
+    else if (!notif->data)
+    {
+        /* no data means the notification was modified afterwards, as news/packages
+         * have been marked read. No more data/action button, just a simple
+         * notification (where text explains to re-do checks to be up to date) */
     }
     else if (notif->type & CHECK_AUR)
     {
