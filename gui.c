@@ -934,6 +934,10 @@ icon_query_tooltip_cb (GtkWidget *icon _UNUSED_, gint x _UNUSED_, gint y _UNUSED
     {
         addstr ("\n%d upgrades available", kalpm_state.nb_upgrades);
     }
+    else if (kalpm_state.nb_upgrades == UPGRADES_NB_CONFLICT)
+    {
+        addstr ("\nupgrades available (unknown number due to conflict)");
+    }
     if (kalpm_state.nb_watched > 0)
     {
         addstr ("\n%d watched packages updated", kalpm_state.nb_watched);
@@ -1001,12 +1005,14 @@ set_kalpm_nb (check_t type, gint nb)
         kalpm_state.nb_news = nb;
     }
     
+    gint nb_upgrades;
+    nb_upgrades = (kalpm_state.nb_upgrades == UPGRADES_NB_CONFLICT) ? 1 : kalpm_state.nb_upgrades;
     /* thing is, this function can be called from another thread (e.g. from
      * kalu_check_work, which runs in a separate thread not to block GUI...)
      * but when that happens, we can't use gtk_* functions, i.e. we can't change
      * the status icon. so, this will make sure the call to set_status_icon
      * happens in the main thread */
-    gboolean active = (kalpm_state.nb_upgrades + kalpm_state.nb_watched
+    gboolean active = (nb_upgrades + kalpm_state.nb_watched
                        + kalpm_state.nb_aur + kalpm_state.nb_watched_aur
                        + kalpm_state.nb_news > 0);
     g_main_context_invoke (NULL, (GSourceFunc) set_status_icon, GINT_TO_POINTER (active));

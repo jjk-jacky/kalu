@@ -33,15 +33,19 @@
 #include <alpm.h>
 #include <alpm_list.h>
 
-#define _UNUSED_            __attribute__ ((unused)) 
+#define _UNUSED_                __attribute__ ((unused)) 
 
 #if defined(GIT_VERSION)
 #undef PACKAGE_VERSION
 #define PACKAGE_VERSION GIT_VERSION
 #endif
-#define PACKAGE_TAG         "Keeping Arch Linux Up-to-date"
+#define PACKAGE_TAG             "Keeping Arch Linux Up-to-date"
 
-#define MAX_PATH            255
+#define MAX_PATH                255
+#ifndef DISABLE_GUI
+#define UPGRADES_NB_CONFLICT    -2  /* set to nb_upgrades when conflict makes it
+                                       impossible to get packages number */
+#endif
 
 #ifndef NOTIFY_EXPIRES_DEFAULT
 #define NOTIFY_EXPIRES_DEFAULT  -1
@@ -50,7 +54,7 @@
 #define NOTIFY_EXPIRES_NEVER     0
 #endif
 
-#define KALU_ERROR          g_quark_from_static_string ("kalu error")
+#define KALU_ERROR              g_quark_from_static_string ("kalu error")
 
 #define FREE_PACKAGE_LIST(p)                                                \
             do                                                              \

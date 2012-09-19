@@ -506,6 +506,9 @@ kalu_check_work (gboolean is_auto)
                         config->last_notifs = alpm_list_add (config->last_notifs, notif);
                         /* show notif */
                         notify_notification_show (notification, NULL);
+                        /* mark icon blue, upgrades are available, we just don't
+                         * know which/how many (due to the conflict) */
+                        nb_upgrades = UPGRADES_NB_CONFLICT;
                     }
                     else
                     {
@@ -655,7 +658,7 @@ kalu_check_work (gboolean is_auto)
     {
         set_kalpm_nb (CHECK_NEWS, nb_news);
     }
-    if (nb_upgrades >= 0)
+    if (nb_upgrades >= 0 || nb_upgrades == UPGRADES_NB_CONFLICT)
     {
         set_kalpm_nb (CHECK_UPGRADES, nb_upgrades);
     }
