@@ -56,8 +56,10 @@
 #define PCTG_NO_DL_CHECK_DISKSPACE    0.05
 #define PCTG_NO_DL_SYSUPGRADE         0.80
 
+/* GtkListStore columns */
 enum {
     UCOL_PACKAGE,
+    UCOL_DESC,
     UCOL_OLD,
     UCOL_NEW,
     UCOL_DL_SIZE,
@@ -70,6 +72,17 @@ enum {
     UCOL_INST_IS_DONE,
     UCOL_PCTG,
     NB_UCOL
+};
+
+/* GtkTreeView columns */
+enum {
+    COL_NAME,
+    COL_OLD,
+    COL_NEW,
+    COL_DOWNLOAD,
+    COL_INSTALLED,
+    COL_NET,
+    NB_COL
 };
 
 typedef struct _add_db_t {
@@ -1471,6 +1484,7 @@ updater_get_packages_cb (KaluUpdater *kupdater _UNUSED_, const gchar *errmsg,
         gtk_list_store_append (updater->store, &iter);
         gtk_list_store_set (updater->store, &iter,
             UCOL_PACKAGE,           k_pkg->name,
+            UCOL_DESC,              k_pkg->desc,
             UCOL_OLD,               k_pkg->old_version,
             UCOL_NEW,               k_pkg->new_version,
             UCOL_DL_SIZE,           k_pkg->dl_size,
@@ -1845,6 +1859,105 @@ column_clicked_cb (GtkTreeViewColumn *column, gpointer data _UNUSED_)
         !gtk_tree_view_column_get_sort_order (column));
 }
 
+static void
+format_size (guint size, gchar *buf, gboolean is_signed)
+{
+    gchar *s;
+    size_t l, i;
+    
+    if (is_signed)
+    {
+        gint ssize = (gint) size;
+        snprintf (buf, 128, "%i", ssize);
+    }
+    else
+    {
+        snprintf (buf, 128, "%u", size);
+    }
+    /* add thousand sep */
+    l = strlen (buf);
+    /* point to the future end of the string */
+    s = buf + l + (unsigned int) (l / 3);
+    /* when a multiple of 3, that's one less space (6 char. == 1 space) */
+    if (l % 3 == 0)
+    {
+        --s;
+    }
+    *s-- = '\0';
+    for (i = l - 1; i > 0; --i)
+    {
+        *s-- = buf[i];
+        if ((l - i) % 3 == 0)
+        {
+            *s-- = ' ';
+        }
+    }
+    strcat (buf, " B");
+}
+
+static gboolean
+list_query_tooltip_cb (GtkWidget *widget,
+                       gint x,
+                       gint y,
+                       gboolean keyboard _UNUSED_,
+                       GtkTooltip *tooltip,
+                       gpointer data _UNUSED_)
+{
+    gint bx, by;
+    GtkTreeView *treeview = GTK_TREE_VIEW (widget);
+    GtkTreeModel *model = GTK_TREE_MODEL (updater->store);
+    GtkTreePath *path;
+    GtkTreeViewColumn *column;
+    GtkTreeIter iter;
+    gboolean ret = FALSE;
+
+    gtk_tree_view_convert_widget_to_bin_window_coords (treeview, x, y, &bx, &by);
+    if (gtk_tree_view_get_path_at_pos (treeview, bx, by, &path, &column,
+                                       NULL, NULL))
+    {
+        if (gtk_tree_model_get_iter (model, &iter, path))
+        {
+            gint col = GPOINTER_TO_INT (g_object_get_data (G_OBJECT (column),
+                                                           "col-id"));
+            gchar *s, buf[128];
+            guint size;
+            
+            switch (col)
+            {
+                case COL_NAME:
+                    gtk_tree_model_get (model, &iter, UCOL_DESC, &s, -1);
+                    gtk_tooltip_set_text (tooltip, s);
+                    ret = TRUE;
+                    break;
+                    
+                case COL_DOWNLOAD:
+                    gtk_tree_model_get (model, &iter, UCOL_DL_SIZE, &size, -1);
+                    format_size (size, buf, FALSE);
+                    gtk_tooltip_set_text (tooltip, buf);
+                    ret = TRUE;
+                    break;
+                    
+                case COL_INSTALLED:
+                    gtk_tree_model_get (model, &iter, UCOL_NEW_SIZE, &size, -1);
+                    format_size (size, buf, FALSE);
+                    gtk_tooltip_set_text (tooltip, buf);
+                    ret = TRUE;
+                    break;
+                    
+                case COL_NET:
+                    gtk_tree_model_get (model, &iter, UCOL_NET_SIZE, &size, -1);
+                    format_size (size, buf, TRUE);
+                    gtk_tooltip_set_text (tooltip, buf);
+                    ret = TRUE;
+                    break;
+            }
+        }
+        gtk_tree_path_free (path);
+    }
+    
+    return ret;
+}
+
 static gboolean
 window_delete_event_cb (GtkWidget *window _UNUSED_, GdkEvent *event _UNUSED_,
                         gpointer data _UNUSED_)
@@ -1956,6 +2069,7 @@ updater_run (const gchar *conffile, alpm_list_t *cmdline_post)
     GtkListStore *store;
     store = gtk_list_store_new (NB_UCOL,
                 G_TYPE_STRING,  /* pkg */
+                G_TYPE_STRING,  /* desc */
                 G_TYPE_STRING,  /* old version */
                 G_TYPE_STRING,  /* new version */
                 G_TYPE_UINT,    /* dl size */
@@ -1977,7 +2091,12 @@ updater_run (const gchar *conffile, alpm_list_t *cmdline_post)
     g_object_unref (store);
     /* hint for alternate row colors */
     gtk_tree_view_set_rules_hint (GTK_TREE_VIEW (list), TRUE);
-    
+    /* tooltip */
+    gtk_widget_set_has_tooltip (list, TRUE);
+    g_signal_connect (G_OBJECT(list), "query-tooltip",
+                      G_CALLBACK (list_query_tooltip_cb),
+                      NULL);
+
     /* scrolledwindow for list */
     GtkWidget *scrolled_window;
     scrolled_window = gtk_scrolled_window_new (
@@ -1997,6 +2116,7 @@ updater_run (const gchar *conffile, alpm_list_t *cmdline_post)
                                                        renderer,
                                                        "text", UCOL_PACKAGE,
                                                        NULL);
+    g_object_set_data (G_OBJECT (column), "col-id", (gpointer) COL_NAME);
     gtk_tree_view_column_set_resizable (column, TRUE);
     gtk_tree_view_column_set_sort_column_id (column, UCOL_PACKAGE);
     if (config->sane_sort_order)
@@ -2010,6 +2130,7 @@ updater_run (const gchar *conffile, alpm_list_t *cmdline_post)
                                                        renderer,
                                                        "text", UCOL_OLD,
                                                        NULL);
+    g_object_set_data (G_OBJECT (column), "col-id", (gpointer) COL_OLD);
     gtk_tree_view_column_set_resizable (column, TRUE);
     gtk_tree_view_column_set_sort_column_id (column, UCOL_OLD);
     if (config->sane_sort_order)
@@ -2023,6 +2144,7 @@ updater_run (const gchar *conffile, alpm_list_t *cmdline_post)
                                                        renderer,
                                                        "text", UCOL_NEW,
                                                        NULL);
+    g_object_set_data (G_OBJECT (column), "col-id", (gpointer) COL_NEW);
     gtk_tree_view_column_set_resizable (column, TRUE);
     gtk_tree_view_column_set_sort_column_id (column, UCOL_NEW);
     if (config->sane_sort_order)
@@ -2040,6 +2162,7 @@ updater_run (const gchar *conffile, alpm_list_t *cmdline_post)
                                                        "foreground-set",
                                                        UCOL_DL_IS_DONE,
                                                        NULL);
+    g_object_set_data (G_OBJECT (column), "col-id", (gpointer) COL_DOWNLOAD);
     gtk_tree_view_column_set_cell_data_func (column, renderer_lbl,
         (GtkTreeCellDataFunc) rend_size_pb, (gpointer) TRUE, NULL);
     gtk_cell_renderer_set_visible (renderer_pbar, FALSE);
@@ -2063,6 +2186,7 @@ updater_run (const gchar *conffile, alpm_list_t *cmdline_post)
                                                        "foreground-set",
                                                        UCOL_INST_IS_DONE,
                                                        NULL);
+    g_object_set_data (G_OBJECT (column), "col-id", (gpointer) COL_INSTALLED);
     gtk_tree_view_column_set_cell_data_func (column, renderer_lbl,
         (GtkTreeCellDataFunc) rend_size_pb, (gpointer) FALSE, NULL);
     gtk_cell_renderer_set_visible (renderer_pbar, FALSE);
@@ -2081,6 +2205,7 @@ updater_run (const gchar *conffile, alpm_list_t *cmdline_post)
     column = gtk_tree_view_column_new_with_attributes ("Net",
                                                        renderer,
                                                        NULL);
+    g_object_set_data (G_OBJECT (column), "col-id", (gpointer) COL_NET);
     gtk_tree_view_column_set_cell_data_func (column, renderer,
         (GtkTreeCellDataFunc) rend_net_size, NULL, NULL);
     gtk_tree_view_column_set_resizable (column, TRUE);

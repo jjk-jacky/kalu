@@ -77,7 +77,7 @@ static const gchar introspection_xml[] =
   "      <arg type='s' name='name' />"
   "    </signal>"
   "    <signal name='GetPackagesFinished'>"
-  "      <arg type='a(sssuuu)' name='pkgs' />"
+  "      <arg type='a(ssssuuu)' name='pkgs' />"
   "    </signal>"
   "    <signal name='Downloading'>"
   "      <arg type='s' name='filename' />"

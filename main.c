@@ -730,6 +730,7 @@ void
 free_package (kalu_package_t *package)
 {
     free (package->name);
+    free (package->desc);
     free (package->old_version);
     free (package->new_version);
     free (package);

@@ -382,10 +382,11 @@ kalu_updater_g_signal (GDBusProxy   *proxy,
                 mc->data = NULL;
                 
                 kalu_package_t *k_pkg;
-                g_variant_get (parameters, "(a(sssuuu))", &iter);
+                g_variant_get (parameters, "(a(ssssuuu))", &iter);
                 k_pkg = calloc (1, sizeof (*k_pkg));
-                while (g_variant_iter_loop (iter, "(sssuuu)",
+                while (g_variant_iter_loop (iter, "(ssssuuu)",
                             &k_pkg->name,
+                            &k_pkg->desc,
                             &k_pkg->old_version,
                             &k_pkg->new_version,
                             &k_pkg->dl_size,
@@ -405,6 +406,7 @@ kalu_updater_g_signal (GDBusProxy   *proxy,
                 {
                     k_pkg = i->data;
                     free (k_pkg->name);
+                    free (k_pkg->desc);
                     free (k_pkg->old_version);
                     free (k_pkg->new_version);
                     free (k_pkg);

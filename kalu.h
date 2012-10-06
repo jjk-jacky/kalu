@@ -165,6 +165,7 @@ typedef struct _watched_package_t {
 
 typedef struct _kalu_package_t {
     char    *name;
+    char    *desc;
     char    *old_version;
     char    *new_version;
     guint    dl_size;
