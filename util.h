@@ -63,6 +63,9 @@ int
 rmrf (const char *path);
 
 void
+snprint_size (char *buf, int buflen, double size, const char *unit);
+
+void
 parse_tpl (char *tpl, char **text, unsigned int *len, unsigned int *alloc,
            replacement_t **replacements);
 

@@ -343,7 +343,7 @@ rend_pbar_pb (GtkTreeViewColumn *column _UNUSED_, GtkCellRenderer *renderer,
         
         gtk_tree_model_get (store, iter, UCOL_DL_SIZE, &dl_size, -1);
         size = humanize_size (dl_size, '\0', &unit);
-        snprintf (buf_tot, 23, "%.2f %s", size, unit);
+        snprint_size (buf_tot, 23, size, unit);
         snprintf (buf, 255, "%d%% of %s", val, buf_tot);
         g_object_set (renderer, "text", buf, NULL);
     }
@@ -1512,9 +1512,9 @@ updater_get_packages_cb (KaluUpdater *kupdater _UNUSED_, const gchar *errmsg,
     char dl_buf[23], inst_buf[23], net_buf[23];
     
     size = humanize_size (inst_size, '\0', &unit);
-    snprintf (inst_buf, 23, "%.2f %s", size, unit);
+    snprint_size (inst_buf, 23, size, unit);
     size = humanize_size (net_size, '\0', &unit);
-    snprintf (net_buf, 23, "%.2f %s", size, unit);
+    snprint_size (net_buf, 23, size, unit);
     
     gtk_widget_hide (updater->pbar_main);
     gtk_progress_bar_set_fraction (GTK_PROGRESS_BAR (updater->pbar_main), 0);
@@ -1531,7 +1531,7 @@ updater_get_packages_cb (KaluUpdater *kupdater _UNUSED_, const gchar *errmsg,
         updater->pctg_sysupgrade        = PCTG_SYSUPGRADE;
         
         size = humanize_size (dl_size, '\0', &unit);
-        snprintf (dl_buf, 23, "%.2f %s", size, unit);
+        snprint_size (dl_buf, 255, size, unit);
         snprintf (buffer, 255, "Download:\t%s\nInstall:\t\t%s\nNet:\t\t\t%s",
                   dl_buf, inst_buf, net_buf);
     }

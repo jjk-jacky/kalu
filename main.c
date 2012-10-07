@@ -227,17 +227,17 @@ notify_updates (alpm_list_t *packages, check_t type, gchar *xml_news)
             replacements[3] = (replacement_t *) malloc (sizeof (*replacements));
             replacements[3]->name = "DL";
             size_h = humanize_size (pkg->dl_size, '\0', &unit);
-            snprintf (buf, 255, "%.2f %s", size_h, unit);
+            snprint_size (buf, 255, size_h, unit);
             replacements[3]->value = strdup (buf);
             replacements[4] = (replacement_t *) malloc (sizeof (*replacements));
             replacements[4]->name = "INS";
             size_h = humanize_size (pkg->new_size, '\0', &unit);
-            snprintf (buf, 255, "%.2f %s", size_h, unit);
+            snprint_size (buf, 255, size_h, unit);
             replacements[4]->value = strdup (buf);
             replacements[5] = (replacement_t *) malloc (sizeof (*replacements));
             replacements[5]->name = "NET";
             size_h = humanize_size (net_size, '\0', &unit);
-            snprintf (buf, 255, "%.2f %s", size_h, unit);
+            snprint_size (buf, 255, size_h, unit);
             replacements[5]->value = strdup (buf);
             replacements[6] = NULL;
             
@@ -292,17 +292,17 @@ notify_updates (alpm_list_t *packages, check_t type, gchar *xml_news)
         replacements[1] = (replacement_t *) malloc (sizeof (*replacements));
         replacements[1]->name = "DL";
         size_h = humanize_size (dsize, '\0', &unit);
-        snprintf (buf, 255, "%.2f %s", size_h, unit);
+        snprint_size (buf, 255, size_h, unit);
         replacements[1]->value = strdup (buf);
         replacements[2] = (replacement_t *) malloc (sizeof (*replacements));
         replacements[2]->name = "NET";
         size_h = humanize_size (nsize, '\0', &unit);
-        snprintf (buf, 255, "%.2f %s", size_h, unit);
+        snprint_size (buf, 255, size_h, unit);
         replacements[2]->value = strdup (buf);
         replacements[3] = (replacement_t *) malloc (sizeof (*replacements));
         replacements[3]->name = "INS";
         size_h = humanize_size (isize, '\0', &unit);
-        snprintf (buf, 255, "%.2f %s", size_h, unit);
+        snprint_size (buf, 255, size_h, unit);
         replacements[3]->value = strdup (buf);
         replacements[4] = NULL;
     }

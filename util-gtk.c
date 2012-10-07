@@ -54,7 +54,7 @@ rend_size (GtkTreeViewColumn *column _UNUSED_, GtkCellRenderer *renderer,
     {
         size = humanize_size (g_value_get_int (&value), '\0', &unit);
     }
-    snprintf (buf, 23, "%.2f %s", size, unit);
+    snprint_size (buf, 23, size, unit);
     g_object_set (renderer, "text", buf, NULL);
     g_value_unset (&value);
 }

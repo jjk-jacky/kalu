@@ -366,6 +366,21 @@ check_syncdbs (kalu_alpm_t *alpm, size_t need_repos, int check_valid, GError **e
 
 /******************************************************************************/
 
+inline void
+snprint_size (char *buf, int buflen, double size, const char *unit)
+{
+    const char *fmt;
+    if (unit && *unit == 'B' && *(unit + 1) == '\0')
+    {
+        fmt = "%.0f %s";
+    }
+    else
+    {
+        fmt = "%.2f %s";
+    }
+    snprintf (buf, (size_t) buflen, fmt, size, unit);
+}
+
 void
 parse_tpl (char *tpl, char **text, unsigned int *len, unsigned int *alloc,
            replacement_t **_replacements)
