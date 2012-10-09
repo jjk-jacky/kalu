@@ -245,6 +245,8 @@ kalu_alpm_load (const gchar *conffile, GError **error)
     alpm_option_set_arch (alpm->handle, pac_conf->arch);
     alpm_option_set_ignorepkgs (alpm->handle, pac_conf->ignorepkgs);
     alpm_option_set_ignoregroups (alpm->handle, pac_conf->ignoregroups);
+    /* cachedirs are used when determining download size */
+    alpm_option_set_cachedirs (alpm->handle, pac_conf->cachedirs);
     
     /* now we need to add dbs */
     alpm_list_t *i;
