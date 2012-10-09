@@ -324,17 +324,19 @@ and you will be able to determine which (if any) to start each time.
 
 =over
 
-=item B<$PKG> : the name of the package
+=item B<$PKG>  : the name of the package
 
-=item B<$OLD> : the version number of the currently installed version
+=item B<$DESC> : the description of the package
 
-=item B<$NET> : the version number of the version available in the repo
+=item B<$OLD>  : the version number of the currently installed version
 
-=item B<$DL>  : the download size
+=item B<$NET>  : the version number of the version available in the repo
 
-=item B<$INS> : the installed size
+=item B<$DL>   : the download size
 
-=item B<$NET> : the net (post-install difference) size
+=item B<$INS>  : the installed size
+
+=item B<$NET>  : the net (post-install difference) size
 
 =back
 
@@ -379,17 +381,19 @@ not have an effect on preferences, and vice versa.
 
 =over
 
-=item B<$PKG> : the name of the package
+=item B<$PKG>  : the name of the package
 
-=item B<$OLD> : the version number from the list of watched packages
+=item B<$DESC> : the description of the package
 
-=item B<$NET> : the version number of the version available in the repo
+=item B<$OLD>  : the version number from the list of watched packages
 
-=item B<$DL>  : the download size
+=item B<$NET>  : the version number of the version available in the repo
 
-=item B<$INS> : the installed size
+=item B<$DL>   : the download size
 
-=item B<$NET> : the net (post-install difference) size
+=item B<$INS>  : the installed size
+
+=item B<$NET>  : the net (post-install difference) size
 
 =back
 
@@ -444,11 +448,13 @@ not want to be notified), simply add their names to this list.
 
 =over
 
-=item B<$PKG> : the name of the package
+=item B<$PKG>  : the name of the package
 
-=item B<$OLD> : the version number of the currently installed version
+=item B<$DESC> : the description of the package
 
-=item B<$NET> : the version number of the version available in the AUR
+=item B<$OLD>  : the version number of the currently installed version
+
+=item B<$NET>  : the version number of the version available in the AUR
 
 =back
 
@@ -487,11 +493,13 @@ will not have an effect on preferences, and vice versa.
 
 =over
 
-=item B<$PKG> : the name of the package
+=item B<$PKG>  : the name of the package
 
-=item B<$OLD> : the version number from the list of watched AUR packages
+=item B<$DESC> : the description of the package
 
-=item B<$NET> : the version number of the version available in the AUR
+=item B<$OLD>  : the version number from the list of watched AUR packages
+
+=item B<$NET>  : the version number of the version available in the AUR
 
 =back
 

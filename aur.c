@@ -82,7 +82,7 @@ aur_has_updates (alpm_list_t **packages,
     size_t len_prefix = strlen (AUR_URL_PREFIX_PKG);
     GError *local_err = NULL;
     char *data;
-    const char *pkgname, *pkgver, *oldver;
+    const char *pkgname, *pkgdesc, *pkgver, *oldver;
     cJSON *json, *results, *package;
     int c, j;
     void *pkg;
@@ -148,6 +148,7 @@ aur_has_updates (alpm_list_t **packages,
             {
                 /* AUR */
                 pkgname = cJSON_GetObjectItem (package, "Name")->valuestring;
+                pkgdesc = cJSON_GetObjectItem (package, "Description")->valuestring;
                 pkgver = cJSON_GetObjectItem (package, "Version")->valuestring;
                 /* ALPM/watched */
                 pkg = get_pkg_from_list (pkgname, aur_pkgs, is_watched);
@@ -165,6 +166,7 @@ aur_has_updates (alpm_list_t **packages,
                     debug ("%s %s -> %s", pkgname, oldver, pkgver);
                     kpkg = calloc (1, sizeof (*kpkg));
                     kpkg->name = strdup (pkgname);
+                    kpkg->desc = strdup (pkgdesc);
                     kpkg->old_version = strdup (oldver);
                     kpkg->new_version = strdup (pkgver);
                     *packages = alpm_list_add (*packages, kpkg);

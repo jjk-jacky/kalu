@@ -125,7 +125,7 @@ notify_updates (alpm_list_t *packages, check_t type, gchar *xml_news)
     templates_t template;
     const char *unit;
     double      size_h;
-    replacement_t *replacements[7];
+    replacement_t *replacements[8];
     GString    *string_pkgs = NULL;     /* list of AUR packages */
     
     #ifdef DISABLE_GUI
@@ -239,7 +239,10 @@ notify_updates (alpm_list_t *packages, check_t type, gchar *xml_news)
             size_h = humanize_size (net_size, '\0', &unit);
             snprint_size (buf, 255, size_h, unit);
             replacements[5]->value = strdup (buf);
-            replacements[6] = NULL;
+            replacements[6] = (replacement_t *) malloc (sizeof (*replacements));
+            replacements[6]->name = "DESC";
+            replacements[6]->value = pkg->desc;
+            replacements[7] = NULL;
             
             /* add separator? */
             if (nb > 1)
@@ -256,7 +259,7 @@ notify_updates (alpm_list_t *packages, check_t type, gchar *xml_news)
             free (replacements[3]->value);
             free (replacements[4]->value);
             free (replacements[5]->value);
-            for (int j = 0; j < 6; ++j)
+            for (int j = 0; j < 7; ++j)
                 free (replacements[j]);
             
             debug ("-> %s %s -> %s [dl=%d; ins=%d]",

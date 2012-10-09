@@ -465,6 +465,7 @@ kalu_alpm_has_updates (alpm_list_t **packages, GError **error)
         
         package = calloc (1, sizeof (*package));
         package->name = strdup (alpm_pkg_get_name (pkg));
+        package->desc = strdup (alpm_pkg_get_desc (pkg));
         package->new_version = strdup (alpm_pkg_get_version (pkg));
         package->dl_size = (guint) alpm_pkg_download_size (pkg);
         package->new_size = (guint) alpm_pkg_get_isize (pkg);
@@ -521,6 +522,7 @@ kalu_alpm_has_updates_watched (alpm_list_t **packages, alpm_list_t *watched, GEr
                     package = calloc (1, sizeof (*package));
                     
                     package->name = strdup (alpm_pkg_get_name (pkg));
+                    package->desc = strdup (alpm_pkg_get_desc (pkg));
                     package->old_version = strdup (w_pkg->version);
                     package->new_version = strdup (alpm_pkg_get_version (pkg));
                     package->dl_size = (guint) alpm_pkg_download_size (pkg);
