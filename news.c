@@ -894,7 +894,7 @@ btn_mark_cb (GtkWidget *button _UNUSED_, GtkWidget *window)
                     break;
                 }
             }
-            set_kalpm_nb (CHECK_NEWS, nb_unread);
+            set_kalpm_nb (CHECK_NEWS, nb_unread, TRUE);
             saved = TRUE;
         }
     }

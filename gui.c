@@ -978,7 +978,7 @@ set_status_icon (gboolean active)
 }
 
 void
-set_kalpm_nb (check_t type, gint nb)
+set_kalpm_nb (check_t type, gint nb, gboolean update_icon)
 {
     if (type & CHECK_UPGRADES)
     {
@@ -1005,17 +1005,23 @@ set_kalpm_nb (check_t type, gint nb)
         kalpm_state.nb_news = nb;
     }
     
-    gint nb_upgrades;
-    nb_upgrades = (kalpm_state.nb_upgrades == UPGRADES_NB_CONFLICT) ? 1 : kalpm_state.nb_upgrades;
-    /* thing is, this function can be called from another thread (e.g. from
-     * kalu_check_work, which runs in a separate thread not to block GUI...)
-     * but when that happens, we can't use gtk_* functions, i.e. we can't change
-     * the status icon. so, this will make sure the call to set_status_icon
-     * happens in the main thread */
-    gboolean active = (nb_upgrades + kalpm_state.nb_watched
-                       + kalpm_state.nb_aur + kalpm_state.nb_watched_aur
-                       + kalpm_state.nb_news > 0);
-    g_main_context_invoke (NULL, (GSourceFunc) set_status_icon, GINT_TO_POINTER (active));
+    if (update_icon)
+    {
+        gint nb_upgrades;
+        nb_upgrades = (kalpm_state.nb_upgrades == UPGRADES_NB_CONFLICT)
+                        ? 1 : kalpm_state.nb_upgrades;
+        /* thing is, this function can be called from another thread (e.g. from
+         * kalu_check_work, which runs in a separate thread not to block GUI...)
+         * but when that happens, we can't use gtk_* functions, i.e. we can't
+         * change the status icon. so, this will make sure the call to
+         * set_status_icon happens in the main thread */
+        gboolean active = (nb_upgrades + kalpm_state.nb_watched
+                           + kalpm_state.nb_aur + kalpm_state.nb_watched_aur
+                           + kalpm_state.nb_news > 0);
+        g_main_context_invoke (NULL,
+                               (GSourceFunc) set_status_icon,
+                               GINT_TO_POINTER (active));
+    }
 }
 
 inline void
@@ -1152,7 +1158,7 @@ set_kalpm_busy (gboolean busy)
             g_source_remove (kalpm_state.timeout_icon);
             kalpm_state.timeout_icon = 0;
             /* ensure icon is right */
-            set_kalpm_nb (0, 0);
+            set_kalpm_nb (0, 0, TRUE);
         }
     }
 }

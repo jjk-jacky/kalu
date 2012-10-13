@@ -434,7 +434,7 @@ btn_mark_cb (GtkButton *button _UNUSED_, gboolean is_aur)
                 break;
             }
         }
-        set_kalpm_nb (type, nb_watched);
+        set_kalpm_nb (type, nb_watched, TRUE);
         gtk_widget_destroy (window_notif);
     }
     else

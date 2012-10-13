@@ -1309,7 +1309,7 @@ updater_sysupgrade_cb (KaluUpdater *kupdater _UNUSED_, const gchar *errmsg)
     gtk_widget_hide (updater->pbar_action);
     
     /* update nb of upgrades in state (used in kalu's systray icon tooltip) */
-    set_kalpm_nb (CHECK_UPGRADES, 0);
+    set_kalpm_nb (CHECK_UPGRADES, 0, FALSE);
     /* we go and change the last_notifs, to remove the notif about packages */
     for (i = config->last_notifs; i; i = alpm_list_next (i))
     {

@@ -417,6 +417,16 @@ kalu_check_work (gboolean is_auto)
             do_notify_error ("Unable to check the news", error->message);
             g_clear_error (&error);
         }
+        #ifndef DISABLE_GUI
+        else
+        {
+            nb_news = 0;
+        }
+        if (nb_news >= 0)
+        {
+            set_kalpm_nb (CHECK_NEWS, nb_news, FALSE);
+        }
+        #endif /* DISABLE_GUI */
     }
     
     /* ALPM is required even for AUR only, since we get the list of foreign
@@ -453,6 +463,12 @@ kalu_check_work (gboolean is_auto)
             #endif
             return;
         }
+        #ifndef DISABLE_GUI
+        if (nb_syncdbs >= 0)
+        {
+            set_kalpm_nb_syncdbs (nb_syncdbs);
+        }
+        #endif
         
         if (checks & CHECK_UPGRADES)
         {
@@ -528,6 +544,12 @@ kalu_check_work (gboolean is_auto)
                 }
                 g_clear_error (&error);
             }
+            #ifndef DISABLE_GUI
+            if (nb_upgrades >= 0 || nb_upgrades == UPGRADES_NB_CONFLICT)
+            {
+                set_kalpm_nb (CHECK_UPGRADES, nb_upgrades, FALSE);
+            }
+            #endif
         }
         
         if (checks & CHECK_WATCHED && config->watched /* NULL if no watched pkgs */)
@@ -556,6 +578,12 @@ kalu_check_work (gboolean is_auto)
                                  error->message);
                 g_clear_error (&error);
             }
+            #ifndef DISABLE_GUI
+            if (nb_watched >= 0)
+            {
+                set_kalpm_nb (CHECK_WATCHED, nb_watched, FALSE);
+            }
+            #endif
         }
         
         if (checks & CHECK_AUR)
@@ -603,6 +631,12 @@ kalu_check_work (gboolean is_auto)
                 do_notify_error ("Unable to check for AUR packages", error->message);
                 g_clear_error (&error);
             }
+            #ifndef DISABLE_GUI
+            if (nb_aur >= 0)
+            {
+                set_kalpm_nb (CHECK_AUR, nb_aur, FALSE);
+            }
+            #endif
         }
         
         kalu_alpm_free ();
@@ -634,6 +668,12 @@ kalu_check_work (gboolean is_auto)
                              error->message);
             g_clear_error (&error);
         }
+        #ifndef DISABLE_GUI
+        if (nb_watched_aur >= 0)
+        {
+            set_kalpm_nb (CHECK_WATCHED_AUR, nb_watched_aur, FALSE);
+        }
+        #endif
     }
     
     if (!is_auto && !got_something)
@@ -653,30 +693,6 @@ kalu_check_work (gboolean is_auto)
         g_date_time_unref (kalpm_state.last_check);
     }
     kalpm_state.last_check = g_date_time_new_now_local ();
-    if (nb_syncdbs >= 0)
-    {
-        set_kalpm_nb_syncdbs (nb_syncdbs);
-    }
-    if (nb_news >= 0)
-    {
-        set_kalpm_nb (CHECK_NEWS, nb_news);
-    }
-    if (nb_upgrades >= 0 || nb_upgrades == UPGRADES_NB_CONFLICT)
-    {
-        set_kalpm_nb (CHECK_UPGRADES, nb_upgrades);
-    }
-    if (nb_watched >= 0)
-    {
-        set_kalpm_nb (CHECK_WATCHED, nb_watched);
-    }
-    if (nb_aur >= 0)
-    {
-        set_kalpm_nb (CHECK_AUR, nb_aur);
-    }
-    if (nb_watched_aur >= 0)
-    {
-        set_kalpm_nb (CHECK_WATCHED_AUR, nb_watched_aur);
-    }
     set_kalpm_busy (FALSE);
     #endif
 }
