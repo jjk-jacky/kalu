@@ -243,8 +243,6 @@ watched_package_name_cmp (watched_package_t *w_pkg1, watched_package_t *w_pkg2)
 static void
 monitor_response_cb (GtkWidget *dialog, gint response, alpm_list_t *updates)
 {
-    alpm_list_t *new_watched = g_object_get_data (G_OBJECT (dialog), "new-watched");
-    
     gtk_widget_destroy (dialog);
     if (response == GTK_RESPONSE_YES)
     {
@@ -291,8 +289,6 @@ monitor_response_cb (GtkWidget *dialog, gint response, alpm_list_t *updates)
         }
     }
     
-    /* free duplicate list */
-    FREELIST (new_watched);
     alpm_list_free (updates);
 }
 
@@ -307,32 +303,32 @@ btn_mark_cb (GtkButton *button _UNUSED_, gboolean is_aur)
     alpm_list_t *updates = NULL;
     int nb_watched = 0;
     GtkWidget *window_notif, *window_manage;
-    alpm_list_t *cfglist, *i, *new_watched = NULL;
+    alpm_list_t **cfglist, *i, *new_watched = NULL;
     
     if (is_aur)
     {
         window_notif = watched.window_notif_aur;
         window_manage = watched.window_manage_aur;
         model = gtk_tree_view_get_model (GTK_TREE_VIEW (watched.tree_notif_aur));
-        cfglist = config->watched_aur;
+        cfglist = &(config->watched_aur);
     }
     else
     {
         window_notif = watched.window_notif;
         window_manage = watched.window_manage;
         model = gtk_tree_view_get_model (GTK_TREE_VIEW (watched.tree_notif));
-        cfglist = config->watched;
+        cfglist = &(config->watched);
     }
     
     gtk_widget_hide (window_notif);
     
     /* duplicate the list */
-    for (i = cfglist; i; i = alpm_list_next (i))
+    for (i = *cfglist; i; i = alpm_list_next (i))
     {
         w_pkg = i->data;
         w_pkg2 = calloc (1, sizeof (*w_pkg2));
-        w_pkg2->name = w_pkg->name;
-        w_pkg2->version = w_pkg->version;
+        w_pkg2->name = strdup (w_pkg->name);
+        w_pkg2->version = strdup (w_pkg->version);
         new_watched = alpm_list_add (new_watched, w_pkg2);
     }
     
@@ -380,6 +376,12 @@ btn_mark_cb (GtkButton *button _UNUSED_, gboolean is_aur)
     /* save to file */
     if (save_watched (is_aur, new_watched))
     {
+        /* clear list in emory */
+        FREE_WATCHED_PACKAGE_LIST (*cfglist);
+
+        /* apply changes */
+        *cfglist = new_watched;
+
         /* manage window needs an update? */
         if (window_manage != NULL && updates != NULL)
         {
@@ -390,17 +392,12 @@ btn_mark_cb (GtkButton *button _UNUSED_, gboolean is_aur)
                                   "No, keep the list as is.", NULL,
                                   window_manage);
             g_object_set_data (G_OBJECT (dialog), "is-aur", GINT_TO_POINTER (is_aur));
-            /* send new_watched so it can be free-d it (alongside updates) when
-             * the window gets destroyed */
-            g_object_set_data (G_OBJECT (dialog), "new-watched", (gpointer) new_watched);
             g_signal_connect (G_OBJECT (dialog), "response",
                               G_CALLBACK (monitor_response_cb), (gpointer) updates);
             gtk_widget_show (dialog);
         }
         else
         {
-            /* free duplicate list */
-            FREELIST (new_watched);
             alpm_list_free (updates);
         }
         
@@ -442,7 +439,7 @@ btn_mark_cb (GtkButton *button _UNUSED_, gboolean is_aur)
         gtk_widget_show (window_notif);
         show_error ("Unable to save changes to disk", NULL, GTK_WINDOW (window_notif));
         /* free duplicate list */
-        FREELIST (new_watched);
+        FREE_WATCHED_PACKAGE_LIST (new_watched);
         alpm_list_free (updates);
     }
 }
