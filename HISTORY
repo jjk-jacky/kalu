@@ -1,4 +1,12 @@
 
+# 10/21/2012, v1.2.1
+
+- Fix error checking news (due to switch to https)
+
+Downloading the news used URL on http and didn't follow redirection, so the
+switch to https-only caused an error checking the news.
+
+
 # 09/15/2012, v1.2.0
 
 - Instead of hard-coded use of xdg-open, one can now define the command line to
