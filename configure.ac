@@ -18,12 +18,12 @@ AM_PROG_CC_C_O
 # Option for News URL
 AC_ARG_WITH([news-rss-url],
         AC_HELP_STRING([--with-news-rss-url=URL], [set the RSS URL for Arch Linux News]),
-        [NEWS_RSS_URL=$withval], [NEWS_RSS_URL="http://www.archlinux.org/feeds/news/"])
+        [NEWS_RSS_URL=$withval], [NEWS_RSS_URL="https://www.archlinux.org/feeds/news/"])
 
 # Options for AUR URL
 AC_ARG_WITH([url-aur-prefix],
         AC_HELP_STRING([--with-url-aur-prefix=URL], [set the prefix for the AUR URL]),
-        [AUR_URL_PREFIX=$withval], [AUR_URL_PREFIX="http://aur.archlinux.org/rpc.php?type=multiinfo"])
+        [AUR_URL_PREFIX=$withval], [AUR_URL_PREFIX="https://aur.archlinux.org/rpc.php?type=multiinfo"])
 AC_ARG_WITH([url-aur-prefix-pkg],
 	AC_HELP_STRING([--with-url-aur-prefix-pkg=PREFIX],
 		[set the prefix before each package for the AUR URL]),
