@@ -77,6 +77,7 @@ curl_download (const char *url, GError **error)
     
     curl_easy_setopt (curl, CURLOPT_USERAGENT, PACKAGE_NAME "/" PACKAGE_VERSION);
     curl_easy_setopt (curl, CURLOPT_URL, url);
+    curl_easy_setopt (curl, CURLOPT_FOLLOWLOCATION, 1);
     curl_easy_setopt (curl, CURLOPT_NOPROGRESS, 1);
     curl_easy_setopt (curl, CURLOPT_WRITEFUNCTION, (curl_write_callback) curl_write);
     curl_easy_setopt (curl, CURLOPT_WRITEDATA, (void *) &data);
