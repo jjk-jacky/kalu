@@ -1,4 +1,46 @@
 
+# 10/27/2012, v1.3.0
+
+- Add $DESC to all templates (but news) for package description
+
+- Update polkit policy: use auth_admin for all, add message & icon
+
+- kalu's updater: Add tooltip to columns name & all sizes
+
+- Fix segfault on invalid JSON from the AUR
+
+- Fix invalid state when marking read while checking is still running
+
+Notifications appear as soon as possible, and allow user to mark things
+read/start upgrades. When this was done while the checking was still running,
+it wouldn't be taken into account for kalu's icon/tooltip.
+
+- Fix re-show notifications which would ignore conflicting files error.
+
+When the list of packages to upgrade couldn't be compiled due to file conflict,
+a "special" notif is shown, with an error message but also the "Upgrade system"
+button.
+This notification wasn't registered in the last_notifs list, and re-show would
+ignore it (e.g. say "no notifications to show")
+
+- Fix download sizes possibly incorrect (when file already in cache)
+
+Cachedirs weren't set with ALPM during the checks, but they are actually used
+when determining the download sizes, in case files are already
+downloaded/available in the cache.
+
+- Fix marking watched (AUR) packages could get garbage in memory
+
+Marking watched (AUR) packages as seen could sometimes lead to garbage used as
+new version number in memory (data on disk was valid).
+
+- Set icon & tooltip properly when conflict makes upgrades number unknown
+
+- If downloads (news, AUR...) are slow/timeout it might be linked to IPv6, in
+which case adding "UseIP=4" in ~/.config/kalu/kalu.conf (under [options])
+might help.
+
+
 # 10/21/2012, v1.2.1
 
 - Fix error checking news (due to switch to https)
