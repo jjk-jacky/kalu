@@ -102,6 +102,12 @@ typedef enum {
     ICON_USER
 } notif_icon_t;
 
+enum {
+    IP_WHATEVER = 0,
+    IPv4,
+    IPv6
+};
+
 typedef struct _templates_t {
     char *title;
     char *package;
@@ -134,6 +140,7 @@ typedef struct _config_t {
     gboolean         check_pacman_conflict;
     on_click_t       on_sgl_click;
     on_click_t       on_dbl_click;
+    int              use_ip;
     
     templates_t     *tpl_upgrades;
     templates_t     *tpl_watched;

@@ -1032,6 +1032,24 @@ parse_config_file (const char       *file,
                     debug ("config: check for pacman/kalu conflict: %d",
                            config->check_pacman_conflict);
                 }
+                else if (strcmp (key, "UseIP") == 0)
+                {
+                    if (value[0] == '4' && value[1] == '\0')
+                    {
+                        config->use_ip = IPv4;
+                        debug ("config: use IPv4");
+                    }
+                    else if (value[0] == '6' && value[1] == '\0')
+                    {
+                        config->use_ip = IPv6;
+                        debug ("config: use IPv6");
+                    }
+                    else
+                    {
+                        add_error ("unknown value for %s: %s", key, value);
+                        continue;
+                    }
+                }
                 else
                 {
                     add_error ("unknown option: %s", key);

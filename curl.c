@@ -82,6 +82,16 @@ curl_download (const char *url, GError **error)
     curl_easy_setopt (curl, CURLOPT_WRITEFUNCTION, (curl_write_callback) curl_write);
     curl_easy_setopt (curl, CURLOPT_WRITEDATA, (void *) &data);
     curl_easy_setopt (curl, CURLOPT_ERRORBUFFER, errmsg);
+    if (config->use_ip == IPv4)
+    {
+        debug ("set curl to IPv4");
+        curl_easy_setopt (curl, CURLOPT_IPRESOLVE, CURL_IPRESOLVE_V4);
+    }
+    else if (config->use_ip == IPv6)
+    {
+        debug ("set curl to IPv6");
+        curl_easy_setopt (curl, CURLOPT_IPRESOLVE, CURL_IPRESOLVE_V6);
+    }
     
     if (curl_easy_perform (curl) != 0)
     {

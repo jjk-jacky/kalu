@@ -752,6 +752,17 @@ btn_save_cb (GtkButton *button _UNUSED_, gpointer data _UNUSED_)
     new_config.tpl_watched_aur  = calloc (1, sizeof (templates_t));
     new_config.tpl_news         = calloc (1, sizeof (templates_t));
     new_config.aur_ignore       = NULL;
+
+    /* re-use the UseIP value (cannot be set via GUI) */
+    new_config.use_ip = config->use_ip;
+    if (new_config.use_ip == IPv4)
+    {
+        add_to_conf ("UseIP = 4\n");
+    }
+    else if (new_config.use_ip == IPv6)
+    {
+        add_to_conf ("UseIP = 6\n");
+    }
     
     /* General */
     s = gtk_file_chooser_get_filename (GTK_FILE_CHOOSER (filechooser));
