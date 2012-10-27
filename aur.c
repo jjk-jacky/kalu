@@ -87,14 +87,14 @@ aur_has_updates (alpm_list_t **packages,
     int c, j;
     void *pkg;
     kalu_package_t *kpkg;
-    
+
     debug ((is_watched) ? "looking for Watched AUR updates" : "looking for AUR updates");
-    
+
     /* print start of url */
     max = MAX_URL_LENGTH;
     s = buf;
     add (AUR_URL_PREFIX);
-    
+
     for (i = aur_pkgs; i; i = alpm_list_next (i))
     {
         if (is_watched)
@@ -105,7 +105,7 @@ aur_has_updates (alpm_list_t **packages,
         {
             pkgname = alpm_pkg_get_name ((alpm_pkg_t *) i->data);
         }
-        
+
         /* still enough space to add this pkgname ? */
         if ((int) (len_prefix + strlen (pkgname)) > max)
         {
@@ -120,7 +120,7 @@ aur_has_updates (alpm_list_t **packages,
         add (pkgname);
     }
     urls = alpm_list_add (urls, strdup (buf));
-    
+
     /* download */
     for (i = urls; i; i = alpm_list_next (i))
     {
@@ -132,12 +132,19 @@ aur_has_updates (alpm_list_t **packages,
             FREE_PACKAGE_LIST (*packages);
             return FALSE;
         }
-        free (i->data);
-        i->data = NULL;
-        
+
         /* parse json */
         debug ("parsing json");
         json = cJSON_Parse (data);
+        if (!json)
+        {
+            debug ("invalid json");
+            g_set_error (error, KALU_ERROR, 8,
+                    "Invalid JSON response from the AUR");
+            FREELIST (urls);
+            FREE_PACKAGE_LIST (*packages);
+            return FALSE;
+        }
         results = cJSON_GetObjectItem (json, "results");
         c = cJSON_GetArraySize (results);
         debug ("got %d results", c);
@@ -176,9 +183,8 @@ aur_has_updates (alpm_list_t **packages,
         cJSON_Delete (json);
         free (data);
     }
-    alpm_list_free (urls);
-    urls = NULL;
-    
+    FREELIST (urls);
+
     return (*packages != NULL);
 }
 #undef add
