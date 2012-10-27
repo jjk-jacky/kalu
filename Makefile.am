@@ -1,5 +1,5 @@
 
-CLEANFILES = index.html kalu.png org.jjk.kalu.service
+CLEANFILES = kalu.1 index.html kalu.png org.jjk.kalu.service
 
 bin_PROGRAMS = kalu
 if ! DISABLE_UPDATER
