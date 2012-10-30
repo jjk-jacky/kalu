@@ -36,13 +36,13 @@ _VERSION = $(PACKAGE_VERSION)
 endif
 
 install-data-hook:
-	mkdir $(DESTDIR)$(docdir)/html
-	mv $(DESTDIR)$(docdir)/index.html $(DESTDIR)$(docdir)/html/
+	mkdir "$(DESTDIR)$(docdir)/html"
+	mv "$(DESTDIR)$(docdir)/index.html" "$(DESTDIR)$(docdir)/html/"
 
 dist-hook:
-	cp $(srcdir)/kalu.pod $(distdir)/
-	cp $(srcdir)/org.jjk.kalu.service.tpl $(distdir)/
-	cp $(srcdir)/arch_linux_48x48_icon_by_painlessrob.png $(distdir)/
+	cp "$(srcdir)/kalu.pod" "$(distdir)/"
+	cp "$(srcdir)/org.jjk.kalu.service.tpl" "$(distdir)/"
+	cp "$(srcdir)/arch_linux_48x48_icon_by_painlessrob.png" "$(distdir)/"
 
 AM_CPPFLAGS = -DDOCDIR='"$(docdir)"'
 AM_CFLAGS = -g \
