@@ -198,6 +198,7 @@ aur_has_updates (alpm_list_t **packages,
                     "Invalid JSON response from the AUR");
             FREELIST (urls);
             FREE_PACKAGE_LIST (*packages);
+            free (data);
             return FALSE;
         }
         results = cJSON_GetObjectItem (json, "results");
