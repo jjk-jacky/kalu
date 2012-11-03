@@ -214,6 +214,18 @@ aur_has_updates (alpm_list_t **packages,
                 pkgver = cJSON_GetObjectItem (package, "Version")->valuestring;
                 /* ALPM/watched */
                 pkg = get_pkg_from_list (pkgname, aur_pkgs, is_watched);
+                if (!pkg)
+                {
+                    debug ("package %s not found in aur_pkgs", pkgname);
+                    g_set_error (error, KALU_ERROR, 8,
+                            "Unexpected results from the AUR [%s]",
+                            pkgname);
+                    FREELIST (urls);
+                    FREE_PACKAGE_LIST (*packages);
+                    free (data);
+                    cJSON_Delete (json);
+                    return FALSE;
+                }
                 if (is_watched)
                 {
                     oldver = ((watched_package_t *) pkg)->version;
