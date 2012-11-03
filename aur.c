@@ -24,6 +24,7 @@
 
 /* C */
 #include <string.h>
+#include <ctype.h>  /* isalnum() */
 
 /* glib */
 #include <glib-2.0/glib.h>
@@ -79,7 +80,7 @@ aur_has_updates (alpm_list_t **packages,
     alpm_list_t *urls = NULL, *i;
     char buf[MAX_URL_LENGTH + 1], *s;
     int max, len;
-    size_t len_prefix = strlen (AUR_URL_PREFIX_PKG);
+    int len_prefix = (int) strlen (AUR_URL_PREFIX_PKG);
     GError *local_err = NULL;
     char *data;
     const char *pkgname, *pkgdesc, *pkgver, *oldver;
@@ -97,6 +98,9 @@ aur_has_updates (alpm_list_t **packages,
 
     for (i = aur_pkgs; i; i = alpm_list_next (i))
     {
+        char *end;
+        const char *p;
+
         if (is_watched)
         {
             pkgname = ((watched_package_t *) i->data)->name;
@@ -106,8 +110,8 @@ aur_has_updates (alpm_list_t **packages,
             pkgname = alpm_pkg_get_name ((alpm_pkg_t *) i->data);
         }
 
-        /* still enough space to add this pkgname ? */
-        if ((int) (len_prefix + strlen (pkgname)) > max)
+        /* make sure we can at least add the prefix */
+        if (len_prefix > max)
         {
             /* nope. so we store this url and start a new one */
             urls = alpm_list_add (urls, strdup (buf));
@@ -115,9 +119,60 @@ aur_has_updates (alpm_list_t **packages,
             s = buf;
             add (AUR_URL_PREFIX);
         }
-        /* add pkgname */
+
+        /* this is where we'll end the URL, should there not be enough space */
+        end = s;
+        /* add prefix */
         add (AUR_URL_PREFIX_PKG);
-        add (pkgname);
+        /* now we add the pkgname; one char at a time, urlencoding if needed */
+        for (p = pkgname; *p; ++p)
+        {
+            /* unreserved characters */
+            if (isalnum (*p) || *p == '-' || *p == '_' || *p == '.' || *p == '~')
+            {
+                if (max < 1)
+                {
+                    /* add url until this pkg and start a new one */
+                    *end = '\0';
+                    urls = alpm_list_add (urls, strdup (buf));
+                    max = MAX_URL_LENGTH;
+                    s = buf;
+                    add (AUR_URL_PREFIX);
+                    /* reset to start this pkgname over */
+                    end = s;
+                    add (AUR_URL_PREFIX_PKG);
+                    p = pkgname - 1;
+                    continue;
+                }
+                *s++ = *p;
+                --max;
+            }
+            else
+            {
+                const char hex[] = "0123456789ABCDEF";
+
+                if (max < 3)
+                {
+                    /* add url until this pkg and start a new one */
+                    *end = '\0';
+                    urls = alpm_list_add (urls, strdup (buf));
+                    max = MAX_URL_LENGTH;
+                    s = buf;
+                    add (AUR_URL_PREFIX);
+                    /* reset to start this pkgname over */
+                    end = s;
+                    add (AUR_URL_PREFIX_PKG);
+                    p = pkgname - 1;
+                    continue;
+                }
+                /* Credit to Fred Bullback for the following */
+                *s++ = '%';
+                *s++ = hex[*p >> 4];
+                *s++ = hex[*p & 15];
+                max -= 3;
+            }
+        }
+        *s = '\0';
     }
     urls = alpm_list_add (urls, strdup (buf));
 
