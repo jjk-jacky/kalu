@@ -365,7 +365,7 @@ gboolean
 check_syncdbs (kalu_alpm_t *alpm, size_t need_repos, int check_valid, GError **error)
 {
     alpm_list_t *i;
-    alpm_list_t *sync_dbs = alpm_option_get_syncdbs (alpm->handle);
+    alpm_list_t *sync_dbs = alpm_get_syncdbs (alpm->handle);
 
     if (need_repos && sync_dbs == NULL)
     {

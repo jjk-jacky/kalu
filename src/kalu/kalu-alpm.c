@@ -263,7 +263,7 @@ kalu_alpm_load (const gchar *conffile, GError **error)
 
         /* register db */
         debug ("register %s", db_conf->name);
-        db = alpm_db_register_sync (alpm->handle, db_conf->name,
+        db = alpm_register_syncdb (alpm->handle, db_conf->name,
                 db_conf->siglevel);
         if (db == NULL)
         {
@@ -350,7 +350,7 @@ kalu_alpm_syncdbs (gint *nb_dbs_synced, GError **error)
         return FALSE;
     }
 
-    sync_dbs = alpm_option_get_syncdbs (alpm->handle);
+    sync_dbs = alpm_get_syncdbs (alpm->handle);
     *nb_dbs_synced = 0;
     FOR_LIST (i, sync_dbs)
     {
@@ -484,7 +484,7 @@ kalu_alpm_has_updates (alpm_list_t **packages, GError **error)
         goto cleanup;
     }
 
-    alpm_db_t  *db_local = alpm_option_get_localdb (alpm->handle);
+    alpm_db_t  *db_local = alpm_get_localdb (alpm->handle);
     FOR_LIST (i, alpm_trans_get_add (alpm->handle))
     {
         alpm_pkg_t *pkg = i->data;
@@ -528,7 +528,7 @@ gboolean
 kalu_alpm_has_updates_watched (alpm_list_t **packages, alpm_list_t *watched,
         GError **error)
 {
-    alpm_list_t *sync_dbs = alpm_option_get_syncdbs (alpm->handle);
+    alpm_list_t *sync_dbs = alpm_get_syncdbs (alpm->handle);
     alpm_list_t *i, *j;
     GError *local_err = NULL;
 
@@ -587,8 +587,8 @@ kalu_alpm_has_foreign (alpm_list_t **packages, alpm_list_t *ignore,
         return FALSE;
     }
 
-    dblocal  = alpm_option_get_localdb (alpm->handle);
-    sync_dbs = alpm_option_get_syncdbs (alpm->handle);
+    dblocal  = alpm_get_localdb (alpm->handle);
+    sync_dbs = alpm_get_syncdbs (alpm->handle);
 
     FOR_LIST (i, alpm_db_get_pkgcache (dblocal))
     {

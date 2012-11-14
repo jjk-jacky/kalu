@@ -437,7 +437,7 @@ question_cb (alpm_question_t event, void *data1, void *data2, void *data3, int *
             pkg1 = alpm_pkg_get_name (data1);
             /* get pkg from local db */
             alpm_pkg_t *pkg;
-            pkg = alpm_db_get_pkg (alpm_option_get_localdb (handle), pkg1);
+            pkg = alpm_db_get_pkg (alpm_get_localdb (handle), pkg1);
             emit_signal ("AskLocalNewer", "ssss",
                     /* pkg name */
                     pkg1,
@@ -589,7 +589,7 @@ init_alpm (GVariant *parameters)
     const gchar  *arch;
     gboolean      checkspace;
     gboolean      usesyslog;
-    gboolean      usedelta;
+    gdouble       usedelta;
     GVariantIter *ignorepkgs_iter;
     alpm_list_t  *ignorepkgs = NULL;
     GVariantIter *ignoregroups_iter;
@@ -603,21 +603,21 @@ init_alpm (GVariant *parameters)
     const gchar *s;
 
     debug ("getting alpm params");
-    g_variant_get (parameters, "(ssssasisbbbasasasas)",
-            &rootdir,
-            &dbpath,
-            &logfile,
-            &gpgdir,
-            &cachedirs_iter,
-            &siglevel,
-            &arch,
-            &checkspace,
-            &usesyslog,
-            &usedelta,
-            &ignorepkgs_iter,
-            &ignoregroups_iter,
-            &noupgrades_iter,
-            &noextracts_iter);
+    g_variant_get (parameters, "(ssssasisbbdasasasas)",
+        &rootdir,
+        &dbpath,
+        &logfile,
+        &gpgdir,
+        &cachedirs_iter,
+        &siglevel,
+        &arch,
+        &checkspace,
+        &usesyslog,
+        &usedelta,
+        &ignorepkgs_iter,
+        &ignoregroups_iter,
+        &noupgrades_iter,
+        &noextracts_iter);
     g_variant_unref (parameters);
 
     debug ("init alpm");
@@ -693,7 +693,7 @@ init_alpm (GVariant *parameters)
     alpm_option_set_arch (handle, arch);
     alpm_option_set_checkspace (handle, checkspace);
     alpm_option_set_usesyslog (handle, usesyslog);
-    alpm_option_set_usedelta (handle, usedelta);
+    alpm_option_set_deltaratio (handle, usedelta);
 
     while (g_variant_iter_loop (ignorepkgs_iter, "s", &s))
     {
@@ -775,7 +775,7 @@ add_db (GVariant *parameters)
     g_variant_unref (parameters);
 
     alpm_db_t *db;
-    db = alpm_db_register_sync (handle, name, (alpm_siglevel_t) siglevel);
+    db = alpm_register_syncdb (handle, name, (alpm_siglevel_t) siglevel);
     if (db == NULL)
     {
         method_failed ("AddDb", _("Could not register database %s: %s\n"),
@@ -857,7 +857,7 @@ sync_dbs (GVariant *parameters)
 
     g_variant_unref (parameters);
 
-    syncdbs = alpm_option_get_syncdbs (handle);
+    syncdbs = alpm_get_syncdbs (handle);
     emit_signal ("SyncDbs", "i", alpm_list_count (syncdbs));
     FOR_LIST (i, syncdbs)
     {
@@ -1029,7 +1029,7 @@ get_packages (GVariant *parameters)
 
     alpm_list_t *pkgs;
     GVariantBuilder *builder;
-    alpm_db_t *localdb = alpm_option_get_localdb (handle);
+    alpm_db_t *localdb = alpm_get_localdb (handle);
     alpm_list_t *i;
 
     builder = g_variant_builder_new (G_VARIANT_TYPE ("a(ssssuuu)"));
