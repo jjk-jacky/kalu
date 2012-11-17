@@ -77,7 +77,7 @@ show_notif (notif_t *notif)
 {
     NotifyNotification *notification;
     
-    debug ("showing notif: %s", notif->summary);
+    debug ("showing notif: %s\n%s\n--- EOF ---", notif->summary, notif->text);
     notification = new_notification (notif->summary, notif->text);
     if (notif->type & CHECK_UPGRADES)
     {

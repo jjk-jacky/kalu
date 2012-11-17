@@ -187,8 +187,62 @@ NotifyNotification *
 new_notification (const gchar *summary, const gchar *text)
 {
     NotifyNotification *notification;
-    
-    notification = notify_notification_new (summary, text, NULL);
+    gchar *t = NULL;
+
+    /* seems that because notifications use a subset of HTML, we need to use
+     * &amp; to put the character '&' -- so let's deal with this, here because
+     * the text could have gone to CLI, where this replacement need not be
+     * done */
+    if (text)
+    {
+        gchar *s, *ss = text;
+        int diff = 0, alloc = 0;
+        while ((s = strchr (ss, '&')))
+        {
+            /* is this already &amp; ? -- we assume here that there's never
+             * something like &#42; or whatever, which should always be the case */
+            if (s[1] != 'a' && s[2] != 'm' && s[3] != 'p' && s[4] != ';')
+            {
+                /* do we need to (re)alloc some memory? */
+                if (diff + 5 > alloc)
+                {
+                    if (alloc == 0)
+                    {
+                        alloc = strlen (text);
+                    }
+                    alloc += 24; /* should be more than enough, as that's 6 '&' */
+                    t = realloc (t, sizeof (*t) * (alloc + 1));
+
+                    /* first time? let's copy the text over */
+                    if (diff == 0)
+                    {
+                        memcpy (t, text, strlen (text) + 1);
+                    }
+                }
+                /* position of s in t */
+                int pos = (s - text) + diff;
+                /* move the text after the &, making room for amp; */
+                memcpy (t + pos + 4 + 1, s + 1, strlen (s + 1) + 1);
+                t[++pos] = 'a';
+                t[++pos] = 'm';
+                t[++pos] = 'p';
+                t[++pos] = ';';
+                /* t is now 4 bytes bigger than it was from text */
+                diff += 4;
+                ss = s + 1;
+            }
+            else
+            {
+                ss = s + 5;
+            }
+        }
+    }
+
+    notification = notify_notification_new (summary, (t) ? t : text, NULL);
+    if (t)
+    {
+        free (t);
+    }
     if (config->notif_icon != ICON_NONE)
     {
         GtkWidget *w = NULL;
