@@ -579,8 +579,8 @@ menu_about_cb (GtkMenuItem *item _UNUSED_, gpointer data _UNUSED_)
     gtk_about_dialog_set_program_name (about, PACKAGE_NAME);
     gtk_about_dialog_set_version (about, PACKAGE_VERSION);
     gtk_about_dialog_set_comments (about, PACKAGE_TAG);
-    gtk_about_dialog_set_website (about, "https://github.com/jjk-jjacky/kalu");
-    gtk_about_dialog_set_website_label (about, "https://github.com/jjk-jjacky/kalu");
+    gtk_about_dialog_set_website (about, "https://github.com/jjk-jacky/kalu");
+    gtk_about_dialog_set_website_label (about, "https://github.com/jjk-jacky/kalu");
     gtk_about_dialog_set_copyright (about, "Copyright (C) 2012 Olivier Brunel");
     gtk_about_dialog_set_license_type (about, GTK_LICENSE_GPL_3_0);
     gtk_about_dialog_set_authors (about, authors);

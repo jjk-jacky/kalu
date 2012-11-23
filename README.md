@@ -44,7 +44,7 @@ Some useful links if you're looking for more info:
 
 - [blog post about kalu](http://mywaytoarch.tumblr.com/post/19350380240/keep-arch-linux-up-to-date-with-kalu "Keep Arch Linux Up-to-date with kalu")
 
-- [source code & issue tracker](https://github.com/jjk-jjacky/kalu "kalu @ GitHub.com")
+- [source code & issue tracker](https://github.com/jjk-jacky/kalu "kalu @ GitHub.com")
 
 - [PKGBUILD in AUR](https://aur.archlinux.org/packages.php?ID=56673 "AUR: kalu")
 

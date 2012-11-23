@@ -622,7 +622,7 @@ They're probably crawling somewhere in there... if you happen to catch one,
 =head1 REPOSITORY
 
 You can find the latest source code of B<kalu> as well as report bugs and/or
-suggest features on its GitHub repository, available at L<https://github.com/jjk-jjacky/kalu>
+suggest features on its GitHub repository, available at L<https://github.com/jjk-jacky/kalu>
 
 =head1 AUTHORS
 
