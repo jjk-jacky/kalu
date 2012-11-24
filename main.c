@@ -794,6 +794,49 @@ extern GPtrArray *open_windows;
 #endif
 
 static GtkIconSet *
+get_paused_iconset (GdkPixbuf *pixbuf)
+{
+    cairo_surface_t *s;
+    cairo_t         *cr;
+    GdkPixbuf       *pb;
+    GtkIconSet      *iconset;
+
+    s = cairo_image_surface_create (CAIRO_FORMAT_ARGB32, 48, 48);
+    cr = cairo_create (s);
+
+    /* put the icon from pixbuf */
+    gdk_cairo_set_source_pixbuf (cr, pixbuf, 0, 0);
+    cairo_rectangle (cr, 0, 0, 48, 48);
+    cairo_fill (cr);
+
+    /* draw black borders */
+    cairo_rectangle (cr, 13, 12, 10, 2);
+    cairo_rectangle (cr, 21, 14, 2, 24);
+    cairo_rectangle (cr, 13, 36, 10, 2);
+    cairo_rectangle (cr, 13, 14, 2, 24);
+    cairo_rectangle (cr, 25, 12, 10, 2);
+    cairo_rectangle (cr, 33, 14, 2, 24);
+    cairo_rectangle (cr, 25, 36, 10, 2);
+    cairo_rectangle (cr, 25, 14, 2, 24);
+    cairo_set_source_rgba (cr, 0, 0, 0, 0.6);
+    cairo_fill (cr);
+
+    /* draw white rectangles */
+    cairo_rectangle (cr, 15, 14, 6, 22);
+    cairo_rectangle (cr, 27, 14, 6, 22);
+    cairo_set_source_rgba (cr, 1, 1, 1, 0.8);
+    cairo_fill (cr);
+
+    cairo_destroy (cr);
+    pb = gdk_pixbuf_get_from_surface (s, 0, 0, 48, 48);
+    cairo_surface_destroy (s);
+
+    iconset = gtk_icon_set_new_from_pixbuf (pb);
+    g_object_unref (G_OBJECT (pb));
+    return iconset;
+}
+
+static GtkIconSet *
 get_gray_iconset (GdkPixbuf *pixbuf, GdkPixbuf **pixbuf_gray)
 {
     cairo_surface_t *s;
@@ -1003,9 +1046,15 @@ main (int argc, char *argv[])
     pixbuf = gdk_pixbuf_new_from_inline (-1, arch, FALSE, NULL);
     iconset = gtk_icon_set_new_from_pixbuf (pixbuf);
     gtk_icon_factory_add (factory, "kalu-logo", iconset);
+    /* add paused version */
+    iconset = get_paused_iconset (pixbuf);
+    gtk_icon_factory_add (factory, "kalu-logo-paused", iconset);
     /* kalu-logo-gray */
     iconset = get_gray_iconset (pixbuf, &pixbuf_gray);
     gtk_icon_factory_add (factory, "kalu-logo-gray", iconset);
+    /* add paused version */
+    iconset = get_paused_iconset (pixbuf_gray);
+    gtk_icon_factory_add (factory, "kalu-logo-gray-paused", iconset);
     /* free pixbufs */
     g_object_unref (G_OBJECT (pixbuf));
     g_object_unref (G_OBJECT (pixbuf_gray));
