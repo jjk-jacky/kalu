@@ -93,7 +93,8 @@ typedef enum {
     DO_CHECK,
     DO_SYSUPGRADE,
     DO_TOGGLE_WINDOWS,
-    DO_LAST_NOTIFS
+    DO_LAST_NOTIFS,
+    DO_TOGGLE_PAUSE
 } on_click_t;
 
 typedef enum {

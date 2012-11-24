@@ -842,6 +842,10 @@ static guint icon_press_timeout = 0;
         {                                           \
             show_last_notifs ();                    \
         }                                           \
+        else if (on_click == DO_TOGGLE_PAUSE)       \
+        {                                           \
+            set_pause (!kalpm_state.is_paused);     \
+        }                                           \
     } while (0)
 
 static gboolean

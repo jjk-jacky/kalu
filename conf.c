@@ -1009,6 +1009,10 @@ parse_config_file (const char       *file,
                     {
                         *on_click = DO_LAST_NOTIFS;
                     }
+                    else if (strcmp (value, "TOGGLE_PAUSE") == 0)
+                    {
+                        *on_click = DO_TOGGLE_PAUSE;
+                    }
                     else
                     {
                         add_error ("unknown value for %s: %s", key, value);

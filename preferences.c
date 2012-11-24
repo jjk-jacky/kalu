@@ -1058,6 +1058,10 @@ btn_save_cb (GtkButton *button _UNUSED_, gpointer data _UNUSED_)
     {
         add_to_conf ("OnSglClick = LAST_NOTIFS\n");
     }
+    else if (new_config.on_sgl_click == DO_TOGGLE_PAUSE)
+    {
+        add_to_conf ("OnSglClick = TOGGLE_PAUSE\n");
+    }
     else /* if (new_config.on_sgl_click == DO_NOTHING) */
     {
         add_to_conf ("OnSglClick = NOTHING\n");
@@ -1079,6 +1083,10 @@ btn_save_cb (GtkButton *button _UNUSED_, gpointer data _UNUSED_)
     else if (new_config.on_dbl_click == DO_LAST_NOTIFS)
     {
         add_to_conf ("OnDblClick = LAST_NOTIFS\n");
+    }
+    else if (new_config.on_dbl_click == DO_TOGGLE_PAUSE)
+    {
+        add_to_conf ("OnDblClick = TOGGLE_PAUSE\n");
     }
     else /* if (new_config.on_dbl_click == DO_NOTHING) */
     {
@@ -1943,6 +1951,8 @@ show_prefs (void)
         );
     gtk_combo_box_text_append (GTK_COMBO_BOX_TEXT (on_sgl_click), "4",
         "Re-show last notifications...");
+    gtk_combo_box_text_append (GTK_COMBO_BOX_TEXT (on_sgl_click), "5",
+            "Toggle pause/resume automatic checks");
     gtk_grid_attach (GTK_GRID (grid), on_sgl_click, 1, top, 1, 1);
     gtk_widget_show (on_sgl_click);
     if (config->on_sgl_click == DO_CHECK)
@@ -1960,6 +1970,10 @@ show_prefs (void)
     else if (config->on_sgl_click == DO_LAST_NOTIFS)
     {
         gtk_combo_box_set_active (GTK_COMBO_BOX (on_sgl_click), 4);
+    }
+    else if (config->on_sgl_click == DO_TOGGLE_PAUSE)
+    {
+        gtk_combo_box_set_active (GTK_COMBO_BOX (on_sgl_click), 5);
     }
     else /* DO_NOTHING */
     {
@@ -1987,6 +2001,8 @@ show_prefs (void)
         );
     gtk_combo_box_text_append (GTK_COMBO_BOX_TEXT (on_dbl_click), "4",
         "Re-show last notifications...");
+    gtk_combo_box_text_append (GTK_COMBO_BOX_TEXT (on_dbl_click), "5",
+            "Toggle pause/resume automatic checks");
     gtk_grid_attach (GTK_GRID (grid), on_dbl_click, 1, top, 1, 1);
     gtk_widget_show (on_dbl_click);
     if (config->on_dbl_click == DO_CHECK)
@@ -2004,6 +2020,10 @@ show_prefs (void)
     else if (config->on_dbl_click == DO_LAST_NOTIFS)
     {
         gtk_combo_box_set_active (GTK_COMBO_BOX (on_dbl_click), 4);
+    }
+    else if (config->on_dbl_click == DO_TOGGLE_PAUSE)
+    {
+        gtk_combo_box_set_active (GTK_COMBO_BOX (on_dbl_click), 5);
     }
     else /* DO_NOTHING */
     {
