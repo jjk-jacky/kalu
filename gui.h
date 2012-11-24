@@ -44,48 +44,47 @@
             } while(0)
 
 
-void
-free_notif (notif_t *notif);
+void free_notif (notif_t *notif);
+void show_notif (notif_t *notif);
 
-void
-show_notif (notif_t *notif);
+gboolean show_error_cmdline (gchar *arg[]);
 
-gboolean
-show_error_cmdline (gchar *arg[]);
+void action_upgrade (NotifyNotification *notification,
+        const char *action,
+        gchar *_cmdline);
+void action_watched (NotifyNotification *notification,
+        char *action,
+        notif_t *notif);
+void action_watched_aur (NotifyNotification *notification,
+        char *action,
+        notif_t *notif);
+void action_news (NotifyNotification *notification,
+        char *action,
+        notif_t *notif);
 
-void
-action_upgrade (NotifyNotification *notification, const char *action, gchar *_cmdline);
+void notification_closed_cb (NotifyNotification *notification, gpointer data);
 
-void
-action_watched (NotifyNotification *notification, char *action, notif_t *notif);
+gboolean is_pacman_conflicting (alpm_list_t *packages);
 
-void
-action_watched_aur (NotifyNotification *notification, char *action, notif_t *notif);
+void kalu_check (gboolean is_auto);
+void kalu_auto_check (void);
 
-void
-action_news (NotifyNotification *notification, char *action, notif_t *notif);
-
-void
-notification_closed_cb (NotifyNotification *notification, gpointer data);
-
-void
-kalu_check (gboolean is_auto);
-
-void
-kalu_auto_check (void);
-
-gboolean
-is_pacman_conflicting (alpm_list_t *packages);
-
-void
-icon_popup_cb (GtkStatusIcon *_icon, guint button, guint activate_time,
+void icon_popup_cb (GtkStatusIcon *_icon, guint button, guint activate_time,
                gpointer data);
 
-gboolean
-icon_press_cb (GtkStatusIcon *icon, GdkEventButton *event, gpointer data);
+void add_open_window (gpointer window);
+void remove_open_window (gpointer window);
 
-gboolean
-icon_query_tooltip_cb (GtkWidget *icon, gint x, gint y, gboolean keyboard_mode,
-                       GtkTooltip *tooltip, gpointer data);
+gboolean icon_press_cb (GtkStatusIcon *icon, GdkEventButton *event,
+        gpointer data);
+
+gboolean icon_query_tooltip_cb (GtkWidget *icon, gint x, gint y,
+        gboolean keyboard_mode, GtkTooltip *tooltip, gpointer data);
+
+void set_kalpm_nb (check_t type, gint nb, gboolean update_icon);
+void set_kalpm_nb_syncdbs (gint nb);
+void set_kalpm_busy (gboolean busy);
+void skip_next_timeout (void);
+gboolean reload_watched (gboolean is_aur, GError **error);
 
 #endif /* _GUI_H */

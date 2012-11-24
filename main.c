@@ -73,7 +73,7 @@ static void free_config (void);
 
 #else
 
-kalpm_state_t kalpm_state = { 0, 0, 0, NULL, 0, 0, 0, 0, 0, 0 };
+kalpm_state_t kalpm_state;
 static gboolean is_cli = FALSE;
 
 #define do_notify_error(summary, text)  if (!is_cli)    \
@@ -883,6 +883,7 @@ main (int argc, char *argv[])
     gchar            conffile[MAX_PATH];
     
     config = calloc (1, sizeof(*config));
+    memset (&kalpm_state, 0, sizeof (kalpm_state));
     
     /* parse command line */
     gboolean         show_version       = FALSE;
@@ -1074,10 +1075,11 @@ main (int argc, char *argv[])
                       G_CALLBACK (icon_press_cb), NULL);
 
     gtk_status_icon_set_visible (icon, TRUE);
-    
-    /* set timer, first check in 2 seconds */
-    kalpm_state.timeout = g_timeout_add_seconds (2, (GSourceFunc) kalu_auto_check, NULL);
-    
+
+    /* takes care of setting timeout_skip (if needed) and also triggers the
+     * auto-checks (unless within skip period) */
+    skip_next_timeout ();
+
     notify_init ("kalu");
     gtk_main ();
 eop:

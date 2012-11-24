@@ -465,6 +465,42 @@ show_last_notifs (void)
 }
 
 static void
+set_pause (gboolean paused)
+{
+    /* in case e.g. the menu was shown (sensitive) before an auto-check started */
+    if (kalpm_state.is_busy || kalpm_state.is_paused == paused)
+    {
+        return;
+    }
+
+    kalpm_state.is_paused = paused;
+    if (paused)
+    {
+        debug ("pausing: disable next auto-checks; update icon");
+
+        /* remove auto-check timeout */
+        if (kalpm_state.timeout > 0)
+        {
+            g_source_remove (kalpm_state.timeout);
+            kalpm_state.timeout = 0;
+        }
+
+        /* determine whether the icon is active or not to update it properly */
+        gint nb_upgrades;
+        nb_upgrades = (kalpm_state.nb_upgrades == UPGRADES_NB_CONFLICT)
+            ? 1 : kalpm_state.nb_upgrades;
+        set_status_icon (nb_upgrades + kalpm_state.nb_watched
+                + kalpm_state.nb_aur + kalpm_state.nb_watched_aur
+                + kalpm_state.nb_news > 0);
+    }
+    else
+    {
+        debug ("resuming: starting auto-checks");
+        kalu_check (TRUE);
+    }
+}
+
+static void
 menu_check_cb (GtkMenuItem *item _UNUSED_, gpointer data _UNUSED_)
 {
     kalu_check (FALSE);
@@ -473,20 +509,7 @@ menu_check_cb (GtkMenuItem *item _UNUSED_, gpointer data _UNUSED_)
 static void
 menu_pause_cb (GtkMenuItem *item _UNUSED_, gpointer data _UNUSED_)
 {
-    gint nb_upgrades;
-
-    /* in case e.g. the menu was shown (sensitive) before an auto-check started */
-    if (kalpm_state.is_busy)
-    {
-        return;
-    }
-    kalpm_state.is_paused = !kalpm_state.is_paused;
-    /* determine whether the icon is active or not to update it properly */
-    nb_upgrades = (kalpm_state.nb_upgrades == UPGRADES_NB_CONFLICT)
-        ? 1 : kalpm_state.nb_upgrades;
-    set_status_icon (nb_upgrades + kalpm_state.nb_watched
-            + kalpm_state.nb_aur + kalpm_state.nb_watched_aur
-            + kalpm_state.nb_news > 0);
+    set_pause (!kalpm_state.is_paused);
 }
 
 static void
@@ -1087,7 +1110,7 @@ void
 set_kalpm_busy (gboolean busy)
 {
     gint old = kalpm_state.is_busy;
-    
+
     /* we use an counter because when using a cmdline for both upgrades & AUR,
      * and both are triggered at the same time (from notifications) then we
      * should only bo back to not busy when *both* are done; fixes #8 */
@@ -1099,14 +1122,14 @@ set_kalpm_busy (gboolean busy)
     {
         --kalpm_state.is_busy;
     }
-    
+
     /* make sure the state changed/there's something to do */
     if ((old > 0  && kalpm_state.is_busy > 0)
-     || (old == 0 && kalpm_state.is_busy == 0))
+            || (old == 0 && kalpm_state.is_busy == 0))
     {
         return;
     }
-    
+
     if (busy)
     {
         /* remove auto-check timeout */
@@ -1114,87 +1137,16 @@ set_kalpm_busy (gboolean busy)
         {
             g_source_remove (kalpm_state.timeout);
             kalpm_state.timeout = 0;
+            debug ("state busy: disable next auto-checks");
         }
-        
+
         /* set timeout for status icon */
         kalpm_state.timeout_icon = g_timeout_add (420,
-            (GSourceFunc) switch_status_icon, NULL);
+                (GSourceFunc) switch_status_icon, NULL);
+        debug ("state busy: switch icons");
     }
     else
     {
-        /* set timeout for next auto-check */
-        guint seconds;
-        
-        if (config->has_skip)
-        {
-            GDateTime *now, *begin, *end, *next;
-            gint year, month, day;
-            gboolean is_within_skip = FALSE;
-            
-            now = g_date_time_new_now_local ();
-            /* create GDateTime for begin & end of skip period */
-            /* Note: begin & end are both for the current day, which means we can
-             * have begin > end, with e.g. 18:00-09:00 */
-            g_date_time_get_ymd (now, &year, &month, &day);
-            begin = g_date_time_new_local (year, month, day,
-                config->skip_begin_hour, config->skip_begin_minute, 0);
-            end = g_date_time_new_local (year, month, day,
-                config->skip_end_hour, config->skip_end_minute, 0);
-            
-            /* determine when the next check would take place */
-            next = g_date_time_add_seconds (now, (gdouble) config->interval);
-            
-            /* determine if next within skip period */
-            /* is begin > end ? */
-            if (g_date_time_compare (begin, end) == 1)
-            {
-                /* e.g. 18:00 -> 09:00 */
-                if (g_date_time_compare (next, end) == -1)
-                {
-                    /* before 09:00 */
-                    is_within_skip = TRUE;
-                }
-                else if (g_date_time_compare (next, begin) == 1)
-                {
-                    /* after 18:00 */
-                    is_within_skip = TRUE;
-                    /* we need to switch end to the end for the next day */
-                    g_date_time_unref (end);
-                    end = g_date_time_new_local (year, month, day + 1,
-                        config->skip_end_hour, config->skip_end_minute, 0);
-                }
-            }
-            else
-            {
-                /* e.g. 09:00 -> 18:00 */
-                is_within_skip = (g_date_time_compare (next, begin) == 1
-                    && g_date_time_compare (next, end) == -1);
-            }
-            
-            if (is_within_skip)
-            {
-                /* we'll do the next check at the end of skip period */
-                GTimeSpan timespan;
-                timespan = g_date_time_difference (end, now);
-                seconds = (guint) (timespan / G_TIME_SPAN_SECOND);
-            }
-            else
-            {
-                seconds = (guint) config->interval;
-            }
-            
-            g_date_time_unref (now);
-            g_date_time_unref (begin);
-            g_date_time_unref (end);
-            g_date_time_unref (next);
-        }
-        else
-        {
-            seconds = (guint) config->interval;
-        }
-        kalpm_state.timeout = g_timeout_add_seconds (seconds,
-            (GSourceFunc) kalu_auto_check, NULL);
-        
         /* remove status icon timeout */
         if (kalpm_state.timeout_icon > 0)
         {
@@ -1202,8 +1154,153 @@ set_kalpm_busy (gboolean busy)
             kalpm_state.timeout_icon = 0;
             /* ensure icon is right */
             set_kalpm_nb (0, 0, TRUE);
+            debug ("state non-busy: disable switch icons");
+        }
+
+        if (!kalpm_state.is_paused)
+        {
+            /* set timeout for next auto-check */
+            guint seconds;
+
+            seconds = (guint) config->interval;
+            kalpm_state.timeout = g_timeout_add_seconds (seconds,
+                    (GSourceFunc) kalu_auto_check, NULL);
+            debug ("state non-busy: next auto-checks in %d seconds", seconds);
         }
     }
+}
+
+static inline gboolean
+is_within_skip (void)
+{
+    if (!config->has_skip)
+    {
+        return FALSE;
+    }
+
+    GDateTime *now, *begin, *end;
+    gint year, month, day;
+    gboolean within_skip = FALSE;
+
+    now = g_date_time_new_now_local ();
+    /* create GDateTime for begin & end of skip period */
+    /* Note: begin & end are both for the current day, which means we can
+     * have begin > end, with e.g. 18:00-09:00 */
+    g_date_time_get_ymd (now, &year, &month, &day);
+    begin = g_date_time_new_local (year, month, day,
+            config->skip_begin_hour, config->skip_begin_minute, 0);
+    end = g_date_time_new_local (year, month, day,
+            config->skip_end_hour, config->skip_end_minute, 0);
+
+    /* determine if we're within skip period */
+    /* is begin > end ? e.g. 18:00 -> 09:00 */
+    if (g_date_time_compare (begin, end) == 1)
+    {
+        /* we're within if before end OR after begin */
+        within_skip = (g_date_time_compare (now, end) == -1
+                || g_date_time_compare (now, begin) == 1);
+    }
+    /* e.g. 09:00 -> 18:00 */
+    else
+    {
+        /* we're within if after begin AND before end */
+        within_skip = (g_date_time_compare (now, begin) == 1
+                && g_date_time_compare (now, end) == -1);
+    }
+
+    g_date_time_unref (now);
+    g_date_time_unref (begin);
+    g_date_time_unref (end);
+
+    return within_skip;
+}
+
+void
+skip_next_timeout (void)
+{
+    gboolean force = FALSE;
+
+    /* remove current timeout */
+    if (kalpm_state.timeout_skip > 0)
+    {
+        g_source_remove (kalpm_state.timeout_skip);
+        kalpm_state.timeout_skip = 0;
+    }
+
+    /* first time we're called, determine where we're at */
+    if (kalpm_state.skip_next == SKIP_UNKNOWN)
+    {
+        if (!config->has_skip)
+        {
+            debug ("skip period: none set");
+            /* we should still trigger auto-checks */
+            kalu_check (TRUE);
+            return;
+        }
+        kalpm_state.skip_next = (is_within_skip ()) ? SKIP_BEGIN : SKIP_END;
+        force = TRUE;
+    }
+
+    /* toggle state */
+    gboolean paused = (kalpm_state.skip_next == SKIP_BEGIN);
+    debug ("skip period: auto-%s", (paused) ? "pausing" : "resuming");
+    if (!kalpm_state.is_busy)
+    {
+        if (force)
+        {
+            /* means the state was unknown, so we should force the autochecks
+             * and whatnot. this is done by making it believe we're changing the
+             * state */
+            kalpm_state.is_paused = !paused;
+        }
+        set_pause (paused);
+    }
+    else
+    {
+        /* since we're busy, we can't toggle right now. instead, we'll
+         * update the flag, so it'll be takin into accound right away */
+        kalpm_state.is_paused = paused;
+    }
+
+    /* set new timeout_skip */
+    GDateTime *now, *next;
+    gint year, month, day, h;
+    gint hour, minute;
+
+    if (paused)
+    {
+        kalpm_state.skip_next = SKIP_END;
+        hour = config->skip_end_hour;
+        minute = config->skip_end_minute;
+    }
+    else
+    {
+        kalpm_state.skip_next = SKIP_BEGIN;
+        hour = config->skip_begin_hour;
+        minute = config->skip_begin_minute;
+    }
+
+    now = g_date_time_new_now_local ();
+    g_date_time_get_ymd (now, &year, &month, &day);
+    /* if the timeout is for a time before now, it gets bumped to tomorrow */
+    h = g_date_time_get_hour (now);
+    if (h > hour || (h == hour && g_date_time_get_minute (now) > minute))
+    {
+        ++day;
+    }
+    next = g_date_time_new_local (year, month, day, hour, minute, 0);
+
+    GTimeSpan timespan;
+    guint seconds;
+
+    timespan = g_date_time_difference (next, now);
+    seconds = (guint) (timespan / G_TIME_SPAN_SECOND);
+    kalpm_state.timeout_skip = g_timeout_add_seconds (seconds,
+            (GSourceFunc) skip_next_timeout, NULL);
+    debug ("next skip period in %d seconds", seconds);
+
+    g_date_time_unref (now);
+    g_date_time_unref (next);
 }
 
 gboolean

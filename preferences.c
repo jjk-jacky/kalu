@@ -31,6 +31,7 @@
 /* kalu */
 #include "kalu.h"
 #include "preferences.h"
+#include "gui.h"
 #include "util.h"
 #include "watched.h"
 #include "util-gtk.h"
