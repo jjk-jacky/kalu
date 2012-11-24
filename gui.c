@@ -45,6 +45,7 @@
 
 static void menu_check_cb (GtkMenuItem *item, gpointer data);
 static void menu_quit_cb (GtkMenuItem *item, gpointer data);
+static gboolean set_status_icon (gboolean active);
 
 extern kalpm_state_t kalpm_state;
 
@@ -470,6 +471,25 @@ menu_check_cb (GtkMenuItem *item _UNUSED_, gpointer data _UNUSED_)
 }
 
 static void
+menu_pause_cb (GtkMenuItem *item _UNUSED_, gpointer data _UNUSED_)
+{
+    gint nb_upgrades;
+
+    /* in case e.g. the menu was shown (sensitive) before an auto-check started */
+    if (kalpm_state.is_busy)
+    {
+        return;
+    }
+    kalpm_state.is_paused = !kalpm_state.is_paused;
+    /* determine whether the icon is active or not to update it properly */
+    nb_upgrades = (kalpm_state.nb_upgrades == UPGRADES_NB_CONFLICT)
+        ? 1 : kalpm_state.nb_upgrades;
+    set_status_icon (nb_upgrades + kalpm_state.nb_watched
+            + kalpm_state.nb_aur + kalpm_state.nb_watched_aur
+            + kalpm_state.nb_news > 0);
+}
+
+static void
 menu_quit_cb (GtkMenuItem *item _UNUSED_, gpointer data _UNUSED_)
 {
     /* in case e.g. the menu was shown (sensitive) before an auto-check started */
@@ -616,6 +636,23 @@ icon_popup_cb (GtkStatusIcon *_icon _UNUSED_, guint button, guint activate_time,
     gtk_widget_set_tooltip_text (item, "Show notifications from last ran checks");
     g_signal_connect (G_OBJECT (item), "activate",
                       G_CALLBACK (show_last_notifs), NULL);
+    gtk_widget_show (item);
+    gtk_menu_attach (GTK_MENU (menu), item, 0, 1, pos, pos + 1); ++pos;
+
+    item = gtk_image_menu_item_new_with_label ((kalpm_state.is_paused)
+            ? "Resume automatic checks"
+            : "Pause automatic checks");
+    gtk_widget_set_sensitive (item, !kalpm_state.is_busy);
+    image = gtk_image_new_from_stock ((kalpm_state.is_paused)
+            ? GTK_STOCK_MEDIA_PLAY
+            : GTK_STOCK_MEDIA_PAUSE,
+            GTK_ICON_SIZE_MENU);
+    gtk_image_menu_item_set_image (GTK_IMAGE_MENU_ITEM (item), image);
+    gtk_widget_set_tooltip_text (item, (kalpm_state.is_paused)
+            ? "Resume automatic checks (starting now)"
+            : "Pause automatic checks (until resumed)");
+    g_signal_connect (G_OBJECT (item), "activate",
+                      G_CALLBACK (menu_pause_cb), NULL);
     gtk_widget_show (item);
     gtk_menu_attach (GTK_MENU (menu), item, 0, 1, pos, pos + 1); ++pos;
     
@@ -852,7 +889,9 @@ icon_query_tooltip_cb (GtkWidget *icon _UNUSED_, gint x _UNUSED_, gint y _UNUSED
     gchar buf[420], *s = buf;
     gint max = 420, len;
     
-    addstr ("[kalu%s]", (has_hidden_windows) ? " +" : "");
+    addstr ("[%skalu%s]",
+            (kalpm_state.is_paused) ? "paused " : "",
+            (has_hidden_windows) ? " +" : "");
     
     if (kalpm_state.is_busy)
     {
@@ -967,11 +1006,15 @@ set_status_icon (gboolean active)
 {
     if (active)
     {
-        gtk_status_icon_set_from_stock (icon, "kalu-logo");
+        gtk_status_icon_set_from_stock (icon, (kalpm_state.is_paused)
+                ? "kalu-logo-paused"
+                : "kalu-logo");
     }
     else
     {
-        gtk_status_icon_set_from_stock (icon, "kalu-logo-gray");
+        gtk_status_icon_set_from_stock (icon, (kalpm_state.is_paused)
+                ? "kalu-logo-gray-paused"
+                : "kalu-logo-gray");
     }
     /* do NOT get called back */
     return FALSE;
