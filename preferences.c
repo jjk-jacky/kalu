@@ -2000,9 +2000,9 @@ show_prefs (void)
     {
         gtk_combo_box_set_active (GTK_COMBO_BOX (on_dbl_click), 3);
     }
-    else if (config->on_sgl_click == DO_LAST_NOTIFS)
+    else if (config->on_dbl_click == DO_LAST_NOTIFS)
     {
-        gtk_combo_box_set_active (GTK_COMBO_BOX (on_sgl_click), 4);
+        gtk_combo_box_set_active (GTK_COMBO_BOX (on_dbl_click), 4);
     }
     else /* DO_NOTHING */
     {
