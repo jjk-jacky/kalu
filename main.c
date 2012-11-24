@@ -793,6 +793,40 @@ extern GtkStatusIcon *icon;
 extern GPtrArray *open_windows;
 #endif
 
+static GtkIconSet *
+get_gray_iconset (GdkPixbuf *pixbuf, GdkPixbuf **pixbuf_gray)
+{
+    cairo_surface_t *s;
+    cairo_pattern_t *pattern;
+    cairo_t         *cr;
+    GdkPixbuf       *pb;
+    GtkIconSet      *iconset;
+
+    s = cairo_image_surface_create (CAIRO_FORMAT_ARGB32, 48, 48);
+    cr = cairo_create (s);
+
+    /* put the icon from pixbuf */
+    gdk_cairo_set_source_pixbuf (cr, pixbuf, 0, 0);
+    cairo_rectangle (cr, 0, 0, 48, 48);
+    cairo_fill (cr);
+
+    /* use saturation to turn it gray */
+    pattern = cairo_pattern_create_for_surface (s);
+    cairo_rectangle (cr, 0, 0, 48, 48);
+    cairo_set_source_rgb (cr, 0, 0, 0);
+    cairo_set_operator (cr, CAIRO_OPERATOR_HSL_SATURATION);
+    cairo_mask (cr, pattern);
+
+    cairo_pattern_destroy (pattern);
+    cairo_destroy (cr);
+    pb = gdk_pixbuf_get_from_surface (s, 0, 0, 48, 48);
+    cairo_surface_destroy (s);
+
+    iconset = gtk_icon_set_new_from_pixbuf (pb);
+    *pixbuf_gray = pb;
+    return iconset;
+}
+
 int
 main (int argc, char *argv[])
 {
@@ -801,6 +835,7 @@ main (int argc, char *argv[])
     GtkIconFactory  *factory;
     GtkIconSet      *iconset;
     GdkPixbuf       *pixbuf;
+    GdkPixbuf       *pixbuf_gray;
     #endif
     gchar            conffile[MAX_PATH];
     
@@ -967,13 +1002,13 @@ main (int argc, char *argv[])
     /* kalu-logo */
     pixbuf = gdk_pixbuf_new_from_inline (-1, arch, FALSE, NULL);
     iconset = gtk_icon_set_new_from_pixbuf (pixbuf);
-    g_object_unref (G_OBJECT (pixbuf));
     gtk_icon_factory_add (factory, "kalu-logo", iconset);
     /* kalu-logo-gray */
-    pixbuf = gdk_pixbuf_new_from_inline (-1, arch_gray, FALSE, NULL);
-    iconset = gtk_icon_set_new_from_pixbuf (pixbuf);
-    g_object_unref (G_OBJECT (pixbuf));
+    iconset = get_gray_iconset (pixbuf, &pixbuf_gray);
     gtk_icon_factory_add (factory, "kalu-logo-gray", iconset);
+    /* free pixbufs */
+    g_object_unref (G_OBJECT (pixbuf));
+    g_object_unref (G_OBJECT (pixbuf_gray));
     /* add it all */
     gtk_icon_factory_add_default (factory);
     
