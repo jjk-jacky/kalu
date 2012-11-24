@@ -826,23 +826,23 @@ toggle_open_windows (void)
 static guint icon_press_timeout = 0;
 
 #define process_click_action(on_click)  do {        \
-        if (on_click == DO_SYSUPGRADE)              \
+        if ((on_click) == DO_SYSUPGRADE)            \
         {                                           \
             kalu_sysupgrade ();                     \
         }                                           \
-        else if (on_click == DO_CHECK)              \
+        else if ((on_click) == DO_CHECK)            \
         {                                           \
             kalu_check (FALSE);                     \
         }                                           \
-        else if (on_click == DO_TOGGLE_WINDOWS)     \
+        else if ((on_click) == DO_TOGGLE_WINDOWS)   \
         {                                           \
             toggle_open_windows ();                 \
         }                                           \
-        else if (on_click == DO_LAST_NOTIFS)        \
+        else if ((on_click) == DO_LAST_NOTIFS)      \
         {                                           \
             show_last_notifs ();                    \
         }                                           \
-        else if (on_click == DO_TOGGLE_PAUSE)       \
+        else if ((on_click) == DO_TOGGLE_PAUSE)     \
         {                                           \
             set_pause (!kalpm_state.is_paused);     \
         }                                           \
@@ -852,9 +852,12 @@ static gboolean
 icon_press_click (gpointer data _UNUSED_)
 {
     icon_press_timeout = 0;
-    
-    process_click_action (config->on_sgl_click);
-    
+
+    process_click_action ((kalpm_state.is_paused
+            && config->on_sgl_click_paused != DO_SAME_AS_ACTIVE)
+        ? config->on_sgl_click_paused
+        : config->on_sgl_click);
+
     return FALSE;
 }
 
@@ -872,8 +875,11 @@ icon_press_cb (GtkStatusIcon *icon _UNUSED_, GdkEventButton *event, gpointer dat
                 g_source_remove (icon_press_timeout);
                 icon_press_timeout = 0;
             }
-            
-            process_click_action (config->on_dbl_click);
+
+            process_click_action ((kalpm_state.is_paused
+                        && config->on_dbl_click_paused != DO_SAME_AS_ACTIVE)
+                    ? config->on_dbl_click_paused
+                    : config->on_dbl_click);
         }
         else if (event->type == GDK_BUTTON_PRESS)
         {

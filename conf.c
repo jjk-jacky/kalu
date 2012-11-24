@@ -977,18 +977,32 @@ parse_config_file (const char       *file,
                     }
                 }
                 else if (  strcmp (key, "OnSglClick") == 0
-                        || strcmp (key, "OnDblClick") == 0)
+                        || strcmp (key, "OnDblClick") == 0
+                        || strcmp (key, "OnSglClickPaused") == 0
+                        || strcmp (key, "OnDblClickPaused") == 0)
                 {
                     on_click_t *on_click;
+                    gboolean is_paused = FALSE;
+
                     if (strcmp (key, "OnSglClick") == 0)
                     {
                         on_click = &(config->on_sgl_click);
                     }
-                    else
+                    else if (strcmp (key, "OnDblClick") == 0)
                     {
                         on_click = &(config->on_dbl_click);
                     }
-                    
+                    else if (strcmp (key, "OnSglClickPaused") == 0)
+                    {
+                        is_paused = TRUE;
+                        on_click = &(config->on_sgl_click_paused);
+                    }
+                    else /* if (strcmp (key, "OnDblClickPaused") == 0) */
+                    {
+                        is_paused = TRUE;
+                        on_click = &(config->on_dbl_click_paused);
+                    }
+
                     if (strcmp (value, "CHECK") == 0)
                     {
                         *on_click = DO_CHECK;
@@ -1012,6 +1026,10 @@ parse_config_file (const char       *file,
                     else if (strcmp (value, "TOGGLE_PAUSE") == 0)
                     {
                         *on_click = DO_TOGGLE_PAUSE;
+                    }
+                    else if (is_paused && strcmp (value, "SAME_AS_ACTIVE") == 0)
+                    {
+                        *on_click = DO_SAME_AS_ACTIVE;
                     }
                     else
                     {

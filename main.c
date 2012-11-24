@@ -954,6 +954,8 @@ main (int argc, char *argv[])
     #endif
     config->on_sgl_click = DO_CHECK;
     config->on_dbl_click = DO_SYSUPGRADE;
+    config->on_sgl_click_paused = DO_SAME_AS_ACTIVE;
+    config->on_dbl_click_paused = DO_TOGGLE_PAUSE;
     config->sane_sort_order = TRUE;
     config->check_pacman_conflict = TRUE;
     config->cmdline_link = strdup ("xdg-open '$URL'");

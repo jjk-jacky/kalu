@@ -94,7 +94,8 @@ typedef enum {
     DO_SYSUPGRADE,
     DO_TOGGLE_WINDOWS,
     DO_LAST_NOTIFS,
-    DO_TOGGLE_PAUSE
+    DO_TOGGLE_PAUSE,
+    DO_SAME_AS_ACTIVE
 } on_click_t;
 
 typedef enum {
@@ -141,6 +142,8 @@ typedef struct _config_t {
     gboolean         check_pacman_conflict;
     on_click_t       on_sgl_click;
     on_click_t       on_dbl_click;
+    on_click_t       on_sgl_click_paused;
+    on_click_t       on_dbl_click_paused;
     int              use_ip;
     
     templates_t     *tpl_upgrades;
