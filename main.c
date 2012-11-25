@@ -898,6 +898,19 @@ main (int argc, char *argv[])
     config->tpl_news->title = strdup ("$NB unread news");
     config->tpl_news->package = strdup ("- $NEWS");
     
+    #ifndef DISABLE_GUI
+    if (!is_cli)
+    {
+        if (!gtk_init_check (&argc, &argv))
+        {
+            fputs ("GTK+ initialization failed\n", stderr);
+            puts ("To run kalu on CLI only mode, use --auto-checks or --manual-checks");
+            free_config ();
+            return 1;
+        }
+    }
+    #endif
+
     /* parse config */
     snprintf (conffile, MAX_PATH - 1, "%s/.config/kalu/kalu.conf", g_get_home_dir ());
     if (!parse_config_file (conffile, CONF_FILE_KALU, &error))
@@ -927,18 +940,6 @@ main (int argc, char *argv[])
         g_clear_error (&error);
     }
     
-    #ifndef DISABLE_GUI
-    if (!is_cli)
-    {
-        if (!gtk_init_check (&argc, &argv))
-        {
-            fputs ("GTK+ initialization failed\n", stderr);
-            puts ("To run kalu on CLI only mode, use --auto-checks or --manual-checks");
-            free_config ();
-            return 1;
-        }
-    }
-    #endif
     if (curl_global_init (CURL_GLOBAL_ALL) == 0)
     {
         config->is_curl_init = TRUE;
