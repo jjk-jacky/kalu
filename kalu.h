@@ -134,7 +134,7 @@ typedef struct _config_t {
     upgrade_action_t action;
     char            *cmdline;
     char            *cmdline_aur;
-    #ifndef DISBALE_UPDATER
+    #ifndef DISABLE_UPDATER
     alpm_list_t     *cmdline_post;
     gboolean         confirm_post;
     #endif
@@ -159,12 +159,12 @@ typedef struct _config_t {
     
     char            *news_last;
     alpm_list_t     *news_read;
-    #ifndef DISBALE_UPDATER
+    #ifndef DISABLE_UPDATER
     char            *cmdline_link;
     #endif
     
     gboolean         is_curl_init;
-    #ifndef DISBALE_UPDATER
+    #ifndef DISABLE_GUI
     alpm_list_t     *last_notifs;
     #endif
 } config_t;
