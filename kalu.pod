@@ -585,6 +585,34 @@ Will toggle kalu's paused state, pausing or resuming automatic checks.
 
 =back
 
+=head1 CONFIGURATION TWEAKS
+
+A few configuration options do not have GUI (i.e. cannot be set from the
+Preferences window), but can be set manually. They will, of course, be
+preserved when saving preferences.
+
+The following tweaks are supported, and can be used in I<kalu.conf> (under the
+[options] section) :
+
+=over
+
+=item B<UseIP = [4|6]>
+
+This will force kalu to use IPv4 or IPv6. This only applies for connections done
+via kalu, i.e. news & AUR, but doesn't apply to ALPM.
+
+This could be usefull e.g. if you're having issue with the AUR timing out when
+resolving using IPv6.
+
+=item B<AutoNotifs = 0>
+
+This can be used to disable showing notifications for automatic checks. They
+can still be shown on demand, using "re-show last notifications".
+
+Notifications will still be shown for manual checks.
+
+=back
+
 =head1 SYSTEM UPGRADE
 
 An item "System Upgrade" on kalu's menu, as well as a button "Upgrade system"
