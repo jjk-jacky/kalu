@@ -50,7 +50,8 @@
 /* global variable */
 config_t *config = NULL;
 
-static void notify_updates (alpm_list_t *packages, check_t type, gchar *xml_news);
+static void notify_updates (alpm_list_t *packages, check_t type,
+        gchar *xml_news, gboolean show_it);
 static void free_config (void);
 
 #ifdef DISABLE_GUI
@@ -105,7 +106,12 @@ static gboolean is_cli = FALSE;
 #endif /* DISABLE_GUI*/
 
 static void
-notify_updates (alpm_list_t *packages, check_t type, gchar *xml_news)
+notify_updates (
+        alpm_list_t *packages,
+        check_t      type,
+        gchar       *xml_news,
+        gboolean     show_it
+        )
 {
     alpm_list_t *i;
     
@@ -368,7 +374,10 @@ notify_updates (alpm_list_t *packages, check_t type, gchar *xml_news)
     debug ("adding new notif (%s) to last_notifs", notif->summary);
     config->last_notifs = alpm_list_add (config->last_notifs, notif);
     /* show it */
-    show_notif (notif);
+    if (show_it)
+    {
+        show_notif (notif);
+    }
     
     #endif /* DISABLE_GUI */
 }
@@ -389,6 +398,7 @@ kalu_check_work (gboolean is_auto)
     gint nb_news        = -1;
     #endif /* DISABLE_GUI */
     unsigned int checks = (is_auto) ? config->checks_auto : config->checks_manual;
+    gboolean show_it = (is_auto) ? config->auto_notifs : TRUE;
     
     #ifndef DISABLE_GUI
     /* drop the list of last notifs, since we'll be making up a new one */
@@ -409,7 +419,7 @@ kalu_check_work (gboolean is_auto)
             #ifndef DISABLE_GUI
             nb_news = (gint) alpm_list_count (packages);
             #endif /* DISABLE_GUI */
-            notify_updates (packages, CHECK_NEWS, xml_news);
+            notify_updates (packages, CHECK_NEWS, xml_news, show_it);
             FREELIST (packages);
         }
         else if (error != NULL)
@@ -479,7 +489,7 @@ kalu_check_work (gboolean is_auto)
                 #ifndef DISABLE_GUI
                 nb_upgrades = (gint) alpm_list_count (packages);
                 #endif /* DISABLE_GUI */
-                notify_updates (packages, CHECK_UPGRADES, NULL);
+                notify_updates (packages, CHECK_UPGRADES, NULL, show_it);
             }
             #ifndef DISABLE_GUI
             else if (error == NULL)
@@ -561,7 +571,7 @@ kalu_check_work (gboolean is_auto)
                 #ifndef DISABLE_GUI
                 nb_watched = (gint) alpm_list_count (packages);
                 #endif
-                notify_updates (packages, CHECK_WATCHED, NULL);
+                notify_updates (packages, CHECK_WATCHED, NULL, show_it);
             }
             #ifndef DISABLE_GUI
             else if (error == NULL)
@@ -598,7 +608,7 @@ kalu_check_work (gboolean is_auto)
                     #ifndef DISABLE_GUI
                     nb_aur = (gint) alpm_list_count (packages);
                     #endif
-                    notify_updates (packages, CHECK_AUR, NULL);
+                    notify_updates (packages, CHECK_AUR, NULL, show_it);
                     FREE_PACKAGE_LIST (packages);
                 }
                 #ifndef DISABLE_GUI
@@ -651,7 +661,7 @@ kalu_check_work (gboolean is_auto)
             #ifndef DISABLE_GUI
             nb_watched_aur = (gint) alpm_list_count (packages);
             #endif
-            notify_updates (packages, CHECK_WATCHED_AUR, NULL);
+            notify_updates (packages, CHECK_WATCHED_AUR, NULL, show_it);
         }
         #ifndef DISABLE_GUI
         else if (error == NULL)
@@ -946,6 +956,7 @@ main (int argc, char *argv[])
                             | CHECK_WATCHED_AUR | CHECK_NEWS;
     config->checks_auto   = CHECK_UPGRADES | CHECK_WATCHED | CHECK_AUR
                             | CHECK_WATCHED_AUR | CHECK_NEWS;
+    config->auto_notifs = TRUE;
     #ifndef DISABLE_UPDATER
     config->action = UPGRADE_ACTION_KALU;
     config->confirm_post = TRUE;

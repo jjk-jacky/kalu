@@ -145,6 +145,7 @@ typedef struct _config_t {
     on_click_t       on_sgl_click_paused;
     on_click_t       on_dbl_click_paused;
     int              use_ip;
+    gboolean         auto_notifs;
     
     templates_t     *tpl_upgrades;
     templates_t     *tpl_watched;

@@ -1072,6 +1072,24 @@ parse_config_file (const char       *file,
                         continue;
                     }
                 }
+                else if (strcmp (key, "AutoNotifs") == 0)
+                {
+                    if (value[0] == '0' && value[1] == '\0')
+                    {
+                        config->auto_notifs = FALSE;
+                        debug ("config: disable showing notifs for auto-checks");
+                    }
+                    else if (value[0] == '1' && value[1] == '\0')
+                    {
+                        config->auto_notifs = TRUE;
+                        debug ("config: enable showing notifs for auto-checks");
+                    }
+                    else
+                    {
+                        add_error ("unknown value for %s: %s", key, value);
+                        continue;
+                    }
+                }
                 else
                 {
                     add_error ("unknown option: %s", key);

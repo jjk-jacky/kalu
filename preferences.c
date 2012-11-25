@@ -793,7 +793,6 @@ btn_save_cb (GtkButton *button _UNUSED_, gpointer data _UNUSED_)
     new_config.aur_ignore       = NULL;
 
     /* re-use the UseIP value (cannot be set via GUI) */
-    new_config.use_ip = config->use_ip;
     if (new_config.use_ip == IPv4)
     {
         add_to_conf ("UseIP = 4\n");
@@ -801,6 +800,12 @@ btn_save_cb (GtkButton *button _UNUSED_, gpointer data _UNUSED_)
     else if (new_config.use_ip == IPv6)
     {
         add_to_conf ("UseIP = 6\n");
+    }
+
+    /* disabling showing notifs for auto-checks (no GUI) */
+    if (!new_config.auto_notifs)
+    {
+        add_to_conf ("AutoNotifs = 0\n");
     }
     
     /* General */
