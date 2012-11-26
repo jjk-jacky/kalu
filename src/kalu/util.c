@@ -4,7 +4,7 @@
  * util.c
  * Copyright (C) 2012 Olivier Brunel <i.am.jack.mail@gmail.com>
  * Copyright (c) 2006-2011 Pacman Development Team <pacman-dev@archlinux.org>
- * 
+ *
  * This file is part of kalu.
  *
  * kalu is free software: you can redistribute it and/or modify it under the
@@ -49,18 +49,19 @@ ensure_path (char *path)
 {
     char *s, *p;
     struct stat stat_info;
-    
+
     p = path + 1; /* skip the root */
     while ((s = strchr (p, '/')))
     {
         *s = '\0';
-        if (0 != stat(path, &stat_info))
+        if (0 != stat (path, &stat_info))
         {
             /* if does not exist, we create it */
             if (errno == ENOENT)
             {
                 debug ("mkdir %s", path);
-                if (0 != mkdir (path, S_IRWXU | S_IRGRP | S_IWGRP | S_IROTH | S_IWOTH))
+                if (0 != mkdir (path, S_IRWXU | S_IRGRP | S_IWGRP | S_IROTH
+                            | S_IWOTH))
                 {
                     *s = '/'; /* restore */
                     return FALSE;
@@ -74,7 +75,7 @@ ensure_path (char *path)
             }
         }
         /* make sure it's a folder */
-        else if (!S_ISDIR(stat_info.st_mode))
+        else if (!S_ISDIR (stat_info.st_mode))
         {
             *s = '/'; /* restore */
             return FALSE;
@@ -88,11 +89,11 @@ ensure_path (char *path)
 /*******************************************************************************
  * The following functions come from pacman's source code. (They might have
  * been (slightly) modified.)
- * 
+ *
  * Copyright (c) 2006-2011 Pacman Development Team <pacman-dev@archlinux.org>
  * Copyright (c) 2002-2006 by Judd Vinet <jvinet@zeroflux.org>
  * http://projects.archlinux.org/pacman.git
- * 
+ *
  ******************************************************************************/
 
 /**
@@ -101,37 +102,45 @@ ensure_path (char *path)
 char *
 strtrim (char *str)
 {
-	char *pch = str;
+    char *pch = str;
 
-	if(str == NULL || *str == '\0') {
-		/* string is empty, so we're done. */
-		return str;
-	}
+    if (str == NULL || *str == '\0')
+    {
+        /* string is empty, so we're done. */
+        return str;
+    }
 
-	while(isspace((unsigned char)*pch)) {
-		pch++;
-	}
-	if(pch != str) {
-		size_t len = strlen(pch);
-		if(len) {
-			memmove(str, pch, len + 1);
-		} else {
-			*str = '\0';
-		}
-	}
+    while (isspace ((unsigned char) *pch))
+    {
+        pch++;
+    }
+    if (pch != str)
+    {
+        size_t len = strlen (pch);
+        if (len)
+        {
+            memmove (str, pch, len + 1);
+        }
+        else
+        {
+            *str = '\0';
+        }
+    }
 
-	/* check if there wasn't anything but whitespace in the string. */
-	if(*str == '\0') {
-		return str;
-	}
+    /* check if there wasn't anything but whitespace in the string. */
+    if (*str == '\0')
+    {
+        return str;
+    }
 
-	pch = (str + (strlen(str) - 1));
-	while(isspace((unsigned char)*pch)) {
-		pch--;
-	}
-	*++pch = '\0';
+    pch = (str + (strlen (str) - 1));
+    while (isspace ((unsigned char) *pch))
+    {
+        pch--;
+    }
+    *++pch = '\0';
 
-	return str;
+    return str;
 }
 
 /**
@@ -141,91 +150,97 @@ strtrim (char *str)
 char
 *strreplace (const char *str, const char *needle, const char *replace)
 {
-	const char *p = NULL, *q = NULL;
-	char *newstr = NULL, *newp = NULL;
-	alpm_list_t *i = NULL, *list = NULL;
-	size_t needlesz = strlen(needle), replacesz = strlen(replace);
-	size_t newsz;
+    const char *p = NULL, *q = NULL;
+    char *newstr = NULL, *newp = NULL;
+    alpm_list_t *i = NULL, *list = NULL;
+    size_t needlesz = strlen (needle), replacesz = strlen (replace);
+    size_t newsz;
 
-	if(!str) {
-		return NULL;
-	}
+    if (!str)
+    {
+        return NULL;
+    }
 
-	p = str;
-	q = strstr(p, needle);
-	while(q) {
-		list = alpm_list_add(list, (char *)q);
-		p = q + needlesz;
-		q = strstr(p, needle);
-	}
+    p = str;
+    q = strstr (p, needle);
+    while (q)
+    {
+        list = alpm_list_add (list, (char *) q);
+        p = q + needlesz;
+        q = strstr (p, needle);
+    }
 
-	/* no occurences of needle found */
-	if(!list) {
-		return strdup(str);
-	}
-	/* size of new string = size of old string + "number of occurences of needle"
-	 * x "size difference between replace and needle" */
-	newsz = strlen(str) + 1 +
-		alpm_list_count(list) * (replacesz - needlesz);
-	newstr = calloc(newsz, sizeof(char));
-	if(!newstr) {
-		return NULL;
-	}
+    /* no occurences of needle found */
+    if (!list)
+    {
+        return strdup (str);
+    }
+    /* size of new string = size of old string + "number of occurences of needle"
+     * x "size difference between replace and needle" */
+    newsz = strlen (str) + 1 + alpm_list_count (list) * (replacesz - needlesz);
+    newstr = new0 (char, newsz);
+    if (!newstr)
+    {
+        return NULL;
+    }
 
-	p = str;
-	newp = newstr;
-	for(i = list; i; i = alpm_list_next(i)) {
-		q = i->data;
-		if(q > p) {
-			/* add chars between this occurence and last occurence, if any */
-			memcpy(newp, p, (size_t)(q - p));
-			newp += q - p;
-		}
-		memcpy(newp, replace, replacesz);
-		newp += replacesz;
-		p = q + needlesz;
-	}
-	alpm_list_free(list);
+    p = str;
+    newp = newstr;
+    FOR_LIST (i, list)
+    {
+        q = i->data;
+        if (q > p)
+        {
+            /* add chars between this occurence and last occurence, if any */
+            memcpy (newp, p, (size_t) (q - p));
+            newp += q - p;
+        }
+        memcpy (newp, replace, replacesz);
+        newp += replacesz;
+        p = q + needlesz;
+    }
+    alpm_list_free (list);
 
-	if(*p) {
-		/* add the rest of 'p' */
-		strcpy(newp, p);
-	}
+    if (*p)
+    {
+        /* add the rest of 'p' */
+        strcpy (newp, p);
+    }
 
-	return newstr;
+    return newstr;
 }
 
 gboolean
 trans_init (kalu_alpm_t *alpm, alpm_transflag_t flags, int check_valid, GError **error)
 {
     GError *local_err = NULL;
-    
-	if (!check_syncdbs (alpm, 0, check_valid, &local_err))
+
+    if (!check_syncdbs (alpm, 0, check_valid, &local_err))
     {
         g_propagate_error (error, local_err);
         return FALSE;
     }
 
-	if (alpm_trans_init (alpm->handle, flags) == -1)
+    if (alpm_trans_init (alpm->handle, flags) == -1)
     {
         g_set_error (error, KALU_ERROR, 1, "Failed to initiate transaction: %s",
-            alpm_strerror (alpm_errno (alpm->handle)));
-		return FALSE;
-	}
-	
+                alpm_strerror (alpm_errno (alpm->handle)));
+        return FALSE;
+    }
+
     return TRUE;
 }
 
 gboolean
 trans_release (kalu_alpm_t *alpm, GError **error)
 {
-	if (alpm_trans_release (alpm->handle) == -1)
+    if (alpm_trans_release (alpm->handle) == -1)
     {
         g_set_error (error, KALU_ERROR, 2, "Failed to release transaction: %s",
-            alpm_strerror (alpm_errno (alpm->handle)));
-		return FALSE;
-	}
-	return TRUE;
+                alpm_strerror (alpm_errno (alpm->handle)));
+        return FALSE;
+    }
+    return TRUE;
 }
 
 /** Converts sizes in bytes into human readable units.
@@ -242,126 +257,138 @@ trans_release (kalu_alpm_t *alpm, GError **error)
 double
 humanize_size (off_t bytes, const char target_unit, const char **label)
 {
-	static const char *labels[] = {"B", "KiB", "MiB", "GiB",
-		"TiB", "PiB", "EiB", "ZiB", "YiB"};
-	static const int unitcount = sizeof(labels) / sizeof(labels[0]);
+    static const char *labels[] = {"B", "KiB", "MiB", "GiB",
+        "TiB", "PiB", "EiB", "ZiB", "YiB"};
+    static const int unitcount = sizeof (labels) / sizeof (labels[0]);
 
-	double val = (double)bytes;
-	int index;
+    double val = (double) bytes;
+    int index;
 
-	for(index = 0; index < unitcount - 1; index++) {
-		if(target_unit != '\0' && labels[index][0] == target_unit) {
-			break;
-		} else if(target_unit == '\0' && val <= 2048.0 && val >= -2048.0) {
-			break;
-		}
-		val /= 1024.0;
-	}
+    for (index = 0; index < unitcount - 1; index++)
+    {
+        if (target_unit != '\0' && labels[index][0] == target_unit)
+        {
+            break;
+        }
+        else if (target_unit == '\0' && val <= 2048.0 && val >= -2048.0)
+        {
+            break;
+        }
+        val /= 1024.0;
+    }
 
-	if(label) {
-		*label = labels[index];
-	}
+    if (label)
+    {
+        *label = labels[index];
+    }
 
-	return val;
+    return val;
 }
 
 /* does the same thing as 'rm -rf' */
 int
 rmrf (const char *path)
 {
-	int errflag = 0;
-	struct dirent *dp;
-	DIR *dirp;
-    
-	if (unlink(path))
+    int              errflag = 0;
+    struct dirent   *dp;
+    DIR             *dirp;
+
+    if (unlink (path))
     {
-		if (errno == ENOENT)
+        if (errno == ENOENT)
         {
             goto done;
-		}
+        }
         else if (errno == EPERM)
         {
-			/* fallthrough */
-		}
-        else if(errno == EISDIR)
+            /* fallthrough */
+        }
+        else if (errno == EISDIR)
         {
-			/* fallthrough */
-		}
-        else if(errno == ENOTDIR)
+            /* fallthrough */
+        }
+        else if (errno == ENOTDIR)
         {
-			errflag = 1;
+            errflag = 1;
             goto done;
-		}
+        }
         else
         {
-			/* not a directory */
-			errflag = 1;
+            /* not a directory */
+            errflag = 1;
             goto done;
-		}
+        }
 
-		dirp = opendir(path);
-		if (!dirp)
+        dirp = opendir (path);
+        if (!dirp)
         {
-			errflag = 1;
+            errflag = 1;
             goto done;
-		}
-		for (dp = readdir (dirp); dp != NULL; dp = readdir (dirp))
+        }
+        for (dp = readdir (dirp); dp != NULL; dp = readdir (dirp))
         {
-			if (dp->d_ino)
+            if (dp->d_ino)
             {
-				if (strcmp (dp->d_name, "..") != 0 && strcmp (dp->d_name, ".") != 0)
+                if (!streq (dp->d_name, "..") && !streq (dp->d_name, "."))
                 {
                     char name[MAX_PATH];
-                    if (snprintf (name, MAX_PATH, "%s/%s", path, dp->d_name) < MAX_PATH)
+                    if (snprintf (name, MAX_PATH, "%s/%s",
+                                path, dp->d_name) < MAX_PATH)
                     {
                         errflag += rmrf (name);
                     }
-					else
+                    else
                     {
                         ++errflag;
                     }
-				}
-			}
-		}
-		closedir (dirp);
-		if (rmdir (path))
+                }
+            }
+        }
+        closedir (dirp);
+        if (rmdir (path))
         {
-			++errflag;
-		}
-		
-	}
+            ++errflag;
+        }
+
+    }
 done:
-    debug ("removing %s %s (%d)", path, (!errflag) ? "success" : "failed", errflag);
+    debug ("removing %s %s (%d)",
+            path,
+            (!errflag) ? "success" : "failed",
+            errflag);
     return errflag;
 }
 
 gboolean
 check_syncdbs (kalu_alpm_t *alpm, size_t need_repos, int check_valid, GError **error)
 {
-	alpm_list_t *i;
-	alpm_list_t *sync_dbs = alpm_option_get_syncdbs (alpm->handle);
+    alpm_list_t *i;
+    alpm_list_t *sync_dbs = alpm_option_get_syncdbs (alpm->handle);
 
-	if (need_repos && sync_dbs == NULL)
+    if (need_repos && sync_dbs == NULL)
     {
-        g_set_error (error, KALU_ERROR, 1, "No usable package repositories configured");
-		return FALSE;
-	}
+        g_set_error (error, KALU_ERROR, 1,
+                "No usable package repositories configured");
+        return FALSE;
+    }
 
-	if (check_valid)
+    if (check_valid)
     {
-		/* ensure all known dbs are valid */
-		for (i = sync_dbs; i; i = alpm_list_next (i))
+        /* ensure all known dbs are valid */
+        FOR_LIST (i, sync_dbs)
         {
-			alpm_db_t *db = i->data;
-			if (alpm_db_get_valid (db))
+            alpm_db_t *db = i->data;
+            if (alpm_db_get_valid (db))
             {
-                g_set_error (error, KALU_ERROR, 1, "Database %s is not valid: %s",
-                    alpm_db_get_name (db), alpm_strerror (alpm_errno (alpm->handle)));
-				return FALSE;
-			}
-		}
-	}
-	return TRUE;
+                g_set_error (error, KALU_ERROR, 1,
+                        "Database %s is not valid: %s",
+                        alpm_db_get_name (db),
+                        alpm_strerror (alpm_errno (alpm->handle)));
+                return FALSE;
+            }
+        }
+    }
+    return TRUE;
 }
 
 /******************************************************************************/
@@ -382,8 +409,13 @@ snprint_size (char *buf, int buflen, double size, const char *unit)
 }
 
 void
-parse_tpl (char *tpl, char **text, unsigned int *len, unsigned int *alloc,
-           replacement_t **_replacements)
+parse_tpl (
+        char             *tpl,
+        char            **text,
+        unsigned int     *len,
+        unsigned int     *alloc,
+        replacement_t   **_replacements
+        )
 {
     replacement_t *r, **replacements;
     char *t;
@@ -392,11 +424,11 @@ parse_tpl (char *tpl, char **text, unsigned int *len, unsigned int *alloc,
     unsigned int add;
     size_t l;
     char found;
-    
+
     for (t = tpl, s = *text + *len; *t; ++t)
     {
         found = 0;
-        
+
         /* placeholder? */
         if (*t == '$')
         {
@@ -407,7 +439,7 @@ parse_tpl (char *tpl, char **text, unsigned int *len, unsigned int *alloc,
                 {
                     continue;
                 }
-                
+
                 l = strlen (r->name);
                 if (strncmp (t + 1, r->name, l) == 0)
                 {
@@ -416,7 +448,7 @@ parse_tpl (char *tpl, char **text, unsigned int *len, unsigned int *alloc,
                     if (*len + add >= *alloc)
                     {
                         *alloc += 1024;
-                        *text = (gchar *) realloc (*text, (*alloc + 1) * sizeof (**text));
+                        *text = renew (gchar, *alloc + 1, *text);
                         s = *text + *len;
                     }
                     /* add value */
@@ -441,11 +473,11 @@ parse_tpl (char *tpl, char **text, unsigned int *len, unsigned int *alloc,
         if (*len >= *alloc)
         {
             *alloc += 1024;
-            *text = (gchar *) realloc (*text, (*alloc + 1) * sizeof (**text));
+            *text = renew (gchar, *alloc + 1, *text);
             s = *text + *len;
         }
     }
-    
+
     *s = '\0';
 }
 

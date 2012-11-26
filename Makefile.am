@@ -27,8 +27,13 @@ AM_CFLAGS = \
 	-D_BSD_SOURCE \
 	${WARNING_CFLAGS}
 
+noinst_LTLIBRARIES = libshared.la
+libshared_la_SOURCES = \
+	src/kalu/shared.h \
+	src/kalu/shared.c
+
 kalu_CFLAGS = ${AM_CFLAGS}
-kalu_LDADD = -lalpm -lm @LIBCURL@
+kalu_LDADD = libshared.la -lalpm -lm @LIBCURL@
 kalu_SOURCES = \
 	src/kalu/main.c \
 	src/kalu/arch_linux.h \
@@ -77,7 +82,7 @@ kalu_SOURCES += \
 	src/kalu/updater.c
 
 kalu_dbus_CFLAGS = ${AM_CFLAGS} @GTK_CFLAGS@ @POLKIT_CFLAGS@
-kalu_dbus_LDADD = -lalpm @GTK_LIBS@ @POLKIT_LIBS@
+kalu_dbus_LDADD = libshared.la -lalpm @GTK_LIBS@ @POLKIT_LIBS@
 kalu_dbus_SOURCES = \
 	src/kalu-dbus/updater-dbus.h \
 	src/kalu-dbus/kupdater.h \

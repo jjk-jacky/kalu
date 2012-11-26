@@ -64,13 +64,13 @@ typedef enum {
 struct _watched_t {
     GtkWidget *window_notif;
     GtkWidget *tree_notif;
-    
+
     GtkWidget *window_manage;
     GtkWidget *tree_manage;
-    
+
     GtkWidget *window_notif_aur;
     GtkWidget *tree_notif_aur;
-    
+
     GtkWidget *window_manage_aur;
     GtkWidget *tree_manage_aur;
 };
@@ -88,9 +88,9 @@ renderer_toggle_cb (GtkCellRendererToggle *renderer _UNUSED_, gchar *path,
                     gboolean is_aur)
 {
     GtkTreeModel *model;
-    GtkTreeIter iter;
-    gboolean upd;
-    
+    GtkTreeIter   iter;
+    gboolean      upd;
+
     if (is_aur)
     {
         model = gtk_tree_view_get_model (GTK_TREE_VIEW (watched.tree_notif_aur));
@@ -99,7 +99,7 @@ renderer_toggle_cb (GtkCellRendererToggle *renderer _UNUSED_, gchar *path,
     {
         model = gtk_tree_view_get_model (GTK_TREE_VIEW (watched.tree_notif));
     }
-    
+
     gtk_tree_model_get_iter_from_string (model, &iter, path);
     gtk_tree_model_get (model, &iter, WCOL_UPD, &upd, -1);
     gtk_list_store_set (GTK_LIST_STORE (model), &iter, WCOL_UPD, !upd, -1);
@@ -109,11 +109,11 @@ static void
 window_destroy_cb (GtkWidget *window, w_type_t type)
 {
     GtkTreeModel *model;
-    GtkTreeIter iter;
-    char *name = NULL;
-    char *old  = NULL;
-    char *new  = NULL;
-    
+    GtkTreeIter   iter;
+    char         *name = NULL;
+    char         *old  = NULL;
+    char         *new  = NULL;
+
     switch (type)
     {
         case W_NOTIF:
@@ -131,18 +131,18 @@ window_destroy_cb (GtkWidget *window, w_type_t type)
         default:
             return;
     }
-    
+
     /* free memory */
     if (gtk_tree_model_get_iter_first (model, &iter))
     {
         while (1)
         {
             gtk_tree_model_get (model, &iter, WCOL_NAME, &name,
-                WCOL_OLD_VERSION, &old, WCOL_NEW_VERSION, &new, -1);
+                    WCOL_OLD_VERSION, &old, WCOL_NEW_VERSION, &new, -1);
             free (name);
             free (old);
             free (new);
-            
+
             /* next */
             if (!gtk_tree_model_iter_next (model, &iter))
             {
@@ -150,7 +150,7 @@ window_destroy_cb (GtkWidget *window, w_type_t type)
             }
         }
     }
-    
+
     switch (type)
     {
         case W_NOTIF:
@@ -170,7 +170,7 @@ window_destroy_cb (GtkWidget *window, w_type_t type)
             watched.tree_manage_aur = NULL;
             break;
     }
-    
+
     /* remove from list of open windows */
     remove_open_window (window);
 }
@@ -202,7 +202,7 @@ save_watched (gboolean is_aur, alpm_list_t *new_watched)
     char file[MAX_PATH];
     alpm_list_t *i;
     gboolean success = FALSE;
-    
+
     if (is_aur)
     {
         snprintf (file, MAX_PATH - 1, "%s/.config/kalu/watched-aur.conf", g_get_home_dir ());
@@ -211,13 +211,13 @@ save_watched (gboolean is_aur, alpm_list_t *new_watched)
     {
         snprintf (file, MAX_PATH - 1, "%s/.config/kalu/watched.conf", g_get_home_dir ());
     }
-    
+
     if (ensure_path (file))
     {
         fp = fopen (file, "w");
         if (fp != NULL)
         {
-            for (i = new_watched; i; i = alpm_list_next (i))
+            FOR_LIST (i, new_watched)
             {
                 watched_package_t *w_pkg = i->data;
                 fputs (w_pkg->name, fp);
@@ -225,12 +225,12 @@ save_watched (gboolean is_aur, alpm_list_t *new_watched)
                 fputs (w_pkg->version, fp);
                 fputs ("\n", fp);
             }
-            
+
             fclose (fp);
             success = TRUE;
         }
     }
-    
+
     return success;
 }
 
@@ -249,8 +249,10 @@ monitor_response_cb (GtkWidget *dialog, gint response, alpm_list_t *updates)
         GtkTreeModel *model;
         GtkTreeIter iter;
         watched_package_t *w_pkg, w_pkg_tmp;
-        gboolean is_aur = GPOINTER_TO_INT (g_object_get_data (G_OBJECT (dialog), "is-aur"));
-        
+        gboolean is_aur;
+        is_aur = GPOINTER_TO_INT (g_object_get_data (G_OBJECT (dialog),
+                    "is-aur"));
+
         if (is_aur)
         {
             model = gtk_tree_view_get_model (GTK_TREE_VIEW (watched.tree_manage_aur));
@@ -259,27 +261,27 @@ monitor_response_cb (GtkWidget *dialog, gint response, alpm_list_t *updates)
         {
             model = gtk_tree_view_get_model (GTK_TREE_VIEW (watched.tree_manage));
         }
-        
+
         if (gtk_tree_model_get_iter_first (model, &iter))
         {
             while (1)
             {
                 /* get packge info from list */
                 gtk_tree_model_get (model, &iter,
-                    WCOL_NAME,        &(w_pkg_tmp.name),
-                    WCOL_OLD_VERSION, &(w_pkg_tmp.version),
-                    -1);
+                        WCOL_NAME,        &(w_pkg_tmp.name),
+                        WCOL_OLD_VERSION, &(w_pkg_tmp.version),
+                        -1);
                 /* was this package updated ? */
                 w_pkg = alpm_list_find (updates, &w_pkg_tmp,
-                    (alpm_list_fn_cmp) watched_package_name_cmp);
+                        (alpm_list_fn_cmp) watched_package_name_cmp);
                 if (NULL != w_pkg)
                 {
                     /* update version */
                     free (w_pkg_tmp.version);
                     gtk_list_store_set (GTK_LIST_STORE (model), &iter,
-                        WCOL_OLD_VERSION, strdup (w_pkg->version), -1);
+                            WCOL_OLD_VERSION, strdup (w_pkg->version), -1);
                 }
-                
+
                 /* next */
                 if (!gtk_tree_model_iter_next (model, &iter))
                 {
@@ -288,23 +290,28 @@ monitor_response_cb (GtkWidget *dialog, gint response, alpm_list_t *updates)
             }
         }
     }
-    
+
     alpm_list_free (updates);
 }
 
 static void
 btn_mark_cb (GtkButton *button _UNUSED_, gboolean is_aur)
 {
-    GtkTreeModel *model;
-    GtkTreeIter iter;
-    gboolean upd;
-    gchar *new;
-    watched_package_t *w_pkg, *w_pkg2, w_pkg_tmp;
-    alpm_list_t *updates = NULL;
-    int nb_watched = 0;
-    GtkWidget *window_notif, *window_manage;
-    alpm_list_t **cfglist, *i, *new_watched = NULL;
-    
+    GtkTreeModel        *model;
+    GtkTreeIter          iter;
+    gboolean             upd;
+    gchar               *new;
+    watched_package_t   *w_pkg;
+    watched_package_t   *w_pkg2;
+    watched_package_t    w_pkg_tmp;
+    alpm_list_t         *updates    = NULL;
+    int                  nb_watched = 0;
+    GtkWidget           *window_notif;
+    GtkWidget           *window_manage;
+    alpm_list_t        **cfglist;
+    alpm_list_t         *i;
+    alpm_list_t         *new_watched = NULL;
+
     if (is_aur)
     {
         window_notif = watched.window_notif_aur;
@@ -319,19 +326,19 @@ btn_mark_cb (GtkButton *button _UNUSED_, gboolean is_aur)
         model = gtk_tree_view_get_model (GTK_TREE_VIEW (watched.tree_notif));
         cfglist = &(config->watched);
     }
-    
+
     gtk_widget_hide (window_notif);
-    
+
     /* duplicate the list */
-    for (i = *cfglist; i; i = alpm_list_next (i))
+    FOR_LIST (i, *cfglist)
     {
         w_pkg = i->data;
-        w_pkg2 = calloc (1, sizeof (*w_pkg2));
+        w_pkg2 = new0 (watched_package_t, 1);
         w_pkg2->name = strdup (w_pkg->name);
         w_pkg2->version = strdup (w_pkg->version);
         new_watched = alpm_list_add (new_watched, w_pkg2);
     }
-    
+
     if (gtk_tree_model_get_iter_first (model, &iter))
     {
         while (1)
@@ -340,13 +347,13 @@ btn_mark_cb (GtkButton *button _UNUSED_, gboolean is_aur)
             if (upd)
             {
                 gtk_tree_model_get (model, &iter,
-                    WCOL_NAME,        &(w_pkg_tmp.name),
-                    WCOL_OLD_VERSION, &(w_pkg_tmp.version),
-                    WCOL_NEW_VERSION, &new,
-                    -1);
+                        WCOL_NAME,        &(w_pkg_tmp.name),
+                        WCOL_OLD_VERSION, &(w_pkg_tmp.version),
+                        WCOL_NEW_VERSION, &new,
+                        -1);
                 /* find this package/version */
                 w_pkg = alpm_list_find (new_watched, &w_pkg_tmp,
-                    (alpm_list_fn_cmp) watched_package_cmp);
+                        (alpm_list_fn_cmp) watched_package_cmp);
                 if (NULL != w_pkg)
                 {
                     /* update version */
@@ -364,7 +371,7 @@ btn_mark_cb (GtkButton *button _UNUSED_, gboolean is_aur)
             {
                 ++nb_watched;
             }
-            
+
             /* next */
             if (!gtk_tree_model_iter_next (model, &iter))
             {
@@ -372,7 +379,7 @@ btn_mark_cb (GtkButton *button _UNUSED_, gboolean is_aur)
             }
         }
     }
-    
+
     /* save to file */
     if (save_watched (is_aur, new_watched))
     {
@@ -387,33 +394,36 @@ btn_mark_cb (GtkButton *button _UNUSED_, gboolean is_aur)
         {
             GtkWidget *dialog;
             dialog = new_confirm ("Do you want to import marked changes into the current list?",
-                                  "You have marked one or more packages with updated version number since starting the editing of this list.",
-                                  "Yes, import changes.", NULL,
-                                  "No, keep the list as is.", NULL,
-                                  window_manage);
-            g_object_set_data (G_OBJECT (dialog), "is-aur", GINT_TO_POINTER (is_aur));
+                    "You have marked one or more packages with updated version number since starting the editing of this list.",
+                    "Yes, import changes.", NULL,
+                    "No, keep the list as is.", NULL,
+                    window_manage);
+            g_object_set_data (G_OBJECT (dialog), "is-aur",
+                    GINT_TO_POINTER (is_aur));
             g_signal_connect (G_OBJECT (dialog), "response",
-                              G_CALLBACK (monitor_response_cb), (gpointer) updates);
+                    G_CALLBACK (monitor_response_cb),
+                    (gpointer) updates);
             gtk_widget_show (dialog);
         }
         else
         {
             alpm_list_free (updates);
         }
-        
+
         /* done */
         check_t type = (is_aur) ? CHECK_WATCHED_AUR : CHECK_WATCHED;
         /* we go and change the last_notifs. if nb_watched = 0 we can
          * simply remove it, else we change it to ask to run the checks again
          * to be up to date */
-        for (i = config->last_notifs; i; i = alpm_list_next (i))
+        FOR_LIST (i, config->last_notifs)
         {
             notif_t *notif = i->data;
             if (notif->type & type)
             {
                 if (nb_watched == 0)
                 {
-                    config->last_notifs = alpm_list_remove_item (config->last_notifs, i);
+                    config->last_notifs = alpm_list_remove_item (
+                            config->last_notifs, i);
                     free_notif (notif);
                 }
                 else
@@ -421,12 +431,12 @@ btn_mark_cb (GtkButton *button _UNUSED_, gboolean is_aur)
                     FREE_PACKAGE_LIST (notif->data);
                     free (notif->text);
                     notif->text = strdup (
-                        (is_aur)
-                        ? "Watched AUR packages have changed, "
+                            (is_aur)
+                            ? "Watched AUR packages have changed, "
                             "you need to run the checks again to be up-to-date."
-                        : "Watched packages have changed, "
+                            : "Watched packages have changed, "
                             "you need to run the checks again to be up-to-date."
-                        );
+                            );
                 }
                 break;
             }
@@ -437,7 +447,8 @@ btn_mark_cb (GtkButton *button _UNUSED_, gboolean is_aur)
     else
     {
         gtk_widget_show (window_notif);
-        show_error ("Unable to save changes to disk", NULL, GTK_WINDOW (window_notif));
+        show_error ("Unable to save changes to disk", NULL,
+                GTK_WINDOW (window_notif));
         /* free duplicate list */
         FREE_WATCHED_PACKAGE_LIST (new_watched);
         alpm_list_free (updates);
@@ -447,12 +458,13 @@ btn_mark_cb (GtkButton *button _UNUSED_, gboolean is_aur)
 static void
 btn_save_cb (GtkButton *button _UNUSED_, gboolean is_aur)
 {
-    GtkTreeModel *model;
-    GtkTreeIter iter;
-    GtkWidget *window;
-    watched_package_t *w_pkg;
-    alpm_list_t **cfglist, *new_watched = NULL;
-    
+    GtkTreeModel        *model;
+    GtkTreeIter          iter;
+    GtkWidget           *window;
+    watched_package_t   *w_pkg;
+    alpm_list_t        **cfglist;
+    alpm_list_t         *new_watched = NULL;
+
     if (is_aur)
     {
         window = watched.window_manage_aur;
@@ -465,9 +477,9 @@ btn_save_cb (GtkButton *button _UNUSED_, gboolean is_aur)
         model = gtk_tree_view_get_model (GTK_TREE_VIEW (watched.tree_manage));
         cfglist = &(config->watched);
     }
-    
+
     gtk_widget_hide (window);
-    
+
     /* make up new list */
     if (gtk_tree_model_get_iter_first (model, &iter))
     {
@@ -475,8 +487,8 @@ btn_save_cb (GtkButton *button _UNUSED_, gboolean is_aur)
         {
             gchar *name = NULL, *version = NULL;
             gtk_tree_model_get (model, &iter, WCOL_NAME, &name,
-                WCOL_OLD_VERSION, &version, -1);
-            w_pkg = calloc (1, sizeof (*w_pkg));
+                    WCOL_OLD_VERSION, &version, -1);
+            w_pkg = new0 (watched_package_t, 1);
             w_pkg->name = strdup ((name) ? name : "-");
             w_pkg->version = strdup ((version) ? version : "0");
             new_watched = alpm_list_add (new_watched, w_pkg);
@@ -487,16 +499,16 @@ btn_save_cb (GtkButton *button _UNUSED_, gboolean is_aur)
             }
         }
     }
-    
+
     /* save it */
     if (save_watched (is_aur, new_watched))
     {
         /* clear watched list in memory */
         FREE_WATCHED_PACKAGE_LIST (*cfglist);
-        
+
         /* apply */
         *cfglist = new_watched;
-        
+
         /* done */
         gtk_widget_destroy (window);
     }
@@ -504,7 +516,7 @@ btn_save_cb (GtkButton *button _UNUSED_, gboolean is_aur)
     {
         /* free */
         FREE_WATCHED_PACKAGE_LIST (new_watched);
-        
+
         gtk_widget_show (window);
         show_error ("Unable to save changes to disk", NULL, GTK_WINDOW (window));
     }
@@ -513,13 +525,17 @@ btn_save_cb (GtkButton *button _UNUSED_, gboolean is_aur)
 static void
 btn_add_cb (GtkToolButton *tb_item _UNUSED_, gboolean is_aur)
 {
-    GtkTreeView *tree   = GTK_TREE_VIEW ((is_aur) ? watched.tree_manage_aur
-                                                  : watched.tree_manage);
-    GtkTreeModel *model = gtk_tree_view_get_model (tree);
-    GtkTreeIter iter;
-    GtkTreePath *path;
-    GtkTreeViewColumn *column;
-    
+    GtkTreeView         *tree;
+    GtkTreeModel        *model;
+    GtkTreeIter          iter;
+    GtkTreePath         *path;
+    GtkTreeViewColumn   *column;
+
+    tree = GTK_TREE_VIEW ((is_aur)
+            ? watched.tree_manage_aur
+            : watched.tree_manage);
+    model = gtk_tree_view_get_model (tree);
+
     gtk_list_store_append (GTK_LIST_STORE (model), &iter);
     path = gtk_tree_model_get_path (model, &iter);
     column = gtk_tree_view_get_column (tree, 0);
@@ -529,14 +545,17 @@ btn_add_cb (GtkToolButton *tb_item _UNUSED_, gboolean is_aur)
 static void
 btn_edit_cb (GtkToolButton *tb_item _UNUSED_, gboolean is_aur)
 {
-    GtkTreeView *tree   = GTK_TREE_VIEW ((is_aur) ? watched.tree_manage_aur
-                                                  : watched.tree_manage);
-    GtkTreeSelection *selection;
-    GtkTreeModel *model;
-    GtkTreeIter iter;
-    GtkTreePath *path;
-    GtkTreeViewColumn *column;
-    
+    GtkTreeView         *tree;
+    GtkTreeSelection    *selection;
+    GtkTreeModel        *model;
+    GtkTreeIter          iter;
+    GtkTreePath         *path;
+    GtkTreeViewColumn   *column;
+
+    tree = GTK_TREE_VIEW ((is_aur)
+            ? watched.tree_manage_aur
+            : watched.tree_manage);
+
     selection = gtk_tree_view_get_selection (tree);
     if (!gtk_tree_selection_get_selected (selection, &model, &iter))
     {
@@ -550,12 +569,15 @@ btn_edit_cb (GtkToolButton *tb_item _UNUSED_, gboolean is_aur)
 static void
 btn_remove_cb (GtkToolButton *tb_item _UNUSED_, gboolean is_aur)
 {
-    GtkTreeView *tree   = GTK_TREE_VIEW ((is_aur) ? watched.tree_manage_aur
-                                                  : watched.tree_manage);
-    GtkTreeSelection *selection;
-    GtkTreeModel *model;
-    GtkTreeIter iter;
-    
+    GtkTreeView         *tree;
+    GtkTreeSelection    *selection;
+    GtkTreeModel        *model;
+    GtkTreeIter          iter;
+
+    tree = GTK_TREE_VIEW ((is_aur)
+            ? watched.tree_manage_aur
+            : watched.tree_manage);
+
     selection = gtk_tree_view_get_selection (tree);
     if (!gtk_tree_selection_get_selected (selection, &model, &iter))
     {
@@ -567,14 +589,18 @@ btn_remove_cb (GtkToolButton *tb_item _UNUSED_, gboolean is_aur)
 static void
 btn_reload_cb (GtkToolButton *tb_item, int from_disk)
 {
-    gboolean is_aur = GPOINTER_TO_INT (g_object_get_data (G_OBJECT (tb_item), "is-aur"));
+    gboolean is_aur;
+    is_aur = GPOINTER_TO_INT (g_object_get_data (G_OBJECT (tb_item), "is-aur"));
     if (from_disk)
     {
         GError *error = NULL;
         if (!reload_watched (is_aur, &error))
         {
-            show_error ((is_aur) ? "Unable to parse watched AUR packages"
-                : "Unable to parse watched packages", error->message, NULL);
+            show_error ((is_aur)
+                    ? "Unable to parse watched AUR packages"
+                    : "Unable to parse watched packages",
+                    error->message,
+                    NULL);
             g_clear_error (&error);
         }
     }
@@ -584,10 +610,11 @@ btn_reload_cb (GtkToolButton *tb_item, int from_disk)
 static void
 renderer_edited_cb (GtkCellRendererText *renderer, gchar *path, gchar *text, int col)
 {
-    gboolean is_aur = GPOINTER_TO_INT (g_object_get_data (G_OBJECT (renderer), "is-aur"));
     GtkTreeModel *model;
-    GtkTreeIter iter;
-    
+    GtkTreeIter   iter;
+    gboolean      is_aur;
+
+    is_aur = GPOINTER_TO_INT (g_object_get_data (G_OBJECT (renderer), "is-aur"));
     if (is_aur)
     {
         model = gtk_tree_view_get_model (GTK_TREE_VIEW (watched.tree_manage_aur));
@@ -596,7 +623,7 @@ renderer_edited_cb (GtkCellRendererText *renderer, gchar *path, gchar *text, int
     {
         model = gtk_tree_view_get_model (GTK_TREE_VIEW (watched.tree_manage));
     }
-    
+
     if (gtk_tree_model_get_iter_from_string (model, &iter, path))
     {
         char *s;
@@ -610,8 +637,8 @@ static void
 selection_changed_cb (GtkTreeSelection *selection, GtkToolbar *toolbar)
 {
     GtkToolItem *tb_item;
-    gboolean has_selection;
-    
+    gboolean     has_selection;
+
     has_selection = (gtk_tree_selection_count_selected_rows (selection) > 0);
     tb_item = gtk_toolbar_get_nth_item (toolbar, 1); /* Edit */
     gtk_widget_set_sensitive (GTK_WIDGET (tb_item), has_selection);
@@ -632,23 +659,27 @@ watched_new_window (w_type_t type)
     gboolean is_aur    = (type == W_NOTIF_AUR || type == W_MANAGE_AUR);
     gboolean is_update = (type == W_NOTIF || type == W_NOTIF_AUR);
     GtkWidget *button, *image;
-    
+
     /* the window */
     GtkWidget *window;
     window = gtk_window_new (GTK_WINDOW_TOPLEVEL);
     switch (type)
     {
         case W_NOTIF:
-            gtk_window_set_title (GTK_WINDOW (window), "Mark updated watched packages - kalu");
+            gtk_window_set_title (GTK_WINDOW (window),
+                    "Mark updated watched packages - kalu");
             break;
         case W_MANAGE:
-            gtk_window_set_title (GTK_WINDOW (window), "Manage watched packages - kalu");
+            gtk_window_set_title (GTK_WINDOW (window),
+                    "Manage watched packages - kalu");
             break;
         case W_NOTIF_AUR:
-            gtk_window_set_title (GTK_WINDOW (window), "Mark updated watched AUR packages - kalu");
+            gtk_window_set_title (GTK_WINDOW (window),
+                    "Mark updated watched AUR packages - kalu");
             break;
         case W_MANAGE_AUR:
-            gtk_window_set_title (GTK_WINDOW (window), "Manage watched AUR packages - kalu");
+            gtk_window_set_title (GTK_WINDOW (window),
+                    "Manage watched AUR packages - kalu");
             break;
     }
     gtk_container_set_border_width (GTK_CONTAINER (window), 0);
@@ -657,10 +688,12 @@ watched_new_window (w_type_t type)
     add_open_window (window);
     /* icon */
     GdkPixbuf *pixbuf;
-    pixbuf = gtk_widget_render_icon_pixbuf (window, "kalu-logo", GTK_ICON_SIZE_DIALOG);
+    pixbuf = gtk_widget_render_icon_pixbuf (window,
+            "kalu-logo",
+            GTK_ICON_SIZE_DIALOG);
     gtk_window_set_icon (GTK_WINDOW (window), pixbuf);
     g_object_unref (pixbuf);
-    
+
     /* ensure minimum size */
     gint w, h;
     gtk_window_get_size (GTK_WINDOW (window), &w, &h);
@@ -673,7 +706,7 @@ watched_new_window (w_type_t type)
     vbox = gtk_box_new (GTK_ORIENTATION_VERTICAL, 0);
     gtk_container_add (GTK_CONTAINER (window), vbox);
     gtk_widget_show (vbox);
-    
+
     GtkWidget *toolbar;
     if (!is_update)
     {
@@ -681,31 +714,35 @@ watched_new_window (w_type_t type)
         /* toolbar */
         toolbar = gtk_toolbar_new ();
         gtk_toolbar_set_style (GTK_TOOLBAR (toolbar), GTK_TOOLBAR_BOTH_HORIZ);
-        gtk_toolbar_set_icon_size (GTK_TOOLBAR (toolbar), GTK_ICON_SIZE_SMALL_TOOLBAR);
+        gtk_toolbar_set_icon_size (GTK_TOOLBAR (toolbar),
+                GTK_ICON_SIZE_SMALL_TOOLBAR);
         gtk_box_pack_start (GTK_BOX (vbox), toolbar, FALSE, FALSE, 0);
         gtk_widget_show (toolbar);
-        
+
         /* button: Add */
         tb_item = gtk_tool_button_new_from_stock (GTK_STOCK_ADD);
-        gtk_widget_set_tooltip_text (GTK_WIDGET (tb_item), "Add a new package");
+        gtk_widget_set_tooltip_text (GTK_WIDGET (tb_item),
+                "Add a new package");
         g_signal_connect (G_OBJECT (tb_item), "clicked",
-                          G_CALLBACK (btn_add_cb), GINT_TO_POINTER (is_aur));
+                G_CALLBACK (btn_add_cb), GINT_TO_POINTER (is_aur));
         gtk_toolbar_insert (GTK_TOOLBAR (toolbar), tb_item, -1);
         gtk_widget_show (GTK_WIDGET (tb_item));
         /* button: Edit */
         tb_item = gtk_tool_button_new_from_stock (GTK_STOCK_EDIT);
-        gtk_widget_set_tooltip_text (GTK_WIDGET (tb_item), "Edit selected package");
+        gtk_widget_set_tooltip_text (GTK_WIDGET (tb_item),
+                "Edit selected package");
         gtk_widget_set_sensitive (GTK_WIDGET (tb_item), FALSE);
         g_signal_connect (G_OBJECT (tb_item), "clicked",
-                          G_CALLBACK (btn_edit_cb), GINT_TO_POINTER (is_aur));
+                G_CALLBACK (btn_edit_cb), GINT_TO_POINTER (is_aur));
         gtk_toolbar_insert (GTK_TOOLBAR (toolbar), tb_item, -1);
         gtk_widget_show (GTK_WIDGET (tb_item));
         /* button: Remove */
         tb_item = gtk_tool_button_new_from_stock (GTK_STOCK_REMOVE);
-        gtk_widget_set_tooltip_text (GTK_WIDGET (tb_item), "Remove selected package");
+        gtk_widget_set_tooltip_text (GTK_WIDGET (tb_item),
+                "Remove selected package");
         gtk_widget_set_sensitive (GTK_WIDGET (tb_item), FALSE);
         g_signal_connect (G_OBJECT (tb_item), "clicked",
-                          G_CALLBACK (btn_remove_cb), GINT_TO_POINTER (is_aur));
+                G_CALLBACK (btn_remove_cb), GINT_TO_POINTER (is_aur));
         gtk_toolbar_insert (GTK_TOOLBAR (toolbar), tb_item, -1);
         gtk_widget_show (GTK_WIDGET (tb_item));
         /* --- */
@@ -714,36 +751,42 @@ watched_new_window (w_type_t type)
         gtk_widget_show (GTK_WIDGET (tb_item));
         /* button: Reload from memory */
         tb_item = gtk_tool_button_new_from_stock (GTK_STOCK_UNDO);
-        g_object_set_data (G_OBJECT (tb_item), "is-aur", GINT_TO_POINTER (is_aur));
-        gtk_widget_set_tooltip_text (GTK_WIDGET (tb_item), "Reload list from memory (undo changes)");
+        g_object_set_data (G_OBJECT (tb_item),
+                "is-aur",
+                GINT_TO_POINTER (is_aur));
+        gtk_widget_set_tooltip_text (GTK_WIDGET (tb_item),
+                "Reload list from memory (undo changes)");
         g_signal_connect (G_OBJECT (tb_item), "clicked",
-                          G_CALLBACK (btn_reload_cb), (gpointer) 0);
+                G_CALLBACK (btn_reload_cb), (gpointer) 0);
         gtk_toolbar_insert (GTK_TOOLBAR (toolbar), tb_item, -1);
         gtk_widget_show (GTK_WIDGET (tb_item));
         /* button: Reload from disk */
         tb_item = gtk_tool_button_new_from_stock (GTK_STOCK_REFRESH);
-        g_object_set_data (G_OBJECT (tb_item), "is-aur", GINT_TO_POINTER (is_aur));
-        gtk_widget_set_tooltip_text (GTK_WIDGET (tb_item), "Reload list from file");
+        g_object_set_data (G_OBJECT (tb_item),
+                "is-aur",
+                GINT_TO_POINTER (is_aur));
+        gtk_widget_set_tooltip_text (GTK_WIDGET (tb_item),
+                "Reload list from file");
         g_signal_connect (G_OBJECT (tb_item), "clicked",
-                          G_CALLBACK (btn_reload_cb), (gpointer) 1);
+                G_CALLBACK (btn_reload_cb), (gpointer) 1);
         gtk_toolbar_insert (GTK_TOOLBAR (toolbar), tb_item, -1);
         gtk_widget_show (GTK_WIDGET (tb_item));
     }
-    
+
     /* store for the list */
     GtkListStore *store;
     store = gtk_list_store_new (WCOL_NB,
-                G_TYPE_BOOLEAN,     /* upd (mark watched) */
-                G_TYPE_STRING,      /* pkg */
-                G_TYPE_STRING,      /* old version */
-                G_TYPE_STRING,      /* new version */
-                G_TYPE_UINT,        /* dl size */
-                G_TYPE_UINT         /* inst size */
-                );
+            G_TYPE_BOOLEAN,     /* upd (mark watched) */
+            G_TYPE_STRING,      /* pkg */
+            G_TYPE_STRING,      /* old version */
+            G_TYPE_STRING,      /* new version */
+            G_TYPE_UINT,        /* dl size */
+            G_TYPE_UINT         /* inst size */
+            );
     gtk_tree_sortable_set_sort_column_id (GTK_TREE_SORTABLE (store),
-                                          WCOL_NAME,
-                                          GTK_SORT_ASCENDING);
-    
+            WCOL_NAME,
+            GTK_SORT_ASCENDING);
+
     /* said list */
     GtkWidget *list;
     list = gtk_tree_view_new_with_model (GTK_TREE_MODEL (store));
@@ -755,9 +798,9 @@ watched_new_window (w_type_t type)
         GtkTreeSelection *selection;
         selection = gtk_tree_view_get_selection (GTK_TREE_VIEW (list));
         g_signal_connect (selection, "changed",
-                          G_CALLBACK (selection_changed_cb), (gpointer) toolbar);
+                G_CALLBACK (selection_changed_cb), (gpointer) toolbar);
     }
-    
+
     /* cell renderer & column(s) */
     GtkCellRenderer *renderer;
     GtkTreeViewColumn *column;
@@ -766,27 +809,29 @@ watched_new_window (w_type_t type)
         /* column: Update */
         renderer = gtk_cell_renderer_toggle_new ();
         column = gtk_tree_view_column_new_with_attributes ("Update",
-                                                           renderer,
-                                                           "active", WCOL_UPD,
-                                                           NULL);
+                renderer,
+                "active", WCOL_UPD,
+                NULL);
         g_object_set (renderer, "activatable", TRUE, NULL);
         g_signal_connect (G_OBJECT (renderer), "toggled",
-                          G_CALLBACK (renderer_toggle_cb), GINT_TO_POINTER (is_aur));
+                G_CALLBACK (renderer_toggle_cb), GINT_TO_POINTER (is_aur));
         gtk_tree_view_append_column (GTK_TREE_VIEW (list), column);
     }
     /* column: Package */
     renderer = gtk_cell_renderer_text_new ();
     if (!is_update)
     {
-        g_object_set_data (G_OBJECT (renderer), "is-aur", GINT_TO_POINTER (is_aur));
+        g_object_set_data (G_OBJECT (renderer),
+                "is-aur",
+                GINT_TO_POINTER (is_aur));
         g_object_set (G_OBJECT (renderer), "editable", TRUE, NULL);
         g_signal_connect (G_OBJECT (renderer), "edited",
-                          G_CALLBACK (renderer_edited_cb), (gpointer) WCOL_NAME);
+                G_CALLBACK (renderer_edited_cb), (gpointer) WCOL_NAME);
     }
     column = gtk_tree_view_column_new_with_attributes ("Package",
-                                                       renderer,
-                                                       "text", WCOL_NAME,
-                                                       NULL);
+            renderer,
+            "text", WCOL_NAME,
+            NULL);
     gtk_tree_view_column_set_resizable (column, TRUE);
     gtk_tree_view_append_column (GTK_TREE_VIEW (list), column);
     /* column: Old version */
@@ -794,56 +839,62 @@ watched_new_window (w_type_t type)
     {
         /* we need another renderer so we know which column gets edited */
         renderer = gtk_cell_renderer_text_new ();
-        g_object_set_data (G_OBJECT (renderer), "is-aur", GINT_TO_POINTER (is_aur));
+        g_object_set_data (G_OBJECT (renderer),
+                "is-aur",
+                GINT_TO_POINTER (is_aur));
         g_object_set (G_OBJECT (renderer), "editable", TRUE, NULL);
         g_signal_connect (G_OBJECT (renderer), "edited",
-                          G_CALLBACK (renderer_edited_cb), (gpointer) WCOL_OLD_VERSION);
+                G_CALLBACK (renderer_edited_cb), (gpointer) WCOL_OLD_VERSION);
     }
     column = gtk_tree_view_column_new_with_attributes ("Version",
-                                                       renderer,
-                                                       "text", WCOL_OLD_VERSION,
-                                                       NULL);
+            renderer,
+            "text", WCOL_OLD_VERSION,
+            NULL);
     gtk_tree_view_column_set_resizable (column, TRUE);
     gtk_tree_view_append_column (GTK_TREE_VIEW (list), column);
     if (is_update)
     {
         /* column: New version */
         column = gtk_tree_view_column_new_with_attributes ("New",
-                                                           renderer,
-                                                           "text", WCOL_NEW_VERSION,
-                                                           NULL);
+                renderer,
+                "text", WCOL_NEW_VERSION,
+                NULL);
         gtk_tree_view_column_set_resizable (column, TRUE);
         gtk_tree_view_append_column (GTK_TREE_VIEW (list), column);
         if (!is_aur)
         {
             /* column: Download size */
             column = gtk_tree_view_column_new_with_attributes ("Download",
-                                                               renderer,
-                                                               NULL);
+                    renderer,
+                    NULL);
             gtk_tree_view_column_set_cell_data_func (column, renderer,
-                (GtkTreeCellDataFunc) _rend_size, (gpointer) WCOL_DL_SIZE, NULL);
+                    (GtkTreeCellDataFunc) _rend_size,
+                    (gpointer) WCOL_DL_SIZE,
+                    NULL);
             gtk_tree_view_column_set_resizable (column, TRUE);
             gtk_tree_view_append_column (GTK_TREE_VIEW (list), column);
             /* column: Installed size */
             column = gtk_tree_view_column_new_with_attributes ("Installed",
-                                                               renderer,
-                                                               NULL);
+                    renderer,
+                    NULL);
             gtk_tree_view_column_set_cell_data_func (column, renderer,
-                (GtkTreeCellDataFunc) _rend_size, (gpointer) WCOL_INS_SIZE, NULL);
+                    (GtkTreeCellDataFunc) _rend_size,
+                    (gpointer) WCOL_INS_SIZE,
+                    NULL);
             gtk_tree_view_column_set_resizable (column, TRUE);
             gtk_tree_view_append_column (GTK_TREE_VIEW (list), column);
         }
     }
-    
+
     gtk_box_pack_start (GTK_BOX (vbox), list, TRUE, TRUE, 0);
     gtk_widget_show (list);
-    
+
     /* button box */
     GtkWidget *hbox;
     hbox = gtk_box_new (GTK_ORIENTATION_HORIZONTAL, 0);
     gtk_box_pack_start (GTK_BOX (vbox), hbox, FALSE, FALSE, 0);
     gtk_widget_show (hbox);
-    
+
     if (is_update)
     {
         /* Apply */
@@ -851,9 +902,10 @@ watched_new_window (w_type_t type)
         image = gtk_image_new_from_stock (GTK_STOCK_APPLY, GTK_ICON_SIZE_MENU);
         gtk_button_set_image (GTK_BUTTON (button), image);
         gtk_box_pack_end (GTK_BOX (hbox), button, FALSE, FALSE, 4);
-        gtk_widget_set_tooltip_text (button, "Save new version numbers of checked packages");
+        gtk_widget_set_tooltip_text (button,
+                "Save new version numbers of checked packages");
         g_signal_connect (G_OBJECT (button), "clicked",
-                          G_CALLBACK (btn_mark_cb), GINT_TO_POINTER (is_aur));
+                G_CALLBACK (btn_mark_cb), GINT_TO_POINTER (is_aur));
         gtk_widget_show (button);
     }
     else
@@ -863,22 +915,23 @@ watched_new_window (w_type_t type)
         image = gtk_image_new_from_stock (GTK_STOCK_SAVE, GTK_ICON_SIZE_MENU);
         gtk_button_set_image (GTK_BUTTON (button), image);
         gtk_box_pack_end (GTK_BOX (hbox), button, FALSE, FALSE, 4);
-        gtk_widget_set_tooltip_text (button, "Save list of watched packages");
+        gtk_widget_set_tooltip_text (button,
+                "Save list of watched packages");
         g_signal_connect (G_OBJECT (button), "clicked",
-                          G_CALLBACK (btn_save_cb), GINT_TO_POINTER (is_aur));
+                G_CALLBACK (btn_save_cb), GINT_TO_POINTER (is_aur));
         gtk_widget_show (button);
     }
     /* Close */
     button = gtk_button_new_from_stock (GTK_STOCK_CLOSE);
     gtk_box_pack_end (GTK_BOX (hbox), button, FALSE, FALSE, 2);
     g_signal_connect (G_OBJECT (button), "clicked",
-                      G_CALLBACK (btn_close_cb), (gpointer) type);
+            G_CALLBACK (btn_close_cb), (gpointer) type);
     gtk_widget_show (button);
-    
+
     /* signals */
     g_signal_connect (G_OBJECT (window), "destroy",
-                      G_CALLBACK (window_destroy_cb), (gpointer) type);
-    
+            G_CALLBACK (window_destroy_cb), (gpointer) type);
+
     switch (type)
     {
         case W_NOTIF:
@@ -906,7 +959,7 @@ watched_update (alpm_list_t *packages, gboolean is_aur)
 {
     GtkWidget *window, *tree;
     w_type_t type;
-    
+
     if (is_aur)
     {
         type = W_NOTIF_AUR;
@@ -917,35 +970,35 @@ watched_update (alpm_list_t *packages, gboolean is_aur)
         type = W_NOTIF;
         window = watched.window_notif;
     }
-    
+
     if (NULL != window)
     {
         gtk_window_present (GTK_WINDOW (window));
         return;
     }
-    
+
     window = watched_new_window (type);
     tree = (is_aur) ? watched.tree_notif_aur : watched.tree_notif;
-    
+
     /* fill it up */
     GtkListStore *store;
     GtkTreeIter iter;
     alpm_list_t *i;
     store = GTK_LIST_STORE (gtk_tree_view_get_model (GTK_TREE_VIEW (tree)));
-    for (i = packages; i; i = alpm_list_next (i))
+    FOR_LIST (i, packages)
     {
         kalu_package_t *pkg = i->data;
         gtk_list_store_append (store, &iter);
         gtk_list_store_set (store, &iter,
-            WCOL_UPD,           TRUE,
-            WCOL_NAME,          strdup (pkg->name),
-            WCOL_OLD_VERSION,   strdup (pkg->old_version),
-            WCOL_NEW_VERSION,   strdup (pkg->new_version),
-            WCOL_DL_SIZE,       pkg->dl_size,
-            WCOL_INS_SIZE,      pkg->new_size,
-            -1);
+                WCOL_UPD,           TRUE,
+                WCOL_NAME,          strdup (pkg->name),
+                WCOL_OLD_VERSION,   strdup (pkg->old_version),
+                WCOL_NEW_VERSION,   strdup (pkg->new_version),
+                WCOL_DL_SIZE,       pkg->dl_size,
+                WCOL_INS_SIZE,      pkg->new_size,
+                -1);
     }
-    
+
     /* show */
     gtk_widget_show (window);
 }
@@ -953,12 +1006,13 @@ watched_update (alpm_list_t *packages, gboolean is_aur)
 static void
 manage_load_watched (gboolean is_aur)
 {
-    GtkWidget *window;
+    GtkWidget    *window;
     GtkTreeModel *model;
-    GtkTreeIter iter;
-    char *name, *old;
-    alpm_list_t *cfglist;
-    
+    GtkTreeIter   iter;
+    char         *name;
+    char         *old;
+    alpm_list_t  *cfglist;
+
     if (is_aur)
     {
         window = watched.window_manage_aur;
@@ -971,22 +1025,22 @@ manage_load_watched (gboolean is_aur)
         model = gtk_tree_view_get_model (GTK_TREE_VIEW (watched.tree_manage));
         cfglist = config->watched;
     }
-    
+
     if (NULL == window)
     {
         return;
     }
-    
+
     /* clear list */
     if (gtk_tree_model_get_iter_first (model, &iter))
     {
         while (1)
         {
             gtk_tree_model_get (model, &iter, WCOL_NAME, &name,
-                WCOL_OLD_VERSION, &old, -1);
+                    WCOL_OLD_VERSION, &old, -1);
             free (name);
             free (old);
-            
+
             /* next */
             if (!gtk_tree_model_iter_next (model, &iter))
             {
@@ -996,17 +1050,17 @@ manage_load_watched (gboolean is_aur)
     }
     GtkListStore *store = GTK_LIST_STORE (model);
     gtk_list_store_clear (store);
-    
+
     /* fill it up */
     alpm_list_t *i;
-    for (i = cfglist; i; i = alpm_list_next (i))
+    FOR_LIST (i, cfglist)
     {
         watched_package_t *w_pkg = i->data;
         gtk_list_store_append (store, &iter);
         gtk_list_store_set (store, &iter,
-            WCOL_NAME,          strdup (w_pkg->name),
-            WCOL_OLD_VERSION,   strdup (w_pkg->version),
-            -1);
+                WCOL_NAME,          strdup (w_pkg->name),
+                WCOL_OLD_VERSION,   strdup (w_pkg->version),
+                -1);
     }
 }
 
@@ -1014,8 +1068,8 @@ void
 watched_manage (gboolean is_aur)
 {
     GtkWidget *window;
-    w_type_t type;
-    
+    w_type_t   type;
+
     if (is_aur)
     {
         type = W_MANAGE_AUR;
@@ -1026,16 +1080,16 @@ watched_manage (gboolean is_aur)
         type = W_MANAGE;
         window = watched.window_manage;
     }
-    
+
     if (NULL != window)
     {
         gtk_window_present (GTK_WINDOW (window));
         return;
     }
-    
+
     window = watched_new_window (type);
     manage_load_watched (is_aur);
-    
+
     /* show */
     gtk_widget_show (window);
 }

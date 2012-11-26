@@ -71,18 +71,18 @@ typedef struct _siglevel_def_t {
 static void
 setrepeatingoption (char *ptr, const char *option, alpm_list_t **list)
 {
-	char *q;
+    char *q;
 
-	while ((q = strchr(ptr, ' ')))
+    while ((q = strchr(ptr, ' ')))
     {
-		*q = '\0';
-		*list = alpm_list_add (*list, strdup (ptr));
-		debug ("config: %s: %s", option, ptr);
-		ptr = q;
-		ptr++;
-	}
-	*list = alpm_list_add (*list, strdup (ptr));
-	debug ("config: %s: %s", option, ptr);
+        *q = '\0';
+        *list = alpm_list_add (*list, strdup (ptr));
+        debug ("config: %s: %s", option, ptr);
+        ptr = q;
+        ptr++;
+    }
+    *list = alpm_list_add (*list, strdup (ptr));
+    debug ("config: %s: %s", option, ptr);
 }
 
 /**
@@ -98,114 +98,114 @@ static int
 process_siglevel (alpm_list_t *values, alpm_siglevel_t *storage,
                   const char *file, int linenum, GError **error)
 {
-	alpm_siglevel_t level = *storage;
-	alpm_list_t *i;
-	int ret = 0;
+    alpm_siglevel_t level = *storage;
+    alpm_list_t *i;
+    int ret = 0;
 
-	/* Collapse the option names into a single bitmasked value */
-	for (i = values; i; i = alpm_list_next (i))
+    /* Collapse the option names into a single bitmasked value */
+    FOR_LIST (i, values)
     {
-		const char *original = i->data, *value;
-		int package = 0, database = 0;
+        const char *original = i->data, *value;
+        int package = 0, database = 0;
 
-		if (strncmp (original, "Package", strlen ("Package")) == 0)
+        if (strncmp (original, "Package", strlen ("Package")) == 0)
         {
-			/* only packages are affected, don't flip flags for databases */
-			value = original + strlen("Package");
-			package = 1;
-		}
+            /* only packages are affected, don't flip flags for databases */
+            value = original + strlen("Package");
+            package = 1;
+        }
         else if (strncmp (original, "Database", strlen ("Database")) == 0)
         {
-			/* only databases are affected, don't flip flags for packages */
-			value = original + strlen("Database");
-			database = 1;
-		}
+            /* only databases are affected, don't flip flags for packages */
+            value = original + strlen("Database");
+            database = 1;
+        }
         else
         {
-			/* no prefix, so anything found will affect both packages and dbs */
-			value = original;
-			package = database = 1;
-		}
+            /* no prefix, so anything found will affect both packages and dbs */
+            value = original;
+            package = database = 1;
+        }
 
-		/* now parse out and store actual flag if it is valid */
-		if (strcmp (value, "Never") == 0)
+        /* now parse out and store actual flag if it is valid */
+        if (streq (value, "Never"))
         {
-			if (package)
+            if (package)
             {
-				level &= ~ALPM_SIG_PACKAGE;
-			}
-			if (database)
+                level &= ~ALPM_SIG_PACKAGE;
+            }
+            if (database)
             {
-				level &= ~ALPM_SIG_DATABASE;
-			}
-		}
-        else if (strcmp (value, "Optional") == 0)
+                level &= ~ALPM_SIG_DATABASE;
+            }
+        }
+        else if (streq (value, "Optional"))
         {
-			if (package)
+            if (package)
             {
-				level |= ALPM_SIG_PACKAGE;
-				level |= ALPM_SIG_PACKAGE_OPTIONAL;
-			}
-			if (database)
+                level |= ALPM_SIG_PACKAGE;
+                level |= ALPM_SIG_PACKAGE_OPTIONAL;
+            }
+            if (database)
             {
-				level |= ALPM_SIG_DATABASE;
-				level |= ALPM_SIG_DATABASE_OPTIONAL;
-			}
-		}
-        else if (strcmp (value, "Required") == 0)
+                level |= ALPM_SIG_DATABASE;
+                level |= ALPM_SIG_DATABASE_OPTIONAL;
+            }
+        }
+        else if (streq (value, "Required"))
         {
-			if (package)
+            if (package)
             {
-				level |= ALPM_SIG_PACKAGE;
-				level &= ~ALPM_SIG_PACKAGE_OPTIONAL;
-			}
-			if (database)
+                level |= ALPM_SIG_PACKAGE;
+                level &= ~ALPM_SIG_PACKAGE_OPTIONAL;
+            }
+            if (database)
             {
-				level |= ALPM_SIG_DATABASE;
-				level &= ~ALPM_SIG_DATABASE_OPTIONAL;
-			}
-		}
-        else if (strcmp (value, "TrustedOnly") == 0)
+                level |= ALPM_SIG_DATABASE;
+                level &= ~ALPM_SIG_DATABASE_OPTIONAL;
+            }
+        }
+        else if (streq (value, "TrustedOnly"))
         {
-			if (package)
+            if (package)
             {
-				level &= ~ALPM_SIG_PACKAGE_MARGINAL_OK;
-				level &= ~ALPM_SIG_PACKAGE_UNKNOWN_OK;
-			}
-			if (database)
+                level &= ~ALPM_SIG_PACKAGE_MARGINAL_OK;
+                level &= ~ALPM_SIG_PACKAGE_UNKNOWN_OK;
+            }
+            if (database)
             {
-				level &= ~ALPM_SIG_DATABASE_MARGINAL_OK;
-				level &= ~ALPM_SIG_DATABASE_UNKNOWN_OK;
-			}
-		}
-        else if (strcmp (value, "TrustAll") == 0)
+                level &= ~ALPM_SIG_DATABASE_MARGINAL_OK;
+                level &= ~ALPM_SIG_DATABASE_UNKNOWN_OK;
+            }
+        }
+        else if (streq (value, "TrustAll"))
         {
-			if (package)
+            if (package)
             {
-				level |= ALPM_SIG_PACKAGE_MARGINAL_OK;
-				level |= ALPM_SIG_PACKAGE_UNKNOWN_OK;
-			}
-			if (database)
+                level |= ALPM_SIG_PACKAGE_MARGINAL_OK;
+                level |= ALPM_SIG_PACKAGE_UNKNOWN_OK;
+            }
+            if (database)
             {
-				level |= ALPM_SIG_DATABASE_MARGINAL_OK;
-				level |= ALPM_SIG_DATABASE_UNKNOWN_OK;
-			}
-		}
+                level |= ALPM_SIG_DATABASE_MARGINAL_OK;
+                level |= ALPM_SIG_DATABASE_UNKNOWN_OK;
+            }
+        }
         else
         {
             g_set_error (error, KALU_ERROR, 1, "Config file %s, line %d: "
-                "invalid value for SigLevel: %s", file, linenum, original);
-			ret = 1;
+                    "invalid value for SigLevel: %s", file, linenum, original);
+            ret = 1;
             break;
-		}
-		level &= ~ALPM_SIG_USE_DEFAULT;
-	}
+        }
+        level &= ~ALPM_SIG_USE_DEFAULT;
+    }
 
-	if(!ret)
+    if(!ret)
     {
-		*storage = level;
-	}
-	return ret;
+        *storage = level;
+    }
+    return ret;
 }
 
 #define set_error(fmt, ...)  g_set_error (error, KALU_ERROR, 1, \
@@ -219,100 +219,94 @@ parse_pacman_conf (const char       *file,
                    pacman_config_t **pacconf,
                    GError          **error)
 {
-	FILE       *fp              = NULL;
-	char        line[MAX_PATH];
-	int         linenum         = 0;
-	int         success         = TRUE;
-	const int   max_depth       = 10;
+    FILE       *fp              = NULL;
+    char        line[MAX_PATH];
+    int         linenum         = 0;
+    int         success         = TRUE;
+    const int   max_depth       = 10;
     GError     *local_err       = NULL;
     alpm_list_t *i, *j;
-    
+
     /* if struct is not init yet, we do it */
     if (*pacconf == NULL)
     {
-        *pacconf = calloc (1, sizeof (**pacconf));
-        if (*pacconf == NULL)
-        {
-            g_set_error (error, KALU_ERROR, 1, "Unable to allocate memory");
-            success = FALSE;
-            goto cleanup;
-        }
+        *pacconf = new0 (pacman_config_t, 1);
         (*pacconf)->siglevel = ALPM_SIG_USE_DEFAULT;
     }
     pacman_config_t *pac_conf = *pacconf;
     /* the db/repo we're currently parsing, if any */
     static database_t *cur_db = NULL;
 
-	debug ("config: attempting to read file %s", file);
-	fp = fopen (file, "r");
-	if (fp == NULL)
+    debug ("config: attempting to read file %s", file);
+    fp = fopen (file, "r");
+    if (fp == NULL)
     {
         g_set_error (error, KALU_ERROR, 1, "Config file %s could not be read",
-            file);
-		success = FALSE;
-		goto cleanup;
-	}
-    
-	while (fgets (line, MAX_PATH, fp))
+                file);
+        success = FALSE;
+        goto cleanup;
+    }
+
+    while (fgets (line, MAX_PATH, fp))
     {
-		char *key, *value, *ptr;
-		size_t line_len;
+        char *key, *value, *ptr;
+        size_t line_len;
 
-		++linenum;
-		strtrim (line);
-		line_len = strlen(line);
+        ++linenum;
+        strtrim (line);
+        line_len = strlen(line);
 
-		/* ignore whole line and end of line comments */
-		if (line_len == 0 || line[0] == '#')
+        /* ignore whole line and end of line comments */
+        if (line_len == 0 || line[0] == '#')
         {
-			continue;
-		}
-		if ((ptr = strchr(line, '#')))
+            continue;
+        }
+        if ((ptr = strchr(line, '#')))
         {
-			*ptr = '\0';
-		}
+            *ptr = '\0';
+        }
 
-		if (line[0] == '[' && line[line_len - 1] == ']')
+        if (line[0] == '[' && line[line_len - 1] == ']')
         {
-			/* only possibility here is a line == '[]' */
-			if (line_len <= 2)
+            /* only possibility here is a line == '[]' */
+            if (line_len <= 2)
             {
                 set_error ("%s", "bad section name");
-				success = FALSE;
-				goto cleanup;
-			}
-			/* new config section, skip the '[' */
+                success = FALSE;
+                goto cleanup;
+            }
+            /* new config section, skip the '[' */
             if (name != NULL)
             {
                 free (name);
             }
-			name = strdup (line + 1);
-			name[line_len - 2] = '\0';
-			debug ("config: new section '%s'", name);
-			is_options = (strcmp(name, "options") == 0);
+            name = strdup (line + 1);
+            name[line_len - 2] = '\0';
+            debug ("config: new section '%s'", name);
+            is_options = (strcmp(name, "options") == 0);
             /* parsed a db/repo? if so we add it */
             if (cur_db != NULL)
             {
                 pac_conf->databases = alpm_list_add (pac_conf->databases, cur_db);
                 cur_db = NULL;
             }
-			continue;
-		}
+            continue;
+        }
 
-		/* directive */
-		/* strsep modifies the 'line' string: 'key \0 value' */
-		key = line;
-		value = line;
-		strsep (&value, "=");
-		strtrim (key);
-		strtrim (value);
+        /* directive */
+        /* strsep modifies the 'line' string: 'key \0 value' */
+        key = line;
+        value = line;
+        strsep (&value, "=");
+        strtrim (key);
+        strtrim (value);
 
-		if (key == NULL)
+        if (key == NULL)
         {
             set_error ("%s", "syntax error: missing key.");
-			success = FALSE;
-			goto cleanup;
-		}
+            success = FALSE;
+            goto cleanup;
+        }
         /* For each directive, compare to the camelcase string. */
         if (name == NULL)
         {
@@ -326,21 +320,22 @@ parse_pacman_conf (const char       *file,
             glob_t globbuf;
             int globret;
             size_t gindex;
-            
+
             if (depth + 1 >= max_depth)
             {
-                set_error ("parsing exceeded max recursion depth of %d", max_depth);
+                set_error ("parsing exceeded max recursion depth of %d",
+                        max_depth);
                 success = FALSE;
                 goto cleanup;
             }
-            
+
             if (value == NULL)
             {
                 set_error ("directive %s needs a value.", key);
                 success = FALSE;
                 goto cleanup;
             }
-            
+
             /* Ignore include failures... assume non-critical */
             globret = glob (value, GLOB_NOCHECK, NULL, &globbuf);
             switch (globret)
@@ -348,24 +343,24 @@ parse_pacman_conf (const char       *file,
                 case GLOB_NOSPACE:
                     debug ("config file %s, line %d: include globbing out of space",
                             file, linenum);
-                break;
+                    break;
                 case GLOB_ABORTED:
                     debug ("config file %s, line %d: include globbing read error for %s",
                             file, linenum, value);
-                break;
+                    break;
                 case GLOB_NOMATCH:
                     debug ("config file %s, line %d: no include found for %s",
                             file, linenum, value);
-                break;
+                    break;
                 default:
                     for (gindex = 0; gindex < globbuf.gl_pathc; gindex++)
                     {
                         debug ("config file %s, line %d: including %s",
-                               file, linenum, globbuf.gl_pathv[gindex]);
+                                file, linenum, globbuf.gl_pathv[gindex]);
                         parse_pacman_conf (globbuf.gl_pathv[gindex], name,
-                            is_options, depth + 1, &pac_conf, error);
+                                is_options, depth + 1, &pac_conf, error);
                     }
-                break;
+                    break;
             }
             globfree (&globbuf);
             continue;
@@ -376,22 +371,22 @@ parse_pacman_conf (const char       *file,
             if (value == NULL)
             {
                 /* options without settings */
-                if (strcmp (key, "UseSyslog") == 0)
+                if (streq (key, "UseSyslog"))
                 {
                     pac_conf->usesyslog = 1;
                     debug ("config: usesyslog");
                 }
-                else if (strcmp (key, "VerbosePkgLists") == 0)
+                else if (streq (key, "VerbosePkgLists"))
                 {
                     pac_conf->verbosepkglists = 1;
                     debug ("config: verbosepkglists");
                 }
-                else if (strcmp (key, "UseDelta") == 0)
+                else if (streq (key, "UseDelta"))
                 {
                     pac_conf->usedelta = 1;
                     debug ("config: usedelta");
                 }
-                else if (strcmp (key, "CheckSpace") == 0)
+                else if (streq (key, "CheckSpace"))
                 {
                     pac_conf->checkspace = 1;
                     debug ("config: checkspace");
@@ -402,34 +397,40 @@ parse_pacman_conf (const char       *file,
             else
             {
                 /* options with settings */
-                
-                if (strcmp (key, "NoUpgrade") == 0)
+
+                if (streq (key, "NoUpgrade"))
                 {
-                    setrepeatingoption (value, "NoUpgrade", &(pac_conf->noupgrades));
+                    setrepeatingoption (value, "NoUpgrade",
+                            &(pac_conf->noupgrades));
                 }
-                else if (strcmp (key, "NoExtract") == 0)
+                else if (streq (key, "NoExtract"))
                 {
-                    setrepeatingoption (value, "NoExtract", &(pac_conf->noextracts));
+                    setrepeatingoption (value, "NoExtract",
+                            &(pac_conf->noextracts));
                 }
-                else if (strcmp (key, "IgnorePkg") == 0)
+                else if (streq (key, "IgnorePkg"))
                 {
-                    setrepeatingoption (value, "IgnorePkg", &(pac_conf->ignorepkgs));
+                    setrepeatingoption (value, "IgnorePkg",
+                            &(pac_conf->ignorepkgs));
                 }
-                else if (strcmp (key, "IgnoreGroup") == 0)
+                else if (streq (key, "IgnoreGroup"))
                 {
-                    setrepeatingoption (value, "IgnoreGroup", &(pac_conf->ignoregroups));
+                    setrepeatingoption (value, "IgnoreGroup",
+                            &(pac_conf->ignoregroups));
                 }
-                else if (strcmp (key, "SyncFirst") == 0)
+                else if (streq (key, "SyncFirst"))
                 {
-                    setrepeatingoption (value, "SyncFirst", &(pac_conf->syncfirst));
+                    setrepeatingoption (value, "SyncFirst",
+                            &(pac_conf->syncfirst));
                 }
-                else if (strcmp (key, "CacheDir") == 0)
+                else if (streq (key, "CacheDir"))
                 {
-                    setrepeatingoption (value, "CacheDir", &(pac_conf->cachedirs));
+                    setrepeatingoption (value, "CacheDir",
+                            &(pac_conf->cachedirs));
                 }
-                else if (strcmp (key, "Architecture") == 0)
+                else if (streq (key, "Architecture"))
                 {
-                    if (strcmp(value, "auto") == 0)
+                    if (streq (value, "auto"))
                     {
                         struct utsname un;
                         uname (&un);
@@ -441,33 +442,33 @@ parse_pacman_conf (const char       *file,
                     }
                     debug ("config: arch: %s", pac_conf->arch);
                 }
-                else if (strcmp (key, "DBPath") == 0)
+                else if (streq (key, "DBPath"))
                 {
                     pac_conf->dbpath = strdup (value);
                     debug ("config: dbpath: %s", value);
                 }
-                else if (strcmp (key, "RootDir") == 0)
+                else if (streq (key, "RootDir"))
                 {
                     pac_conf->rootdir = strdup (value);
                     debug ("config: rootdir: %s", value);
                 }
-                else if (strcmp (key, "GPGDir") == 0)
+                else if (streq (key, "GPGDir"))
                 {
                     pac_conf->gpgdir = strdup (value);
                     debug ("config: gpgdir: %s", value);
                 }
-                else if (strcmp (key, "LogFile") == 0)
+                else if (streq (key, "LogFile"))
                 {
                     pac_conf->logfile = strdup (value);
                     debug ("config: logfile: %s", value);
                 }
-                else if (strcmp (key, "SigLevel") == 0)
+                else if (streq (key, "SigLevel"))
                 {
                     alpm_list_t *values = NULL;
                     setrepeatingoption (value, "SigLevel", &values);
                     local_err = NULL;
                     if (process_siglevel (values, &pac_conf->siglevel, file,
-                            linenum, &local_err))
+                                linenum, &local_err))
                     {
                         g_propagate_error (error, local_err);
                         FREELIST (values);
@@ -485,10 +486,10 @@ parse_pacman_conf (const char       *file,
         {
             if (cur_db == NULL)
             {
-                cur_db = calloc (1, sizeof (*cur_db));
+                cur_db = new0 (database_t, 1);
                 cur_db->name = strdup (name);
             }
-            
+
             if (strcmp (key, "Server") == 0)
             {
                 if (value == NULL)
@@ -502,22 +503,23 @@ parse_pacman_conf (const char       *file,
             else if (strcmp (key, "SigLevel") == 0)
             {
                 siglevel_def_t *siglevel_def;
-                siglevel_def = calloc (1, sizeof (*siglevel_def));
+                siglevel_def = new0 (siglevel_def_t, 1);
                 siglevel_def->file = strdup (file);
                 siglevel_def->linenum = linenum;
                 siglevel_def->def = strdup (value);
-                cur_db->siglevel_def = alpm_list_add (cur_db->siglevel_def, siglevel_def);
-			}
+                cur_db->siglevel_def = alpm_list_add (cur_db->siglevel_def,
+                        siglevel_def);
+            }
             else
             {
                 set_error ("directive %s in section %s not recognized.", key, name);
                 success = FALSE;
                 goto cleanup;
-			}
+            }
         }
-	}
+    }
 
-	if (depth == 0)
+    if (depth == 0)
     {
         /* parsed a db/repo? if so we add it */
         if (cur_db != NULL)
@@ -526,28 +528,31 @@ parse_pacman_conf (const char       *file,
             cur_db = NULL;
         }
         /* processing databases siglevel */
-        for (i = pac_conf->databases; i; i = alpm_list_next (i))
+        FOR_LIST (i, pac_conf->databases)
         {
             database_t *db = i->data;
             db->siglevel = pac_conf->siglevel;
-            for (j = db->siglevel_def; j; j = alpm_list_next (j))
+            FOR_LIST (j, db->siglevel_def)
             {
-				siglevel_def_t *siglevel_def = j->data;
+                siglevel_def_t *siglevel_def = j->data;
                 alpm_list_t *values = NULL;
-				setrepeatingoption (siglevel_def->def, "SigLevel", &values);
-				if (values)
+                setrepeatingoption (siglevel_def->def, "SigLevel", &values);
+                if (values)
                 {
                     local_err = NULL;
-					if (process_siglevel (values, &db->siglevel, siglevel_def->file,
-                            siglevel_def->linenum, &local_err))
+                    if (process_siglevel (values,
+                                &db->siglevel,
+                                siglevel_def->file,
+                                siglevel_def->linenum,
+                                &local_err))
                     {
                         g_propagate_error (error, local_err);
-						FREELIST (values);
-						success = FALSE;
-						goto cleanup;
-					}
-					FREELIST (values);
-				}
+                        FREELIST (values);
+                        success = FALSE;
+                        goto cleanup;
+                    }
+                    FREELIST (values);
+                }
             }
         }
         /* set some default values for undefined options */
@@ -562,7 +567,7 @@ parse_pacman_conf (const char       *file,
         if (NULL == pac_conf->cachedirs)
         {
             pac_conf->cachedirs = alpm_list_add (pac_conf->cachedirs,
-                                    strdup (PACMAN_CACHEDIR));
+                    strdup (PACMAN_CACHEDIR));
         }
         if (NULL == pac_conf->logfile)
         {
@@ -572,13 +577,13 @@ parse_pacman_conf (const char       *file,
         {
             pac_conf->gpgdir = strdup (PACMAN_GPGDIR);
         }
-	}
+    }
 
 cleanup:
-	if (fp)
+    if (fp)
     {
-		fclose(fp);
-	}
+        fclose(fp);
+    }
     if (depth == 0)
     {
         /* section name is for internal processing only */
@@ -588,10 +593,10 @@ cleanup:
             name = NULL;
         }
         /* so are the siglevel_def of each & all databases */
-        for (i = pac_conf->databases; i; i = alpm_list_next (i))
+        FOR_LIST (i, pac_conf->databases)
         {
             database_t *db = i->data;
-            for (j = db->siglevel_def; j; j = alpm_list_next (j))
+            FOR_LIST (j, db->siglevel_def)
             {
                 siglevel_def_t *siglevel_def = j->data;
                 free (siglevel_def->file);
@@ -602,8 +607,8 @@ cleanup:
             db->siglevel_def = NULL;
         }
     }
-	debug ("config: finished parsing %s", file);
-	return success;
+    debug ("config: finished parsing %s", file);
+    return success;
 }
 #undef set_error
 
@@ -616,7 +621,7 @@ free_pacman_config (pacman_config_t *pac_conf)
     {
         return;
     }
-    
+
     /* alpm */
     free (pac_conf->rootdir);
     free (pac_conf->dbpath);
@@ -628,13 +633,13 @@ free_pacman_config (pacman_config_t *pac_conf)
     FREELIST (pac_conf->ignoregroups);
     FREELIST (pac_conf->noupgrades);
     FREELIST (pac_conf->noextracts);
-    
+
     /* non-alpm */
     FREELIST (pac_conf->syncfirst);
-    
+
     /* dbs/repos */
     alpm_list_t *i;
-    for (i = pac_conf->databases; i; i = alpm_list_next (i))
+    FOR_LIST (i, pac_conf->databases)
     {
         database_t *db = i->data;
         free (db->name);
@@ -642,7 +647,7 @@ free_pacman_config (pacman_config_t *pac_conf)
         free (db);
     }
     alpm_list_free (pac_conf->databases);
-    
+
     /* done */
     free (pac_conf);
 }
@@ -651,10 +656,10 @@ static void
 setstringoption (char *value, const char *option, char **cfg)
 {
     size_t len;
-    
+
     if (NULL != *cfg)
         free (*cfg);
-    
+
     if (value[0] == '"')
     {
         len = strlen (value) - 1;
@@ -664,105 +669,108 @@ setstringoption (char *value, const char *option, char **cfg)
             ++value;
         }
     }
-    
+
     *cfg = strreplace (value, "\\n", "\n");
     debug ("config: %s: %s", option, value);
 }
 
-#define add_error(fmt, ...) do {                                        \
-        if (!err_msg)                                                   \
-        {                                                               \
-            err_msg = g_string_sized_new (1024);                        \
-        }                                                               \
-        g_string_append_printf (err_msg,                                \
-                                "Config file %s, line %d: " fmt "\n",   \
-                                file, linenum, __VA_ARGS__);            \
-    } while (0)
+#define add_error(fmt, ...) do {                    \
+    if (!err_msg)                                   \
+    {                                               \
+        err_msg = g_string_sized_new (1024);        \
+    }                                               \
+    g_string_append_printf (err_msg,                \
+            "Config file %s, line %d: " fmt "\n",   \
+            file, linenum, __VA_ARGS__);            \
+} while (0)
 /** inspired from pacman's function */
 gboolean
 parse_config_file (const char       *file,
                    conf_file_t       conf_file,
                    GError          **error)
 {
-	char       *data            = NULL;
-	char       *line;
+    char       *data            = NULL;
+    char       *line;
     gchar     **lines           = NULL;
     gchar     **l;
-	int         linenum         = 0;
+    int         linenum         = 0;
     char       *section         = NULL;
-	int         success         = TRUE;
+    int         success         = TRUE;
     GString    *err_msg         = NULL;
     GError     *local_err       = NULL;
 
-	debug ("config: attempting to read file %s", file);
+    debug ("config: attempting to read file %s", file);
     if (!g_file_get_contents (file, &data, NULL, &local_err))
     {
         /* not an error if file does not exists */
-        if (local_err->domain != G_FILE_ERROR || local_err->code != G_FILE_ERROR_NOENT)
+        if (local_err->domain != G_FILE_ERROR
+                || local_err->code != G_FILE_ERROR_NOENT)
         {
             success = FALSE;
-            g_set_error (error, KALU_ERROR, 1, "Config file %s could not be read: %s",
-                         file, local_err->message);
+            g_set_error (error, KALU_ERROR, 1,
+                    "Config file %s could not be read: %s",
+                    file,
+                    local_err->message);
         }
         g_clear_error (&local_err);
         goto cleanup;
     }
-    
+
     lines = g_strsplit (data, "\n", 0);
     g_free (data);
     for (l = lines; *l; ++l)
     {
-		char *key, *value, *ptr;
-		size_t line_len;
+        char *key, *value, *ptr;
+        size_t line_len;
 
         line = *l;
-		++linenum;
-		strtrim (line);
-		line_len = strlen(line);
+        ++linenum;
+        strtrim (line);
+        line_len = strlen (line);
 
-		/* ignore whole line and end of line comments */
-		if (line_len == 0 || line[0] == '#')
+        /* ignore whole line and end of line comments */
+        if (line_len == 0 || line[0] == '#')
         {
-			continue;
-		}
-		if ((ptr = strchr(line, '#')))
+            continue;
+        }
+        if ((ptr = strchr (line, '#')))
         {
-			*ptr = '\0';
-		}
+            *ptr = '\0';
+        }
 
-		if (line[0] == '[' && line[line_len - 1] == ']')
+        if (line[0] == '[' && line[line_len - 1] == ']')
         {
-			/* only possibility here is a line == '[]' */
-			if (line_len <= 2)
+            /* only possibility here is a line == '[]' */
+            if (line_len <= 2)
             {
                 add_error ("%s", "bad section name");
                 free (section);
                 section = NULL;
                 continue;
-			}
-			/* new config section, skip the '[' */
+            }
+            /* new config section, skip the '[' */
             free (section);
-			section = strdup (line + 1);
-			section[line_len - 2] = '\0';
-            
-			debug ("config: new section '%s'", section);
-			continue;
-		}
-        
-		/* directive */
-		/* strsep modifies the 'line' string: 'key \0 value' */
-		key = line;
-		value = line;
-		strsep (&value, "=");
-		strtrim (key);
-		strtrim (value);
+            section = strdup (line + 1);
+            section[line_len - 2] = '\0';
 
-		if (key == NULL)
+            debug ("config: new section '%s'", section);
+            continue;
+        }
+
+        /* directive */
+        /* strsep modifies the 'line' string: 'key \0 value' */
+        key = line;
+        value = line;
+        strsep (&value, "=");
+        strtrim (key);
+        strtrim (value);
+
+        if (key == NULL)
         {
             add_error ("%s", "syntax error: missing key");
-			continue;
-		}
-        
+            continue;
+        }
+
         /* kalu.conf*/
         if (conf_file == CONF_FILE_KALU)
         {
@@ -771,13 +779,13 @@ parse_config_file (const char       *file,
                 add_error ("value missing for %s", key);
                 continue;
             }
-            else if (strcmp ("options", section) == 0)
+            else if (streq ("options", section))
             {
-                if (strcmp (key, "PacmanConf") == 0)
+                if (streq (key, "PacmanConf"))
                 {
                     setstringoption (value, "pacmanconf", &(config->pacmanconf));
                 }
-                else if (strcmp (key, "Interval") == 0)
+                else if (streq (key, "Interval"))
                 {
                     config->interval = atoi (value);
                     if (config->interval > 0)
@@ -788,16 +796,16 @@ parse_config_file (const char       *file,
                     {
                         config->interval = 3600; /* 1 hour */
                     }
-                    
+
                     debug ("config: interval: %d", config->interval);
                 }
-                else if (strcmp (key, "Timeout") == 0)
+                else if (streq (key, "Timeout"))
                 {
-                    if (strcmp (value, "DEFAULT") == 0)
+                    if (streq (value, "DEFAULT"))
                     {
                         config->timeout = NOTIFY_EXPIRES_DEFAULT;
                     }
-                    else if (strcmp (value, "NEVER") == 0)
+                    else if (streq (value, "NEVER"))
                     {
                         config->timeout = NOTIFY_EXPIRES_NEVER;
                     }
@@ -813,17 +821,20 @@ parse_config_file (const char       *file,
                     }
                     debug ("config: timeout: %d", config->timeout);
                 }
-                else if (strcmp (key, "SkipPeriod") == 0)
+                else if (streq (key, "SkipPeriod"))
                 {
                     int begin_hour, begin_minute, end_hour, end_minute;
-                    
-                    if (sscanf (value, "%d:%d-%d:%d", &begin_hour, &begin_minute,
-                            &end_hour, &end_minute) == 4)
+
+                    if (sscanf (value, "%d:%d-%d:%d",
+                                &begin_hour,
+                                &begin_minute,
+                                &end_hour,
+                                &end_minute) == 4)
                     {
                         if (begin_hour < 0 || begin_hour > 23
-                            || begin_minute < 0 || begin_minute > 59
-                            || end_hour < 0 || end_hour > 23
-                            || end_minute < 0 || end_minute > 59)
+                                || begin_minute < 0 || begin_minute > 59
+                                || end_hour < 0 || end_hour > 23
+                                || end_minute < 0 || end_minute > 59)
                         {
                             add_error ("invalid value for SkipPeriod: %s", value);
                             continue;
@@ -834,23 +845,23 @@ parse_config_file (const char       *file,
                         config->skip_end_hour     = end_hour;
                         config->skip_end_minute   = end_minute;
                         debug ("config: SkipPeriod: from %d:%d to %d:%d",
-                            config->skip_begin_hour, config->skip_begin_minute,
-                            config->skip_end_hour, config->skip_end_minute);
+                                config->skip_begin_hour, config->skip_begin_minute,
+                                config->skip_end_hour, config->skip_end_minute);
                     }
                     else
                     {
                         add_error ("unable to parse SkipPeriod (must be HH:MM-HH:MM) : %s",
-                                   value);
+                                value);
                         continue;
                     }
                 }
-                else if (strcmp (key, "NotificationIcon") == 0)
+                else if (streq (key, "NotificationIcon"))
                 {
-                    if (strcmp (value, "KALU") == 0)
+                    if (streq (value, "KALU"))
                     {
                         config->notif_icon = ICON_KALU;
                     }
-                    else if (strcmp (value, "NONE") == 0)
+                    else if (streq (value, "NONE"))
                     {
                         config->notif_icon = ICON_NONE;
                     }
@@ -867,19 +878,19 @@ parse_config_file (const char       *file,
                     debug ("config: NotifIcon: %d", config->notif_icon);
                     debug ("config: NotifIconUser: %s", config->notif_icon_user);
                 }
-                else if (strcmp (key, "UpgradeAction") == 0)
+                else if (streq (key, "UpgradeAction"))
                 {
-                    if (strcmp (value, "NONE") == 0)
+                    if (streq (value, "NONE"))
                     {
                         config->action = UPGRADE_NO_ACTION;
                     }
-                    #ifndef DISABLE_UPDATER
-                    else if (strcmp (value, "KALU") == 0)
+#ifndef DISABLE_UPDATER
+                    else if (streq (value, "KALU"))
                     {
                         config->action = UPGRADE_ACTION_KALU;
                     }
-                    #endif
-                    else if (strcmp (value, "CMDLINE") == 0)
+#endif
+                    else if (streq (value, "CMDLINE"))
                     {
                         config->action = UPGRADE_ACTION_CMDLINE;
                     }
@@ -890,41 +901,41 @@ parse_config_file (const char       *file,
                     }
                     debug ("config: action: %d", config->action);
                 }
-                else if (strcmp (key, "CmdLine") == 0)
+                else if (streq (key, "CmdLine"))
                 {
                     setstringoption (value, "cmdline", &(config->cmdline));
                 }
-                else if (strcmp (key, "CmdLineAur") == 0)
+                else if (streq (key, "CmdLineAur"))
                 {
                     setstringoption (value, "cmdline_aur", &(config->cmdline_aur));
                 }
-                #ifndef DISABLE_UPDATER
-                else if (strcmp (key, "PostSysUpgrade") == 0)
+#ifndef DISABLE_UPDATER
+                else if (streq (key, "PostSysUpgrade"))
                 {
                     config->cmdline_post = alpm_list_add (config->cmdline_post,
-                        strdup (value));
+                            strdup (value));
                     debug ("config: postsysupgrade: %s", value);
                 }
-                else if (strcmp (key, "ConfirmPostSysUpgrade") == 0)
+                else if (streq (key, "ConfirmPostSysUpgrade"))
                 {
                     config->confirm_post = (*value == '1');
                     debug ("config: confirm postsysupgrade: %d", config->confirm_post);
                 }
-                else if (strcmp (key, "CmdLineLink") == 0)
+                else if (streq (key, "CmdLineLink"))
                 {
                     setstringoption (value, "cmdline_link", &(config->cmdline_link));
                 }
-                #endif
-                else if (strcmp (key, "AurIgnore") == 0)
+#endif
+                else if (streq (key, "AurIgnore"))
                 {
                     setrepeatingoption (value, "aur_ignore", &(config->aur_ignore));
                 }
-                else if (strcmp (key, "ManualChecks") == 0
-                        || strcmp (key, "AutoChecks") == 0)
+                else if (streq (key, "ManualChecks")
+                        || streq (key, "AutoChecks"))
                 {
                     char *v, *s;
                     check_t checks = 0;
-                    
+
                     for (v = value, s = (char *) 1; s; )
                     {
                         s = strchr(v, ' ');
@@ -932,24 +943,24 @@ parse_config_file (const char       *file,
                         {
                             *s = '\0';
                         }
-                        
-                        if (strcmp ("UPGRADES", v) == 0)
+
+                        if (streq ("UPGRADES", v))
                         {
                             checks |= CHECK_UPGRADES;
                         }
-                        else if (strcmp ("WATCHED", v) == 0)
+                        else if (streq ("WATCHED", v))
                         {
                             checks |= CHECK_WATCHED;
                         }
-                        else if (strcmp ("AUR", v) == 0)
+                        else if (streq ("AUR", v))
                         {
                             checks |= CHECK_AUR;
                         }
-                        else if (strcmp ("WATCHED_AUR", v) == 0)
+                        else if (streq ("WATCHED_AUR", v))
                         {
                             checks |= CHECK_WATCHED_AUR;
                         }
-                        else if (strcmp ("NEWS", v) == 0)
+                        else if (streq ("NEWS", v))
                         {
                             checks |= CHECK_NEWS;
                         }
@@ -958,14 +969,14 @@ parse_config_file (const char       *file,
                             add_error ("unknown value for %s: %s", key, v);
                             continue;
                         }
-                        
+
                         if (s)
                         {
                             v = s + 1;
                         }
                     }
-                    
-                    if (strcmp (key, "AutoChecks") == 0)
+
+                    if (streq (key, "AutoChecks"))
                     {
                         config->checks_auto = checks;
                         debug ("config: checks_auto: %d", checks);
@@ -976,58 +987,58 @@ parse_config_file (const char       *file,
                         debug ("config: checks_manual: %d", checks);
                     }
                 }
-                else if (  strcmp (key, "OnSglClick") == 0
-                        || strcmp (key, "OnDblClick") == 0
-                        || strcmp (key, "OnSglClickPaused") == 0
-                        || strcmp (key, "OnDblClickPaused") == 0)
+                else if (  streq (key, "OnSglClick")
+                        || streq (key, "OnDblClick")
+                        || streq (key, "OnSglClickPaused")
+                        || streq (key, "OnDblClickPaused"))
                 {
                     on_click_t *on_click;
                     gboolean is_paused = FALSE;
 
-                    if (strcmp (key, "OnSglClick") == 0)
+                    if (streq (key, "OnSglClick"))
                     {
                         on_click = &(config->on_sgl_click);
                     }
-                    else if (strcmp (key, "OnDblClick") == 0)
+                    else if (streq (key, "OnDblClick"))
                     {
                         on_click = &(config->on_dbl_click);
                     }
-                    else if (strcmp (key, "OnSglClickPaused") == 0)
+                    else if (streq (key, "OnSglClickPaused"))
                     {
                         is_paused = TRUE;
                         on_click = &(config->on_sgl_click_paused);
                     }
-                    else /* if (strcmp (key, "OnDblClickPaused") == 0) */
+                    else /* if (streq (key, "OnDblClickPaused")) */
                     {
                         is_paused = TRUE;
                         on_click = &(config->on_dbl_click_paused);
                     }
 
-                    if (strcmp (value, "CHECK") == 0)
+                    if (streq (value, "CHECK"))
                     {
                         *on_click = DO_CHECK;
                     }
-                    else if (strcmp (value, "SYSUPGRADE") == 0)
+                    else if (streq (value, "SYSUPGRADE"))
                     {
                         *on_click = DO_SYSUPGRADE;
                     }
-                    else if (strcmp (value, "NOTHING") == 0)
+                    else if (streq (value, "NOTHING"))
                     {
                         *on_click = DO_NOTHING;
                     }
-                    else if (strcmp (value, "TOGGLE_WINDOWS") == 0)
+                    else if (streq (value, "TOGGLE_WINDOWS"))
                     {
                         *on_click = DO_TOGGLE_WINDOWS;
                     }
-                    else if (strcmp (value, "LAST_NOTIFS") == 0)
+                    else if (streq (value, "LAST_NOTIFS"))
                     {
                         *on_click = DO_LAST_NOTIFS;
                     }
-                    else if (strcmp (value, "TOGGLE_PAUSE") == 0)
+                    else if (streq (value, "TOGGLE_PAUSE"))
                     {
                         *on_click = DO_TOGGLE_PAUSE;
                     }
-                    else if (is_paused && strcmp (value, "SAME_AS_ACTIVE") == 0)
+                    else if (is_paused && streq (value, "SAME_AS_ACTIVE"))
                     {
                         *on_click = DO_SAME_AS_ACTIVE;
                     }
@@ -1038,23 +1049,23 @@ parse_config_file (const char       *file,
                     }
                     debug ("config: %s: %d", key, *on_click);
                 }
-                else if (strcmp (key, "SaneSortOrder") == 0)
+                else if (streq (key, "SaneSortOrder"))
                 {
                     config->sane_sort_order = (*value == '1');
                     debug ("config: sane sort order: %d", config->sane_sort_order);
                 }
-                else if (strcmp (key, "SyncDbsInTooltip") == 0)
+                else if (streq (key, "SyncDbsInTooltip"))
                 {
                     config->syncdbs_in_tooltip = (*value == '1');
                     debug ("config: syncdbs in tooltip: %d", config->syncdbs_in_tooltip);
                 }
-                else if (strcmp (key, "CheckPacmanConflict") == 0)
+                else if (streq (key, "CheckPacmanConflict"))
                 {
                     config->check_pacman_conflict = (*value == '1');
                     debug ("config: check for pacman/kalu conflict: %d",
-                           config->check_pacman_conflict);
+                            config->check_pacman_conflict);
                 }
-                else if (strcmp (key, "UseIP") == 0)
+                else if (streq (key, "UseIP"))
                 {
                     if (value[0] == '4' && value[1] == '\0')
                     {
@@ -1072,7 +1083,7 @@ parse_config_file (const char       *file,
                         continue;
                     }
                 }
-                else if (strcmp (key, "AutoNotifs") == 0)
+                else if (streq (key, "AutoNotifs"))
                 {
                     if (value[0] == '0' && value[1] == '\0')
                     {
@@ -1099,23 +1110,23 @@ parse_config_file (const char       *file,
             else
             {
                 templates_t *t;
-                if (strcmp ("template-upgrades", section) == 0)
+                if (streq ("template-upgrades", section))
                 {
                     t = config->tpl_upgrades;
                 }
-                else if (strcmp ("template-watched", section) == 0)
+                else if (streq ("template-watched", section))
                 {
                     t = config->tpl_watched;
                 }
-                else if (strcmp ("template-aur", section) == 0)
+                else if (streq ("template-aur", section))
                 {
                     t = config->tpl_aur;
                 }
-                else if (strcmp ("template-watched-aur", section) == 0)
+                else if (streq ("template-watched-aur", section))
                 {
                     t = config->tpl_watched_aur;
                 }
-                else if (strcmp ("template-news", section) == 0)
+                else if (streq ("template-news", section))
                 {
                     t = config->tpl_news;
                 }
@@ -1124,25 +1135,26 @@ parse_config_file (const char       *file,
                     add_error ("unknown section: %s", section);
                     continue;
                 }
-                
+
                 /* we're in a valid template */
-                
-                if (strcmp (key, "Title") == 0)
+
+                if (streq (key, "Title"))
                 {
                     setstringoption (value, "title", &(t->title));
                 }
-                else if (strcmp (key, "Package") == 0)
+                else if (streq (key, "Package"))
                 {
                     setstringoption (value, "package", &(t->package));
                 }
-                else if (strcmp (key, "Sep") == 0)
+                else if (streq (key, "Sep"))
                 {
                     setstringoption (value, "sep", &(t->sep));
                 }
             }
         }
         /* watched{,-aur}.conf */
-        else if (conf_file == CONF_FILE_WATCHED || conf_file == CONF_FILE_WATCHED_AUR)
+        else if (conf_file == CONF_FILE_WATCHED
+                || conf_file == CONF_FILE_WATCHED_AUR)
         {
             if (value == NULL)
             {
@@ -1160,14 +1172,14 @@ parse_config_file (const char       *file,
                 {
                     list = &(config->watched_aur);
                 }
-                
+
                 watched_package_t *w_pkg;
-                w_pkg = calloc (1, sizeof (*w_pkg));
+                w_pkg = new0 (watched_package_t, 1);
                 w_pkg->name = strdup (key);
                 w_pkg->version = strdup (value);
                 *list = alpm_list_add (*list, w_pkg);
                 debug ("config: watched (aur) packages: added %s %s",
-                       w_pkg->name, w_pkg->version);
+                        w_pkg->name, w_pkg->version);
             }
         }
         /* news.conf */
@@ -1178,30 +1190,32 @@ parse_config_file (const char       *file,
                 add_error ("news data: value missing for %s", key);
                 continue;
             }
-            else if (strcmp ("Last", key) == 0)
+            else if (streq ("Last", key))
             {
                 config->news_last = strdup (value);
                 debug ("config: news_last: %s", value);
             }
-            else if (strcmp ("Read", key) == 0)
+            else if (streq ("Read", key))
             {
-                config->news_read = alpm_list_add (config->news_read, strdup (value));
+                config->news_read = alpm_list_add (config->news_read,
+                        strdup (value));
                 debug ("config: news_read: added %s", value);
             }
         }
-	}
+    }
 
 cleanup:
-	g_strfreev (lines);
+    g_strfreev (lines);
     free (section);
     if (config->action == UPGRADE_ACTION_CMDLINE && config->cmdline == NULL)
     {
-        #ifndef DISABLE_UPDATER
+#ifndef DISABLE_UPDATER
         config->action = UPGRADE_ACTION_KALU;
-        #else
+#else
         config->action = UPGRADE_NO_ACTION;
-        #endif
-        debug ("config: action: no cmdline set, reverting to %d", config->action);
+#endif
+        debug ("config: action: no cmdline set, reverting to %d",
+                config->action);
     }
     if (err_msg)
     {
@@ -1210,7 +1224,7 @@ cleanup:
         err_msg = NULL;
         success = FALSE;
     }
-	debug ("config: finished parsing %s", file);
-	return success;
+    debug ("config: finished parsing %s", file);
+    return success;
 }
 #undef add_error

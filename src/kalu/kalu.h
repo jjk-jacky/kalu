@@ -3,7 +3,7 @@
  *
  * kalu.h
  * Copyright (C) 2012 Olivier Brunel <i.am.jack.mail@gmail.com>
- * 
+ *
  * This file is part of kalu.
  *
  * kalu is free software: you can redistribute it and/or modify it under the
@@ -33,7 +33,8 @@
 #include <alpm.h>
 #include <alpm_list.h>
 
-#define _UNUSED_                __attribute__ ((unused)) 
+/* kalu */
+#include "shared.h"
 
 #if defined(GIT_VERSION)
 #undef PACKAGE_VERSION
@@ -56,28 +57,24 @@
 
 #define KALU_ERROR              g_quark_from_static_string ("kalu error")
 
-#define FREE_PACKAGE_LIST(p)                                                \
-            do                                                              \
-            {                                                               \
-                alpm_list_free_inner (p, (alpm_list_fn_free) free_package); \
-                alpm_list_free (p);                                         \
-                p = NULL;                                                   \
-            } while(0)
+#define FREE_PACKAGE_LIST(p)    do {                            \
+    alpm_list_free_inner (p, (alpm_list_fn_free) free_package); \
+    alpm_list_free (p);                                         \
+    p = NULL;                                                   \
+} while(0)
 
-#define FREE_WATCHED_PACKAGE_LIST(p)                                        \
-            do                                                              \
-            {                                                               \
-                alpm_list_free_inner (p, (alpm_list_fn_free) free_watched_package); \
-                alpm_list_free (p);                                         \
-                p = NULL;                                                   \
-            } while(0)
+#define FREE_WATCHED_PACKAGE_LIST(p)    do {                            \
+    alpm_list_free_inner (p, (alpm_list_fn_free) free_watched_package); \
+    alpm_list_free (p);                                                 \
+    p = NULL;                                                           \
+} while(0)
 
 typedef enum {
     UPGRADE_NO_ACTION = 0,
     UPGRADE_ACTION_CMDLINE,
-    #ifndef DISABLE_UPDATER
+#ifndef DISABLE_UPDATER
     UPGRADE_ACTION_KALU,
-    #endif
+#endif
 } upgrade_action_t;
 
 typedef enum {
@@ -134,10 +131,10 @@ typedef struct _config_t {
     upgrade_action_t action;
     char            *cmdline;
     char            *cmdline_aur;
-    #ifndef DISABLE_UPDATER
+#ifndef DISABLE_UPDATER
     alpm_list_t     *cmdline_post;
     gboolean         confirm_post;
-    #endif
+#endif
     gboolean         sane_sort_order;
     gboolean         check_pacman_conflict;
     on_click_t       on_sgl_click;
@@ -146,28 +143,28 @@ typedef struct _config_t {
     on_click_t       on_dbl_click_paused;
     int              use_ip;
     gboolean         auto_notifs;
-    
+
     templates_t     *tpl_upgrades;
     templates_t     *tpl_watched;
     templates_t     *tpl_aur;
     templates_t     *tpl_watched_aur;
     templates_t     *tpl_news;
-    
+
     alpm_list_t     *aur_ignore;
-    
+
     alpm_list_t     *watched;
     alpm_list_t     *watched_aur;
-    
+
     char            *news_last;
     alpm_list_t     *news_read;
-    #ifndef DISABLE_UPDATER
+#ifndef DISABLE_UPDATER
     char            *cmdline_link;
-    #endif
-    
+#endif
+
     gboolean         is_curl_init;
-    #ifndef DISABLE_GUI
+#ifndef DISABLE_GUI
     alpm_list_t     *last_notifs;
-    #endif
+#endif
 } config_t;
 
 typedef struct _watched_package_t {

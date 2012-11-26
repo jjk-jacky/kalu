@@ -45,52 +45,103 @@ struct _KaluUpdater
 struct _KaluUpdaterClass
 {
     GDBusProxyClass parent_class;
-    
+
     /* signals */
-    void (*debug)                   (KaluUpdater *kupdater, const gchar *msg);
-    void (*downloading)             (KaluUpdater *kupdater, const gchar *filename,
-                                     guint xfered, guint total);
-    void (*sync_dbs)                (KaluUpdater *kupdater, gint nb);
-    void (*sync_db_start)           (KaluUpdater *kupdater, const gchar *name);
-    void (*sync_db_end)             (KaluUpdater *kupdater, sync_db_results_t result);
-    void (*log)                     (KaluUpdater *kupdater, loglevel_t level,
-                                     const gchar *msg);
-    void (*total_download)          (KaluUpdater *kupdater, guint total);
-    void (*event)                   (KaluUpdater *kupdater, event_t event);
-    void (*event_installed)         (KaluUpdater *kupdater, const gchar *pkg,
-                                     const gchar *version, alpm_list_t *optdeps);
-    void (*event_removed)           (KaluUpdater *kupdater, const gchar *pkg,
-                                     const gchar *version);
-    void (*event_upgraded)          (KaluUpdater *kupdater, const gchar *pkg,
-                                     const gchar *old_version, const gchar *new_version,
-                                     alpm_list_t *newoptdeps);
-    void (*event_retrieving_pkgs)   (KaluUpdater *kupdater, const gchar *repo);
-    void (*event_scriptlet)         (KaluUpdater *kupdater, const gchar *msg);
-    void (*event_delta_generating)  (KaluUpdater *kupdater, const gchar *delta,
-                                     const gchar *dest);
-    void (*progress)                (KaluUpdater *kupdater, event_t event,
-                                     const gchar *pkg, gint percent,
-                                     guint total, guint current);
-    
+    void (*debug)                   (KaluUpdater        *kupdater,
+                                     const gchar        *msg);
+
+    void (*downloading)             (KaluUpdater        *kupdater,
+                                     const gchar        *filename,
+                                     guint               xfered,
+                                     guint               total);
+
+    void (*sync_dbs)                (KaluUpdater        *kupdater,
+                                     gint                nb);
+
+    void (*sync_db_start)           (KaluUpdater        *kupdater,
+                                     const gchar        *name);
+
+    void (*sync_db_end)             (KaluUpdater        *kupdater,
+                                     sync_db_results_t   result);
+
+    void (*log)                     (KaluUpdater        *kupdater,
+                                     loglevel_t          level,
+                                     const gchar        *msg);
+
+    void (*total_download)          (KaluUpdater        *kupdater,
+                                     guint               total);
+
+    void (*event)                   (KaluUpdater        *kupdater,
+                                     event_t             event);
+
+    void (*event_installed)         (KaluUpdater        *kupdater,
+                                     const gchar        *pkg,
+                                     const gchar        *version,
+                                     alpm_list_t        *optdeps);
+
+    void (*event_removed)           (KaluUpdater        *kupdater,
+                                     const gchar        *pkg,
+                                     const gchar        *version);
+
+    void (*event_upgraded)          (KaluUpdater        *kupdater,
+                                     const gchar        *pkg,
+                                     const gchar        *old_version,
+                                     const gchar        *new_version,
+                                     alpm_list_t        *newoptdeps);
+
+    void (*event_retrieving_pkgs)   (KaluUpdater        *kupdater,
+                                     const gchar        *repo);
+
+    void (*event_scriptlet)         (KaluUpdater        *kupdater,
+                                     const gchar        *msg);
+
+    void (*event_delta_generating)  (KaluUpdater        *kupdater,
+                                     const gchar        *delta,
+                                     const gchar        *dest);
+
+    void (*progress)                (KaluUpdater        *kupdater,
+                                     event_t             event,
+                                     const gchar        *pkg,
+                                     gint                percent,
+                                     guint               total,
+                                     guint               current);
+
     /* questions */
-    gboolean (*install_ignorepkg)   (KaluUpdater *kupdater, const gchar *pkg);
-    gboolean (*replace_pkg)         (KaluUpdater *kupdater,
-                                     const gchar *repo1, const gchar *pkg1,
-                                     const gchar *repo2, const gchar *pkg2);
-    gboolean (*conflict_pkg)        (KaluUpdater *kupdater, const gchar *pkg1,
-                                     const gchar *pkg2, const gchar *reason);
-    gboolean (*remove_pkgs)         (KaluUpdater *kupdater, alpm_list_t *pkgs);
-    gint     (*select_provider)     (KaluUpdater *kupdater, const gchar *pkg,
-                                     alpm_list_t *providers);
-    gboolean (*local_newer)         (KaluUpdater *kupdater,
-                                     const gchar *pkg, const gchar *pkg_version,
-                                     const gchar *repo, const gchar *repo_version);
-    gboolean (*corrupted_pkg)       (KaluUpdater *kupdater, const gchar *file,
-                                     const gchar *error);
-    gboolean (*import_key)          (KaluUpdater *kupdater,
-                                     const gchar *key_fingerprint,
-                                     const gchar *key_uid,
-                                     const gchar *key_created);
+    gboolean (*install_ignorepkg)   (KaluUpdater        *kupdater,
+                                     const gchar        *pkg);
+
+    gboolean (*replace_pkg)         (KaluUpdater        *kupdater,
+                                     const gchar        *repo1,
+                                     const gchar        *pkg1,
+                                     const gchar        *repo2,
+                                     const gchar        *pkg2);
+
+    gboolean (*conflict_pkg)        (KaluUpdater        *kupdater,
+                                     const gchar        *pkg1,
+                                     const gchar        *pkg2,
+                                     const gchar        *reason);
+
+    gboolean (*remove_pkgs)         (KaluUpdater        *kupdater,
+                                     alpm_list_t        *pkgs);
+
+    gint     (*select_provider)     (KaluUpdater        *kupdater,
+                                     const gchar        *pkg,
+                                     alpm_list_t        *providers);
+
+    gboolean (*local_newer)         (KaluUpdater        *kupdater,
+                                     const gchar        *pkg,
+                                     const gchar        *pkg_version,
+                                     const gchar        *repo,
+                                     const gchar        *repo_version);
+
+    gboolean (*corrupted_pkg)       (KaluUpdater        *kupdater,
+                                     const gchar        *file,
+                                     const gchar        *error);
+
+    gboolean (*import_key)          (KaluUpdater        *kupdater,
+                                     const gchar        *key_fingerprint,
+                                     const gchar        *key_uid,
+                                     const gchar        *key_created);
 };
 
 struct _KaluUpdaterPrivate
@@ -134,19 +185,24 @@ static guint signals[NB_SIGNALS] = { 0 };
 G_DEFINE_TYPE (KaluUpdater, kalu_updater, G_TYPE_DBUS_PROXY);
 
 void
-kalu_updater_new (GCancellable *cancellable, GAsyncReadyCallback callback, gpointer data)
+kalu_updater_new (
+        GCancellable        *cancellable,
+        GAsyncReadyCallback  callback,
+        gpointer             data)
 {
-    g_async_initable_new_async (KALU_TYPE_UPDATER,
-                                G_PRIORITY_DEFAULT,
-                                cancellable,
-                                callback,
-                                data,
-                                "g-bus-type",       G_BUS_TYPE_SYSTEM,
-                                "g-flags",          G_DBUS_PROXY_FLAGS_NONE,
-                                "g-name",           DBUS_NAME,
-                                "g-object-path",    OBJECT_PATH,
-                                "g-interface-name", INTERFACE_NAME,
-                                NULL);
+    g_async_initable_new_async (
+            KALU_TYPE_UPDATER,
+            G_PRIORITY_DEFAULT,
+            cancellable,
+            callback,
+            data,
+            "g-bus-type",       G_BUS_TYPE_SYSTEM,
+            "g-flags",          G_DBUS_PROXY_FLAGS_NONE,
+            "g-name",           DBUS_NAME,
+            "g-object-path",    OBJECT_PATH,
+            "g-interface-name", INTERFACE_NAME,
+            NULL
+            );
 }
 
 KaluUpdater *
@@ -158,8 +214,10 @@ kalu_updater_new_finish (GAsyncResult *res, GError **error)
     source_object = g_async_result_get_source_object (res);
     g_assert (source_object != NULL);
 
-    object = g_async_initable_new_finish (G_ASYNC_INITABLE (source_object),
-                                          res, error);
+    object = g_async_initable_new_finish (
+            G_ASYNC_INITABLE (source_object),
+            res,
+            error);
     g_object_unref (source_object);
 
     if (object != NULL)
@@ -176,7 +234,7 @@ static void
 kalu_updater_finalize (GObject *object)
 {
     G_GNUC_UNUSED KaluUpdater *kupdater = KALU_UPDATER (object);
-    
+
     free (kupdater->priv->method_callbacks);
 
     if (G_OBJECT_CLASS (kalu_updater_parent_class)->finalize != NULL)
@@ -193,7 +251,8 @@ kalu_updater_get_interface_info (void)
     if (g_once_init_enter (&has_info))
     {
         GDBusNodeInfo *introspection_data;
-        introspection_data = g_dbus_node_info_new_for_xml (introspection_xml, NULL);
+        introspection_data = g_dbus_node_info_new_for_xml (introspection_xml,
+                NULL);
         info = introspection_data->interfaces[0];
         g_once_init_leave (&has_info, 1);
     }
@@ -204,11 +263,12 @@ static void
 kalu_updater_init (KaluUpdater *kupdater)
 {
     /* Sets the expected interface */
-    g_dbus_proxy_set_interface_info (G_DBUS_PROXY (kupdater), kalu_updater_get_interface_info ());
-    
+    g_dbus_proxy_set_interface_info (G_DBUS_PROXY (kupdater),
+            kalu_updater_get_interface_info ());
+
     kupdater->priv = G_TYPE_INSTANCE_GET_PRIVATE (kupdater,
-                                                  KALU_TYPE_UPDATER,
-                                                  KaluUpdaterPrivate);
+            KALU_TYPE_UPDATER,
+            KaluUpdaterPrivate);
     method_callback_t mc[] = {
         {"Init",        FALSE, NULL, NULL},
         {"InitAlpm",    FALSE, NULL, NULL},
@@ -221,29 +281,29 @@ kalu_updater_init (KaluUpdater *kupdater)
         {NULL, FALSE, NULL, NULL}
     };
     size_t count = sizeof (mc) / sizeof (mc[0]);
-    kupdater->priv->method_callbacks = calloc (count, sizeof (method_callback_t));
+    kupdater->priv->method_callbacks = new0 (method_callback_t, count);
     for (size_t i = 0; i < count; ++i)
     {
         kupdater->priv->method_callbacks[i] =  mc[i];
     }
 }
 
-#define emit_signal_answer(signal, ...)  do {                                 \
-        GError *error = NULL;                                                 \
-        gboolean response = FALSE;                                            \
-        g_signal_emit (kupdater, signals[signal], 0, __VA_ARGS__, &response); \
-        g_dbus_proxy_call_sync (G_DBUS_PROXY (kupdater),                      \
-            "Answer",                                                         \
-            g_variant_new ("(i)", (gint) response),                           \
-            G_DBUS_CALL_FLAGS_NONE,                                           \
-            -1,                                                               \
-            NULL,                                                             \
-            &error);                                                          \
-        if (error != NULL)                                                    \
-        {                                                                     \
-            /* emit signal error or something */                              \
-        }                                                                     \
-    } while (0)
+#define emit_signal_answer(signal, ...)  do {                               \
+    GError *error = NULL;                                                   \
+    gboolean response = FALSE;                                              \
+    g_signal_emit (kupdater, signals[signal], 0, __VA_ARGS__, &response);   \
+    g_dbus_proxy_call_sync (G_DBUS_PROXY (kupdater),                        \
+            "Answer",                                                       \
+            g_variant_new ("(i)", (gint) response),                         \
+            G_DBUS_CALL_FLAGS_NONE,                                         \
+            -1,                                                             \
+            NULL,                                                           \
+            &error);                                                        \
+    if (error != NULL)                                                      \
+    {                                                                       \
+        /* emit signal error or something */                                \
+    }                                                                       \
+} while (0)
 static void
 kalu_updater_g_signal (GDBusProxy   *proxy,
                        const gchar  *sender_name _UNUSED_,
@@ -254,7 +314,7 @@ kalu_updater_g_signal (GDBusProxy   *proxy,
     if (g_strcmp0 (signal_name, "Debug") == 0)
     {
         gchar *msg;
-        
+
         g_variant_get (parameters, "(s)", &msg);
         g_signal_emit (kupdater, signals[SIGNAL_DEBUG], 0, msg);
         free (msg);
@@ -262,20 +322,20 @@ kalu_updater_g_signal (GDBusProxy   *proxy,
     else if (g_strcmp0 (signal_name, "MethodFailed") == 0)
     {
         gchar *name, *msg;
-        
+
         g_variant_get (parameters, "(ss)", &name, &msg);
         if (msg == NULL)
         {
             msg = strdup ("No error message specified in MethodFailed\n");
         }
-        
+
         if (g_strcmp0 (name, "Answer") == 0)
         {
             free (name);
             free (msg);
             return;
         }
-        
+
         method_callback_t *mc;
         for (mc = kupdater->priv->method_callbacks; ; ++mc)
         {
@@ -283,47 +343,49 @@ kalu_updater_g_signal (GDBusProxy   *proxy,
             {
                 if (!mc->is_running)
                 {
-                    debug ("MethodFailed: method %s not registered running\n", name);
+                    debug ("MethodFailed: method %s not registered running\n",
+                            name);
                     break;
                 }
                 debug ("MethodFailed for method %s: %s\n", name, msg);
-                
+
                 if (mc->callback == NULL)
                 {
                     break;
                 }
-                
+
                 KaluMethodCallback cb = mc->callback;
                 gpointer data = mc->data;
-                
+
                 mc->is_running = FALSE;
                 mc->callback = NULL;
                 mc->data = NULL;
-                
+
                 cb (kupdater, msg, data);
                 break;
             }
             else if (mc->name == NULL)
             {
-                debug ("MethodFailed: Internal method definition missing for %s\n", name);
+                debug ("MethodFailed: Internal method definition missing for %s\n",
+                        name);
             }
         }
-        
+
         free (name);
         free (msg);
     }
     else if (g_strcmp0 (signal_name, "MethodFinished") == 0)
     {
         gchar *name;
-        
+
         g_variant_get (parameters, "(s)", &name);
-        
+
         if (g_strcmp0 (name, "Answer") == 0)
         {
             free (name);
             return;
         }
-        
+
         method_callback_t *mc;
         for (mc = kupdater->priv->method_callbacks; ; ++mc)
         {
@@ -331,39 +393,41 @@ kalu_updater_g_signal (GDBusProxy   *proxy,
             {
                 if (!mc->is_running)
                 {
-                    debug ("MethodFinished: method %s not registered running\n", name);
+                    debug ("MethodFinished: method %s not registered running\n",
+                            name);
                     break;
                 }
                 debug ("MethodFinished for method %s\n", name);
-                
+
                 if (mc->callback == NULL)
                 {
                     break;
                 }
-                
+
                 KaluMethodCallback cb = mc->callback;
                 gpointer data = mc->data;
-                
+
                 mc->is_running = FALSE;
                 mc->callback = NULL;
                 mc->data = NULL;
-                
+
                 cb (kupdater, NULL, data);
                 break;
             }
             else if (mc->name == NULL)
             {
-                debug ("MethodFinished: Internal method definition missing for %s\n", name);
+                debug ("MethodFinished: Internal method definition missing for %s\n",
+                        name);
             }
         }
-        
+
         free (name);
     }
     else if (g_strcmp0 (signal_name, "GetPackagesFinished") == 0)
     {
         GVariantIter *iter;
         alpm_list_t *pkgs= NULL;
-        
+
         method_callback_t *mc;
         for (mc = kupdater->priv->method_callbacks; ; ++mc)
         {
@@ -374,17 +438,17 @@ kalu_updater_g_signal (GDBusProxy   *proxy,
                     debug ("GetPackagesFinished: method not registered running\n");
                     break;
                 }
-                
+
                 KaluGetPackagesCallback cb = (KaluGetPackagesCallback) mc->callback;
                 gpointer data = mc->data;
-                
+
                 mc->is_running = FALSE;
                 mc->callback = NULL;
                 mc->data = NULL;
-                
+
                 kalu_package_t *k_pkg;
                 g_variant_get (parameters, "(a(ssssuuu))", &iter);
-                k_pkg = calloc (1, sizeof (*k_pkg));
+                k_pkg = new0 (kalu_package_t, 1);
                 while (g_variant_iter_loop (iter, "(ssssuuu)",
                             &k_pkg->name,
                             &k_pkg->desc,
@@ -395,13 +459,13 @@ kalu_updater_g_signal (GDBusProxy   *proxy,
                             &k_pkg->new_size))
                 {
                     pkgs = alpm_list_add (pkgs, k_pkg);
-                    k_pkg = calloc (1, sizeof (*k_pkg));
+                    k_pkg = new0 (kalu_package_t, 1);
                 }
                 g_variant_iter_free (iter);
                 free (k_pkg);
-                
+
                 cb (kupdater, NULL, pkgs, data);
-                
+
                 alpm_list_t *i;
                 for (i = pkgs; i; i = alpm_list_next (i))
                 {
@@ -424,14 +488,14 @@ kalu_updater_g_signal (GDBusProxy   *proxy,
     else if (g_strcmp0 (signal_name, "SyncDbs") == 0)
     {
         gint nb;
-        
+
         g_variant_get (parameters, "(i)", &nb);
         g_signal_emit (kupdater, signals[SIGNAL_SYNC_DBS], 0, nb);
     }
     else if (g_strcmp0 (signal_name, "SyncDbStart") == 0)
     {
         gchar *name;
-        
+
         g_variant_get (parameters, "(s)", &name);
         g_signal_emit (kupdater, signals[SIGNAL_SYNC_DB_START], 0, name);
         free (name);
@@ -439,21 +503,21 @@ kalu_updater_g_signal (GDBusProxy   *proxy,
     else if (g_strcmp0 (signal_name, "SyncDbEnd") == 0)
     {
         gint result;
-        
+
         g_variant_get (parameters, "(i)", &result);
         g_signal_emit (kupdater, signals[SIGNAL_SYNC_DB_END], 0, result);
     }
     else if (g_strcmp0 (signal_name, "TotalDownload") == 0)
     {
         guint total;
-        
+
         g_variant_get (parameters, "(u)", &total);
         g_signal_emit (kupdater, signals[SIGNAL_TOTAL_DOWNLOAD], 0, total);
     }
     else if (g_strcmp0 (signal_name, "Event") == 0)
     {
         gint event;
-        
+
         g_variant_get (parameters, "(i)", &event);
         g_signal_emit (kupdater, signals[SIGNAL_EVENT], 0, (event_t) event);
     }
@@ -462,15 +526,15 @@ kalu_updater_g_signal (GDBusProxy   *proxy,
         gchar *pkg, *version, *dep;
         alpm_list_t *optdeps = NULL;
         GVariantIter *iter;
-        
+
         g_variant_get (parameters, "(ssas)", &pkg, &version, &iter);
         while (g_variant_iter_loop (iter, "s", &dep))
         {
             optdeps = alpm_list_add (optdeps, strdup (dep));
         }
         g_variant_iter_free (iter);
-        g_signal_emit (kupdater, signals[SIGNAL_EVENT_INSTALLED], 0, pkg, version,
-                       optdeps);
+        g_signal_emit (kupdater, signals[SIGNAL_EVENT_INSTALLED], 0,
+                pkg, version, optdeps);
         free (pkg);
         free (version);
         FREELIST (optdeps);
@@ -478,9 +542,10 @@ kalu_updater_g_signal (GDBusProxy   *proxy,
     else if (g_strcmp0 (signal_name, "EventRemoved") == 0)
     {
         gchar *pkg, *version;
-        
+
         g_variant_get (parameters, "(ss)", &pkg, &version);
-        g_signal_emit (kupdater, signals[SIGNAL_EVENT_REMOVED], 0, pkg, version);
+        g_signal_emit (kupdater, signals[SIGNAL_EVENT_REMOVED], 0,
+                pkg, version);
         free (pkg);
         free (version);
     }
@@ -489,15 +554,19 @@ kalu_updater_g_signal (GDBusProxy   *proxy,
         gchar *pkg, *old_version, *new_version, *dep;
         alpm_list_t *newoptdeps = NULL;
         GVariantIter *iter;
-        
-        g_variant_get (parameters, "(sssas)", &pkg, &old_version, &new_version, &iter);
+
+        g_variant_get (parameters, "(sssas)",
+                &pkg,
+                &old_version,
+                &new_version,
+                &iter);
         while (g_variant_iter_loop (iter, "s", &dep))
         {
             newoptdeps = alpm_list_add (newoptdeps, strdup (dep));
         }
         g_variant_iter_free (iter);
         g_signal_emit (kupdater, signals[SIGNAL_EVENT_UPGRADED], 0, pkg,
-                       old_version, new_version, newoptdeps);
+                old_version, new_version, newoptdeps);
         free (pkg);
         free (old_version);
         free (new_version);
@@ -506,15 +575,16 @@ kalu_updater_g_signal (GDBusProxy   *proxy,
     else if (g_strcmp0 (signal_name, "EventRetrievingPkgs") == 0)
     {
         gchar *repo;
-        
+
         g_variant_get (parameters, "(s)", &repo);
-        g_signal_emit (kupdater, signals[SIGNAL_EVENT_RETRIEVING_PKGS], 0, repo);
+        g_signal_emit (kupdater, signals[SIGNAL_EVENT_RETRIEVING_PKGS], 0,
+                repo);
         free (repo);
     }
     else if (g_strcmp0 (signal_name, "EventScriptlet") == 0)
     {
         gchar *msg;
-        
+
         g_variant_get (parameters, "(s)", &msg);
         g_signal_emit (kupdater, signals[SIGNAL_EVENT_SCRIPTLET], 0, msg);
         free (msg);
@@ -522,10 +592,10 @@ kalu_updater_g_signal (GDBusProxy   *proxy,
     else if (g_strcmp0 (signal_name, "EventDeltaGenerating") == 0)
     {
         gchar *delta, *dest;
-        
+
         g_variant_get (parameters, "(ss)", &delta, &dest);
         g_signal_emit (kupdater, signals[SIGNAL_EVENT_DELTA_GENERATING], 0,
-                       delta, dest);
+                delta, dest);
         free (delta);
         free (dest);
     }
@@ -534,26 +604,32 @@ kalu_updater_g_signal (GDBusProxy   *proxy,
         gint event, percent;
         gchar *pkg;
         guint total, current;
-        
-        g_variant_get (parameters, "(isiuu)", &event, &pkg, &percent, &total, &current);
-        g_signal_emit (kupdater, signals[SIGNAL_PROGRESS], 0, (event_t) event,
-                       pkg, percent, total, current);
+
+        g_variant_get (parameters, "(isiuu)",
+                &event,
+                &pkg,
+                &percent,
+                &total,
+                &current);
+        g_signal_emit (kupdater, signals[SIGNAL_PROGRESS], 0,
+                (event_t) event, pkg, percent, total, current);
         free (pkg);
     }
     else if (g_strcmp0 (signal_name, "Downloading") == 0)
     {
         gchar *name;
         guint xfered, total;
-        
+
         g_variant_get (parameters, "(suu)", &name, &xfered, &total);
-        g_signal_emit (kupdater, signals[SIGNAL_DOWNLOADING], 0, name, xfered, total);
+        g_signal_emit (kupdater, signals[SIGNAL_DOWNLOADING], 0,
+                name, xfered, total);
         free (name);
     }
     else if (g_strcmp0 (signal_name, "Log") == 0)
     {
         gint level;
         gchar *msg;
-        
+
         g_variant_get (parameters, "(is)", &level, &msg);
         g_signal_emit (kupdater, signals[SIGNAL_LOG], 0, level, msg);
         free (msg);
@@ -589,14 +665,14 @@ kalu_updater_g_signal (GDBusProxy   *proxy,
         GVariantIter *iter;
         gchar *pkg;
         alpm_list_t *pkgs = NULL;
-        
+
         g_variant_get (parameters, "(as)", &iter);
         while (g_variant_iter_loop (iter, "s", &pkg))
         {
             pkgs = alpm_list_add (pkgs, strdup (pkg));
         }
         g_variant_iter_free (iter);
-        
+
         emit_signal_answer (SIGNAL_REMOVE_PKGS, pkgs);
         free (pkg);
         FREELIST (pkgs);
@@ -607,11 +683,11 @@ kalu_updater_g_signal (GDBusProxy   *proxy,
         gchar *pkg;
         alpm_list_t *providers = NULL;
         provider_t *provider;
-        
+
         g_variant_get (parameters, "(saas)", &pkg, &iter1);
         while (g_variant_iter_loop (iter1, "as", &iter2))
         {
-            provider = calloc (1, sizeof (*provider));
+            provider = new0 (provider_t, 1);
             g_variant_iter_loop (iter2, "s", &provider->repo);
             g_variant_iter_loop (iter2, "s", &provider->pkg);
             g_variant_iter_loop (iter2, "s", &provider->version);
@@ -619,7 +695,7 @@ kalu_updater_g_signal (GDBusProxy   *proxy,
             providers = alpm_list_add (providers, provider);
         }
         g_variant_iter_free (iter1);
-        
+
         emit_signal_answer (SIGNAL_SELECT_PROVIDER, pkg, providers);
         alpm_list_t *i;
         for (i = providers; i; i = alpm_list_next (i))
@@ -635,8 +711,12 @@ kalu_updater_g_signal (GDBusProxy   *proxy,
     else if (g_strcmp0 (signal_name, "AskLocalNewer") == 0)
     {
         gchar *pkg, *pkg_version, *repo, *repo_version;
-        
-        g_variant_get (parameters, "(ssss)", &pkg, &pkg_version, &repo, &repo_version);
+
+        g_variant_get (parameters, "(ssss)",
+                &pkg,
+                &pkg_version,
+                &repo,
+                &repo_version);
         emit_signal_answer (SIGNAL_LOCAL_NEWER, pkg, pkg_version, repo, repo_version);
         free (pkg);
         free (pkg_version);
@@ -646,7 +726,7 @@ kalu_updater_g_signal (GDBusProxy   *proxy,
     else if (g_strcmp0 (signal_name, "AskCorruptedPkg") == 0)
     {
         gchar *file, *err;
-        
+
         g_variant_get (parameters, "(ss)", &file, &err);
         emit_signal_answer (SIGNAL_CORRUPTED_PKG, file, err);
         free (file);
@@ -655,9 +735,13 @@ kalu_updater_g_signal (GDBusProxy   *proxy,
     else if (g_strcmp0 (signal_name, "AskImportKey") == 0)
     {
         gchar *key_fingerprint, *key_uid, *key_created;
-        
-        g_variant_get (parameters, "(sss)", &key_fingerprint, &key_uid, &key_created);
-        emit_signal_answer (SIGNAL_IMPORT_KEY, key_fingerprint, key_uid, key_created);
+
+        g_variant_get (parameters, "(sss)",
+                &key_fingerprint,
+                &key_uid,
+                &key_created);
+        emit_signal_answer (SIGNAL_IMPORT_KEY,
+                key_fingerprint, key_uid, key_created);
         free (key_fingerprint);
         free (key_uid);
         free (key_created);
@@ -668,7 +752,7 @@ kalu_updater_g_signal (GDBusProxy   *proxy,
 static void
 kalu_updater_class_init (KaluUpdaterClass *klass)
 {
-    GObjectClass *gobject_class;
+    GObjectClass    *gobject_class;
     GDBusProxyClass *proxy_class;
 
     gobject_class = G_OBJECT_CLASS (klass);
@@ -690,7 +774,7 @@ kalu_updater_class_init (KaluUpdaterClass *klass)
             G_TYPE_STRING,
             G_TYPE_UINT,
             G_TYPE_UINT);
-    
+
     signals[SIGNAL_SYNC_DBS] = g_signal_new (
             "sync-dbs",
             KALU_TYPE_UPDATER,
@@ -702,7 +786,7 @@ kalu_updater_class_init (KaluUpdaterClass *klass)
             G_TYPE_NONE,
             1,
             G_TYPE_INT);
-    
+
     signals[SIGNAL_SYNC_DB_START] = g_signal_new (
             "sync-db-start",
             KALU_TYPE_UPDATER,
@@ -714,7 +798,7 @@ kalu_updater_class_init (KaluUpdaterClass *klass)
             G_TYPE_NONE,
             1,
             G_TYPE_STRING);
-    
+
     signals[SIGNAL_SYNC_DB_END] = g_signal_new (
             "sync-db-end",
             KALU_TYPE_UPDATER,
@@ -726,7 +810,7 @@ kalu_updater_class_init (KaluUpdaterClass *klass)
             G_TYPE_NONE,
             1,
             G_TYPE_INT);
-    
+
     signals[SIGNAL_DEBUG] = g_signal_new (
             "debug",
             KALU_TYPE_UPDATER,
@@ -738,7 +822,7 @@ kalu_updater_class_init (KaluUpdaterClass *klass)
             G_TYPE_NONE,
             1,
             G_TYPE_STRING);
-    
+
     signals[SIGNAL_LOG] = g_signal_new (
             "log",
             KALU_TYPE_UPDATER,
@@ -751,7 +835,7 @@ kalu_updater_class_init (KaluUpdaterClass *klass)
             2,
             G_TYPE_INT,
             G_TYPE_STRING);
-    
+
     signals[SIGNAL_TOTAL_DOWNLOAD] = g_signal_new (
             "total-download",
             KALU_TYPE_UPDATER,
@@ -763,7 +847,7 @@ kalu_updater_class_init (KaluUpdaterClass *klass)
             G_TYPE_NONE,
             1,
             G_TYPE_UINT);
-    
+
     signals[SIGNAL_EVENT] = g_signal_new (
             "event",
             KALU_TYPE_UPDATER,
@@ -775,7 +859,7 @@ kalu_updater_class_init (KaluUpdaterClass *klass)
             G_TYPE_NONE,
             1,
             G_TYPE_INT);
-    
+
     signals[SIGNAL_EVENT_INSTALLED] = g_signal_new (
             "event-installed",
             KALU_TYPE_UPDATER,
@@ -789,7 +873,7 @@ kalu_updater_class_init (KaluUpdaterClass *klass)
             G_TYPE_STRING,
             G_TYPE_STRING,
             G_TYPE_POINTER);
-    
+
     signals[SIGNAL_EVENT_REMOVED] = g_signal_new (
             "event-removed",
             KALU_TYPE_UPDATER,
@@ -802,7 +886,7 @@ kalu_updater_class_init (KaluUpdaterClass *klass)
             2,
             G_TYPE_STRING,
             G_TYPE_STRING);
-    
+
     signals[SIGNAL_EVENT_UPGRADED] = g_signal_new (
             "event-upgraded",
             KALU_TYPE_UPDATER,
@@ -817,7 +901,7 @@ kalu_updater_class_init (KaluUpdaterClass *klass)
             G_TYPE_STRING,
             G_TYPE_STRING,
             G_TYPE_POINTER);
-    
+
     signals[SIGNAL_EVENT_RETRIEVING_PKGS] = g_signal_new (
             "event-retrieving-pkgs",
             KALU_TYPE_UPDATER,
@@ -829,7 +913,7 @@ kalu_updater_class_init (KaluUpdaterClass *klass)
             G_TYPE_NONE,
             1,
             G_TYPE_STRING);
-    
+
     signals[SIGNAL_EVENT_SCRIPTLET] = g_signal_new (
             "event-scriptlet",
             KALU_TYPE_UPDATER,
@@ -841,7 +925,7 @@ kalu_updater_class_init (KaluUpdaterClass *klass)
             G_TYPE_NONE,
             1,
             G_TYPE_STRING);
-    
+
     signals[SIGNAL_EVENT_DELTA_GENERATING] = g_signal_new (
             "event-delta-generating",
             KALU_TYPE_UPDATER,
@@ -854,7 +938,7 @@ kalu_updater_class_init (KaluUpdaterClass *klass)
             2,
             G_TYPE_STRING,
             G_TYPE_STRING);
-    
+
     signals[SIGNAL_PROGRESS] = g_signal_new (
             "progress",
             KALU_TYPE_UPDATER,
@@ -870,7 +954,7 @@ kalu_updater_class_init (KaluUpdaterClass *klass)
             G_TYPE_INT,
             G_TYPE_UINT,
             G_TYPE_UINT);
-    
+
     signals[SIGNAL_INSTALL_IGNOREPKG] = g_signal_new (
             "install-ignorepkg",
             KALU_TYPE_UPDATER,
@@ -882,7 +966,7 @@ kalu_updater_class_init (KaluUpdaterClass *klass)
             G_TYPE_BOOLEAN,
             1,
             G_TYPE_STRING);
-    
+
     signals[SIGNAL_REPLACE_PKG] = g_signal_new (
             "replace-pkg",
             KALU_TYPE_UPDATER,
@@ -897,7 +981,7 @@ kalu_updater_class_init (KaluUpdaterClass *klass)
             G_TYPE_STRING,
             G_TYPE_STRING,
             G_TYPE_STRING);
-    
+
     signals[SIGNAL_CONFLICT_PKG] = g_signal_new (
             "conflict-pkg",
             KALU_TYPE_UPDATER,
@@ -911,7 +995,7 @@ kalu_updater_class_init (KaluUpdaterClass *klass)
             G_TYPE_STRING,
             G_TYPE_STRING,
             G_TYPE_STRING);
-    
+
     signals[SIGNAL_REMOVE_PKGS] = g_signal_new (
             "remove-pkgs",
             KALU_TYPE_UPDATER,
@@ -923,7 +1007,7 @@ kalu_updater_class_init (KaluUpdaterClass *klass)
             G_TYPE_BOOLEAN,
             1,
             G_TYPE_POINTER);
-    
+
     signals[SIGNAL_SELECT_PROVIDER] = g_signal_new (
             "select-provider",
             KALU_TYPE_UPDATER,
@@ -936,7 +1020,7 @@ kalu_updater_class_init (KaluUpdaterClass *klass)
             2,
             G_TYPE_STRING,
             G_TYPE_POINTER);
-    
+
     signals[SIGNAL_LOCAL_NEWER] = g_signal_new (
             "local-newer",
             KALU_TYPE_UPDATER,
@@ -951,7 +1035,7 @@ kalu_updater_class_init (KaluUpdaterClass *klass)
             G_TYPE_STRING,
             G_TYPE_STRING,
             G_TYPE_STRING);
-    
+
     signals[SIGNAL_CORRUPTED_PKG] = g_signal_new (
             "corrupted-pkg",
             KALU_TYPE_UPDATER,
@@ -964,7 +1048,7 @@ kalu_updater_class_init (KaluUpdaterClass *klass)
             2,
             G_TYPE_STRING,
             G_TYPE_STRING);
-    
+
     signals[SIGNAL_IMPORT_KEY] = g_signal_new (
             "import-key",
             KALU_TYPE_UPDATER,
@@ -978,7 +1062,7 @@ kalu_updater_class_init (KaluUpdaterClass *klass)
             G_TYPE_STRING,
             G_TYPE_STRING,
             G_TYPE_STRING);
-    
+
     g_type_class_add_private (gobject_class, sizeof (KaluUpdaterPrivate));
 }
 
@@ -989,10 +1073,10 @@ check_method (KaluUpdater *kupdater, const gchar *name,
     if (!KALU_IS_UPDATER (kupdater))
     {
         g_set_error (error, KALU_UPDATER_ERROR, 1,
-                     "Object is not a KaluUpdater\n");
+                "Object is not a KaluUpdater\n");
         return FALSE;
     }
-    
+
     method_callback_t *mc;
     for (mc = kupdater->priv->method_callbacks; ; ++mc)
     {
@@ -1001,7 +1085,7 @@ check_method (KaluUpdater *kupdater, const gchar *name,
             if (mc->is_running)
             {
                 g_set_error (error, KALU_UPDATER_ERROR, 1,
-                     "Cannot call method %s: already running\n", name);
+                        "Cannot call method %s: already running\n", name);
                 return FALSE;
             }
             mc->is_running = TRUE;
@@ -1012,11 +1096,11 @@ check_method (KaluUpdater *kupdater, const gchar *name,
         else if (mc->name == NULL)
         {
             g_set_error (error, KALU_UPDATER_ERROR, 1,
-                "Internal method definition missing for %s\n", name);
+                    "Internal method definition missing for %s\n", name);
             return FALSE;
         }
     }
-    
+
     return TRUE;
 }
 
@@ -1039,24 +1123,24 @@ abort_method (KaluUpdater *kupdater, const gchar *name)
     }
 }
 
-#define check(name)     do {                                        \
-        if (!check_method (kupdater, name, callback, data, error))  \
-        {                                                           \
-            return FALSE;                                           \
-        }                                                           \
-    } while (0)
+#define check(name)     do {                                    \
+    if (!check_method (kupdater, name, callback, data, error))  \
+    {                                                           \
+        return FALSE;                                           \
+    }                                                           \
+} while (0)
 
-#define end(name)     do {                      \
-        if (error == NULL || *error == NULL)    \
-        {                                       \
-            return TRUE;                        \
-        }                                       \
-        else                                    \
-        {                                       \
-            abort_method (kupdater, name);      \
-            return FALSE;                       \
-        }                                       \
-    } while (0)
+#define end(name)     do {                  \
+    if (error == NULL || *error == NULL)    \
+    {                                       \
+        return TRUE;                        \
+    }                                       \
+    else                                    \
+    {                                       \
+        abort_method (kupdater, name);      \
+        return FALSE;                       \
+    }                                       \
+} while (0)
 
 /* Init */
 gboolean    kalu_updater_init_upd           (KaluUpdater        *kupdater,
@@ -1066,15 +1150,15 @@ gboolean    kalu_updater_init_upd           (KaluUpdater        *kupdater,
                                              GError            **error)
 {
     check ("Init");
-    
+
     g_dbus_proxy_call_sync (G_DBUS_PROXY (kupdater),
-                "Init",
-                NULL,
-                G_DBUS_CALL_FLAGS_NONE,
-                -1,
-                cancellable,
-                error);
-    
+            "Init",
+            NULL,
+            G_DBUS_CALL_FLAGS_NONE,
+            -1,
+            cancellable,
+            error);
+
     end ("Init");
 }
 
@@ -1102,38 +1186,38 @@ gboolean    kalu_updater_init_alpm          (KaluUpdater         *kupdater,
                                              GError             **error)
 {
     check ("InitAlpm");
-    
+
     GVariantBuilder *cachedirs_builder;
     GVariantBuilder *ignorepkgs_builder;
     GVariantBuilder *ignoregroups_builder;
     GVariantBuilder *noupgrades_builder;
     GVariantBuilder *noextracts_builder;
     alpm_list_t *i;
-    
+
     cachedirs_builder = g_variant_builder_new (G_VARIANT_TYPE ("as"));
     for (i = cachedirs; i; i = alpm_list_next (i))
     {
         g_variant_builder_add (cachedirs_builder, "s", i->data);
     }
-    
+
     ignorepkgs_builder = g_variant_builder_new (G_VARIANT_TYPE ("as"));
     for (i = ignorepkgs; i; i = alpm_list_next (i))
     {
         g_variant_builder_add (ignorepkgs_builder, "s", i->data);
     }
-    
+
     ignoregroups_builder = g_variant_builder_new (G_VARIANT_TYPE ("as"));
     for (i = ignoregroups; i; i = alpm_list_next (i))
     {
         g_variant_builder_add (ignoregroups_builder, "s", i->data);
     }
-    
+
     noupgrades_builder = g_variant_builder_new (G_VARIANT_TYPE ("as"));
     for (i = noupgrades; i; i = alpm_list_next (i))
     {
         g_variant_builder_add (noupgrades_builder, "s", i->data);
     }
-    
+
     noextracts_builder = g_variant_builder_new (G_VARIANT_TYPE ("as"));
     for (i = noextracts; i; i = alpm_list_next (i))
     {
@@ -1141,27 +1225,27 @@ gboolean    kalu_updater_init_alpm          (KaluUpdater         *kupdater,
     }
 
     g_dbus_proxy_call_sync (G_DBUS_PROXY (kupdater),
-                "InitAlpm",
-                g_variant_new ("(ssssasisbbbasasasas)",
-                    rootdir,
-                    dbpath,
-                    logfile,
-                    gpgdir,
-                    cachedirs_builder,
-                    siglevel,
-                    arch,
-                    checkspace,
-                    usesyslog,
-                    usedelta,
-                    ignorepkgs_builder,
-                    ignoregroups_builder,
-                    noupgrades_builder,
-                    noextracts_builder),
-                G_DBUS_CALL_FLAGS_NONE,
-                -1,
-                cancellable,
-                error);
-    
+            "InitAlpm",
+            g_variant_new ("(ssssasisbbbasasasas)",
+                rootdir,
+                dbpath,
+                logfile,
+                gpgdir,
+                cachedirs_builder,
+                siglevel,
+                arch,
+                checkspace,
+                usesyslog,
+                usedelta,
+                ignorepkgs_builder,
+                ignoregroups_builder,
+                noupgrades_builder,
+                noextracts_builder),
+            G_DBUS_CALL_FLAGS_NONE,
+            -1,
+            cancellable,
+            error);
+
     g_variant_builder_unref (cachedirs_builder);
     g_variant_builder_unref (ignorepkgs_builder);
     g_variant_builder_unref (ignoregroups_builder);
@@ -1183,27 +1267,27 @@ gboolean    kalu_updater_add_db             (KaluUpdater         *kupdater,
                                              GError             **error)
 {
     check ("AddDb");
-    
+
     GVariantBuilder *servers_builder;
     alpm_list_t *i;
-    
+
     servers_builder = g_variant_builder_new (G_VARIANT_TYPE ("as"));
     for (i = servers; i; i = alpm_list_next (i))
     {
         g_variant_builder_add (servers_builder, "s", i->data);
     }
-    
+
     g_dbus_proxy_call_sync (G_DBUS_PROXY (kupdater),
-                "AddDb",
-                g_variant_new ("(sias)",
-                    name,
-                    siglevel,
-                    servers_builder),
-                G_DBUS_CALL_FLAGS_NONE,
-                -1,
-                cancellable,
-                error);
-    
+            "AddDb",
+            g_variant_new ("(sias)",
+                name,
+                siglevel,
+                servers_builder),
+            G_DBUS_CALL_FLAGS_NONE,
+            -1,
+            cancellable,
+            error);
+
     g_variant_builder_unref (servers_builder);
     end ("AddDb");
 }
@@ -1218,15 +1302,15 @@ gboolean    kalu_updater_sync_dbs           (KaluUpdater         *kupdater,
                                              GError             **error)
 {
     check ("SyncDbs");
-    
+
     g_dbus_proxy_call_sync (G_DBUS_PROXY (kupdater),
-                "SyncDbs",
-                NULL,
-                G_DBUS_CALL_FLAGS_NONE,
-                -1,
-                cancellable,
-                error);
-    
+            "SyncDbs",
+            NULL,
+            G_DBUS_CALL_FLAGS_NONE,
+            -1,
+            cancellable,
+            error);
+
     end ("SyncDbs");
 }
 
@@ -1240,15 +1324,15 @@ gboolean    kalu_updater_get_packages       (KaluUpdater         *kupdater,
                                              GError             **error)
 {
     check ("GetPackages");
-    
+
     g_dbus_proxy_call_sync (G_DBUS_PROXY (kupdater),
-                "GetPackages",
-                NULL,
-                G_DBUS_CALL_FLAGS_NONE,
-                -1,
-                cancellable,
-                error);
-    
+            "GetPackages",
+            NULL,
+            G_DBUS_CALL_FLAGS_NONE,
+            -1,
+            cancellable,
+            error);
+
     end ("GetPackages");
 }
 
@@ -1262,15 +1346,15 @@ gboolean    kalu_updater_sysupgrade         (KaluUpdater         *kupdater,
                                              GError             **error)
 {
     check ("SysUpgrade");
-    
+
     g_dbus_proxy_call_sync (G_DBUS_PROXY (kupdater),
-                "SysUpgrade",
-                NULL,
-                G_DBUS_CALL_FLAGS_NONE,
-                -1,
-                cancellable,
-                error);
-    
+            "SysUpgrade",
+            NULL,
+            G_DBUS_CALL_FLAGS_NONE,
+            -1,
+            cancellable,
+            error);
+
     end ("SysUpgrade");
 }
 
@@ -1284,15 +1368,15 @@ gboolean    kalu_updater_no_sysupgrade      (KaluUpdater         *kupdater,
                                              GError             **error)
 {
     check ("NoSysUpgrade");
-    
+
     g_dbus_proxy_call_sync (G_DBUS_PROXY (kupdater),
-                "NoSysUpgrade",
-                NULL,
-                G_DBUS_CALL_FLAGS_NONE,
-                -1,
-                cancellable,
-                error);
-    
+            "NoSysUpgrade",
+            NULL,
+            G_DBUS_CALL_FLAGS_NONE,
+            -1,
+            cancellable,
+            error);
+
     end ("NoSysUpgrade");
 }
 
@@ -1306,15 +1390,15 @@ gboolean    kalu_updater_free_alpm          (KaluUpdater         *kupdater,
                                              GError             **error)
 {
     check ("FreeAlpm");
-    
+
     g_dbus_proxy_call_sync (G_DBUS_PROXY (kupdater),
-                "FreeAlpm",
-                NULL,
-                G_DBUS_CALL_FLAGS_NONE,
-                -1,
-                cancellable,
-                error);
-    
+            "FreeAlpm",
+            NULL,
+            G_DBUS_CALL_FLAGS_NONE,
+            -1,
+            cancellable,
+            error);
+
     end ("FreeAlpm");
 }
 

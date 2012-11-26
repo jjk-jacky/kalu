@@ -48,7 +48,7 @@ get_pkg_from_list (const char *pkgname, alpm_list_t *pkgs, gboolean is_watched)
 {
     alpm_list_t *i;
     const char *name;
-    for (i = pkgs; i; i = alpm_list_next (i))
+    FOR_LIST (i, pkgs)
     {
         if (is_watched)
         {
@@ -58,7 +58,7 @@ get_pkg_from_list (const char *pkgname, alpm_list_t *pkgs, gboolean is_watched)
         {
             name = alpm_pkg_get_name ((alpm_pkg_t *) i->data);
         }
-        if (strcmp (pkgname, name) == 0)
+        if (streq (pkgname, name))
         {
             return i->data;
         }
@@ -66,11 +66,11 @@ get_pkg_from_list (const char *pkgname, alpm_list_t *pkgs, gboolean is_watched)
     return NULL;
 }
 
-#define add(str)    do {                                \
-        len = snprintf (s, (size_t) max, "%s", str);    \
-        max -= len;                                     \
-        s += len;                                       \
-    } while (0)
+#define add(str)    do {                            \
+    len = snprintf (s, (size_t) max, "%s", str);    \
+    max -= len;                                     \
+    s += len;                                       \
+} while (0)
 gboolean
 aur_has_updates (alpm_list_t **packages,
                  alpm_list_t *aur_pkgs,
@@ -89,14 +89,16 @@ aur_has_updates (alpm_list_t **packages,
     void *pkg;
     kalu_package_t *kpkg;
 
-    debug ((is_watched) ? "looking for Watched AUR updates" : "looking for AUR updates");
+    debug ((is_watched)
+            ? "looking for Watched AUR updates"
+            : "looking for AUR updates");
 
     /* print start of url */
     max = MAX_URL_LENGTH;
     s = buf;
     add (AUR_URL_PREFIX);
 
-    for (i = aur_pkgs; i; i = alpm_list_next (i))
+    FOR_LIST (i, aur_pkgs)
     {
         char *end;
         const char *p;
@@ -177,7 +179,7 @@ aur_has_updates (alpm_list_t **packages,
     urls = alpm_list_add (urls, strdup (buf));
 
     /* download */
-    for (i = urls; i; i = alpm_list_next (i))
+    FOR_LIST (i, urls)
     {
         data = curl_download (i->data, &local_err);
         if (local_err != NULL)
@@ -239,7 +241,7 @@ aur_has_updates (alpm_list_t **packages,
                 if (alpm_pkg_vercmp (pkgver, oldver) == 1)
                 {
                     debug ("%s %s -> %s", pkgname, oldver, pkgver);
-                    kpkg = calloc (1, sizeof (*kpkg));
+                    kpkg = new0 (kalu_package_t, 1);
                     kpkg->name = strdup (pkgname);
                     kpkg->desc = strdup (pkgdesc);
                     kpkg->old_version = strdup (oldver);
@@ -256,4 +258,3 @@ aur_has_updates (alpm_list_t **packages,
     return (*packages != NULL);
 }
 #undef add
-

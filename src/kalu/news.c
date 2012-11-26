@@ -65,7 +65,7 @@ typedef struct _parse_news_data_t {
     GtkTextView     *textview;
     GtkTextBuffer   *buffer;
     PangoAttrList   *attr_list;
-    
+
     gboolean         is_last_reached;
     alpm_list_t    **lists;
 } parse_news_data_t;
@@ -100,41 +100,41 @@ xml_parser_updates_text (GMarkupParseContext   *context,
 {
     const GSList         *list;
     alpm_list_t          *i;
-    
+
     /* have we already reached the last unread item */
     if (parse_updates_data->is_last_reached)
     {
         return;
     }
-    
+
     /* is this a tag (title, description, ...) inside an item? */
     list = g_markup_parse_context_get_element_stack (context);
-    if (!list->next || strcmp ("item", list->next->data) != 0)
+    if (!list->next || !streq ("item", list->next->data))
     {
         return;
     }
-    
-    if (strcmp ("title", list->data) == 0)
+
+    if (streq ("title", list->data))
     {
         /* is this the last item from last check? */
-        if (NULL != config->news_last && strcmp (config->news_last, text) == 0)
+        if (NULL != config->news_last && streq (config->news_last, text))
         {
             parse_updates_data->is_last_reached = TRUE;
             return;
         }
-        
+
         /* was this item already read? */
-        for (i = config->news_read; i; i = alpm_list_next (i))
+        FOR_LIST (i, config->news_read)
         {
-            if (strcmp (i->data, text) == 0)
+            if (streq (i->data, text))
             {
                 return;
             }
         }
-        
+
         /* add title to the new news */
         parse_updates_data->titles = alpm_list_add (parse_updates_data->titles,
-            strdup (text));
+                strdup (text));
     }
 }
 
@@ -144,28 +144,31 @@ parse_xml (gchar *xml, gboolean for_updates, gpointer data_out, GError **error)
     GMarkupParseContext *context;
     GMarkupParser        parser;
     GError              *local_err = NULL;
-    
-    memset (&parser, 0, sizeof (GMarkupParser));
+
+    zero (parser);
     if (for_updates)
     {
         parser.text = xml_parser_updates_text;
     }
     else
     {
-        #ifdef DISABLE_GUI
+#ifdef DISABLE_GUI
         return FALSE;
-        #else
+#else
+        parse_news_data_t   *data;
+        GtkTextBuffer       *buffer;
+
         parser.text = xml_parser_news_text;
-        parse_news_data_t *data = data_out;
-        GtkTextBuffer *buffer = data->buffer;
-        
+        data = data_out;
+        buffer = data->buffer;
+
         create_tags (buffer);
-        
+
         if (data->only_updates)
         {
             /* create a attribute list, for labels of check-titles */
             PangoAttribute *attr;
-            
+
             data->attr_list = pango_attr_list_new ();
             attr = pango_attr_weight_new (800);
             pango_attr_list_insert (data->attr_list, attr);
@@ -174,31 +177,34 @@ parse_xml (gchar *xml, gboolean for_updates, gpointer data_out, GError **error)
             attr = pango_attr_foreground_new (0, 30583, 48059);
             pango_attr_list_insert (data->attr_list, attr);
         }
-        #endif
+#endif
 
     }
     context = g_markup_parse_context_new (&parser, G_MARKUP_TREAT_CDATA_AS_TEXT,
-        data_out, NULL);
-    
-    if (!g_markup_parse_context_parse (context, xml, (gssize) strlen (xml), &local_err))
+            data_out, NULL);
+
+    if (!g_markup_parse_context_parse (context,
+                xml,
+                (gssize) strlen (xml),
+                &local_err))
     {
         g_markup_parse_context_free (context);
-        #ifndef DISABLE_GUI
+#ifndef DISABLE_GUI
         if (!for_updates && ((parse_news_data_t *)data_out)->only_updates)
         {
             pango_attr_list_unref (((parse_news_data_t *)data_out)->attr_list);
         }
-        #endif
+#endif
         g_propagate_error (error, local_err);
         return FALSE;
     }
     g_markup_parse_context_free (context);
-    #ifndef DISABLE_GUI
+#ifndef DISABLE_GUI
     if (!for_updates && ((parse_news_data_t *)data_out)->only_updates)
     {
         pango_attr_list_unref (((parse_news_data_t *)data_out)->attr_list);
     }
-    #endif
+#endif
     return TRUE;
 }
 
@@ -209,22 +215,22 @@ news_has_updates (alpm_list_t **titles,
 {
     GError               *local_err = NULL;
     parse_updates_data_t  data;
-    
+
     *xml_news = curl_download (NEWS_RSS_URL, &local_err);
     if (local_err != NULL)
     {
         g_propagate_error (error, local_err);
         return FALSE;
     }
-    
-    memset (&data, 0, sizeof (parse_updates_data_t));
+
+    zero (data);
     if (!parse_xml (*xml_news, TRUE, (gpointer) &data, &local_err))
     {
         free (*xml_news);
         g_propagate_error (error, local_err);
         return FALSE;
     }
-    
+
     if (data.titles == NULL)
     {
         free (*xml_news);
@@ -246,7 +252,7 @@ title_toggled_cb (GtkToggleButton *button, alpm_list_t **lists)
 {
     gchar *title = g_object_get_data (G_OBJECT (button), "title");
     gboolean is_active;
-    
+
     g_object_get (G_OBJECT (button), "active", &is_active, NULL);
     if (is_active)
     {
@@ -255,19 +261,19 @@ title_toggled_cb (GtkToggleButton *button, alpm_list_t **lists)
     else
     {
         lists[LIST_TITLES_READ] = alpm_list_remove_str (lists[LIST_TITLES_READ],
-            title, NULL);
+                title, NULL);
     }
 }
 
-#define insert_text_with_tags() do {                                            \
-        gtk_text_buffer_move_mark (buffer, mark, &iter);                        \
-        gtk_text_buffer_insert (buffer, &iter, ss, -1);                         \
-        gtk_text_buffer_get_iter_at_mark (buffer, &iter2, mark);                \
-        for (i = tags; i; i = alpm_list_next (i))                               \
-        {                                                                       \
-            gtk_text_buffer_apply_tag_by_name (buffer, i->data, &iter, &iter2); \
-        }                                                                       \
-    } while (0)
+#define insert_text_with_tags() do {                                        \
+    gtk_text_buffer_move_mark (buffer, mark, &iter);                        \
+    gtk_text_buffer_insert (buffer, &iter, ss, -1);                         \
+    gtk_text_buffer_get_iter_at_mark (buffer, &iter2, mark);                \
+    FOR_LIST (i, tags)                                                      \
+    {                                                                       \
+        gtk_text_buffer_apply_tag_by_name (buffer, i->data, &iter, &iter2); \
+    }                                                                       \
+} while (0)
 static void
 parse_to_buffer (GtkTextBuffer *buffer, const gchar *text, gsize text_len)
 {
@@ -281,13 +287,13 @@ parse_to_buffer (GtkTextBuffer *buffer, const gchar *text, gsize text_len)
     gint         in_ordered_list = -1;
     GdkRGBA      color;
     gchar       *link = NULL;
-    
-    s = malloc ((text_len + 2) * sizeof (gchar));
+
+    s = new (gchar, text_len + 2);
     snprintf (s, text_len + 1, "%s", text);
-    
+
     /* color used for links */
     gdk_rgba_parse (&color, "rgb(0,119,187)");
-    
+
     /* inside <code> blocs, \n must not be converted to space */
     start = s;
     while ((start = strstr (start, "<code>")))
@@ -334,42 +340,42 @@ parse_to_buffer (GtkTextBuffer *buffer, const gchar *text, gsize text_len)
             break;
         }
         *end = '\0';
-        if (strcmp (ss, "minus") == 0)
+        if (streq (ss, "minus"))
         {
             *--ss = '-';
             ++end;
             memmove (++ss, end, strlen (end) + 1);
         }
-        else if (strcmp (ss, "lsquo") == 0)
+        else if (streq (ss, "lsquo"))
         {
             *--ss = '`';
             ++end;
             memmove (++ss, end, strlen (end) + 1);
         }
-        else if (strcmp (ss, "rsquo") == 0)
+        else if (streq (ss, "rsquo"))
         {
             *--ss = '\'';
             ++end;
             memmove (++ss, end, strlen (end) + 1);
         }
-        else if (strcmp (ss, "quot") == 0)
+        else if (streq (ss, "quot"))
         {
             *--ss = '"';
             ++end;
             memmove (++ss, end, strlen (end) + 1);
         }
-        else if (strcmp (ss, "amp") == 0)
+        else if (streq (ss, "amp"))
         {
             *--ss = '&';
             ++end;
             memmove (++ss, end, strlen (end) + 1);
         }
-        else if (strcmp (ss, "lt") == 0)
+        else if (streq (ss, "lt"))
         {
             *--ss = '<';
             *end = '>';
         }
-        else if (strcmp (ss, "gt") == 0)
+        else if (streq (ss, "gt"))
         {
             *--ss = '<';
             *end = '>';
@@ -380,10 +386,10 @@ parse_to_buffer (GtkTextBuffer *buffer, const gchar *text, gsize text_len)
             ss = end + 1;
         }
     }
-    
+
     gtk_text_buffer_get_end_iter (buffer, &iter);
     mark = gtk_text_buffer_create_mark (buffer, "mark", &iter, TRUE);
-    
+
     ss = s;
     while ((start = strchr (ss, '<')))
     {
@@ -392,12 +398,13 @@ parse_to_buffer (GtkTextBuffer *buffer, const gchar *text, gsize text_len)
             break;
         }
         *end = '\0';
-        if (*(start + 1) == 'p' && (*(start + 2) == '\0' || *(start + 2) == ' '))
+        if (*(start + 1) == 'p' && (*(start + 2) == '\0'
+                    || *(start + 2) == ' '))
         {
             *start = '\0';
             insert_text_with_tags ();
             gtk_text_buffer_insert (buffer, &iter, "\n", -1);
-            
+
             /* look for the margin-left style, and create a corresponding tag.
              * This is useful when showing the (HTML) man page */
             ++start;
@@ -409,30 +416,31 @@ parse_to_buffer (GtkTextBuffer *buffer, const gchar *text, gsize text_len)
                     margin = margin * 10 + (*ss - '0');
                 }
                 snprintf (buf, 10, "margin%d", margin);
-                if (!gtk_text_tag_table_lookup (gtk_text_buffer_get_tag_table (buffer),
-                                                buf))
+                if (!gtk_text_tag_table_lookup (
+                            gtk_text_buffer_get_tag_table (buffer),
+                            buf))
                 {
                     gtk_text_buffer_create_tag (buffer, buf,
-                        "left-margin",      margin,
-                        NULL);
+                            "left-margin",      margin,
+                            NULL);
                 }
                 tags = alpm_list_add (tags, (void *) buf);
             }
         }
-        else if (strcmp (start + 1, "/p") == 0)
+        else if (streq (start + 1, "/p"))
         {
             *start = '\0';
             insert_text_with_tags ();
             gtk_text_buffer_insert (buffer, &iter, "\n", -1);
-            
+
             /* when showing the (HTML) man page, <p> tags (might) have a margin,
              * that should be closed here. we assume proper HTML, no recursion
              * and whatnot, but that should be the case
              * Go through tags from last to first (first->prev is last) and
              * remove the first margin found */
             for (i = tags;
-                 i && ((i->prev == tags && !i->next) || i->prev != tags);
-                 i = i->prev)
+                    i && ((i->prev == tags && !i->next) || i->prev != tags);
+                    i = i->prev)
             {
                 if (strncmp (i->data, "margin", 6) == 0)
                 {
@@ -440,84 +448,84 @@ parse_to_buffer (GtkTextBuffer *buffer, const gchar *text, gsize text_len)
                     break;
                 }
             }
-            
+
         }
-        else if (strcmp (start + 1, "b") == 0)
+        else if (streq (start + 1, "b"))
         {
             *start = '\0';
             insert_text_with_tags ();
             tags = alpm_list_add (tags, (void *) "bold");
         }
-        else if (strcmp (start + 1, "/b") == 0)
+        else if (streq (start + 1, "/b"))
         {
             *start = '\0';
             insert_text_with_tags ();
             tags = alpm_list_remove_str (tags, "bold", NULL);
         }
-        else if (strcmp (start + 1, "code") == 0)
+        else if (streq (start + 1, "code"))
         {
             *start = '\0';
             insert_text_with_tags ();
             tags = alpm_list_add (tags, (void *) "code");
         }
-        else if (strcmp (start + 1, "/code") == 0)
+        else if (streq (start + 1, "/code"))
         {
             *start = '\0';
             insert_text_with_tags ();
             tags = alpm_list_remove_str (tags, "code", NULL);
         }
-        else if (strcmp (start + 1, "pre") == 0)
+        else if (streq (start + 1, "pre"))
         {
             *start = '\0';
             insert_text_with_tags ();
             tags = alpm_list_add (tags, (void *) "pre");
         }
-        else if (strcmp (start + 1, "/pre") == 0)
+        else if (streq (start + 1, "/pre"))
         {
             *start = '\0';
             insert_text_with_tags ();
             tags = alpm_list_remove_str (tags, "pre", NULL);
         }
-        else if (strcmp (start + 1, "h2") == 0)
+        else if (streq (start + 1, "h2"))
         {
             *start = '\0';
             insert_text_with_tags ();
             gtk_text_buffer_insert (buffer, &iter, "\n", -1);
             tags = alpm_list_add (tags, (void *) "title");
         }
-        else if (strcmp (start + 1, "/h2") == 0)
+        else if (streq (start + 1, "/h2"))
         {
             *start = '\0';
             insert_text_with_tags ();
             gtk_text_buffer_insert (buffer, &iter, "\n", -1);
             tags = alpm_list_remove_str (tags, "title", NULL);
         }
-        else if (strcmp (start + 1, "i") == 0)
+        else if (streq (start + 1, "i"))
         {
             *start = '\0';
             insert_text_with_tags ();
             tags = alpm_list_add (tags, (void *) "italic");
         }
-        else if (strcmp (start + 1, "/i") == 0)
+        else if (streq (start + 1, "/i"))
         {
             *start = '\0';
             insert_text_with_tags ();
             tags = alpm_list_remove_str (tags, "italic", NULL);
         }
-        else if (strcmp (start + 1, "ul") == 0)
+        else if (streq (start + 1, "ul"))
         {
             *start = '\0';
             insert_text_with_tags ();
             gtk_text_buffer_insert (buffer, &iter, "\n", -1);
         }
-        else if (strcmp (start + 1, "ol") == 0)
+        else if (streq (start + 1, "ol"))
         {
             *start = '\0';
             insert_text_with_tags ();
             gtk_text_buffer_insert (buffer, &iter, "\n", -1);
             in_ordered_list = 0;
         }
-        else if (strcmp (start + 1, "li") == 0)
+        else if (streq (start + 1, "li"))
         {
             *start = '\0';
             insert_text_with_tags ();
@@ -535,27 +543,27 @@ parse_to_buffer (GtkTextBuffer *buffer, const gchar *text, gsize text_len)
             }
             insert_text_with_tags ();
         }
-        else if (strcmp (start + 1, "/li") == 0)
+        else if (streq (start + 1, "/li"))
         {
             *start = '\0';
             insert_text_with_tags ();
             gtk_text_buffer_insert (buffer, &iter, "\n", -1);
             tags = alpm_list_remove_str (tags, "listitem", NULL);
         }
-        else if (strcmp (start + 1, "/ol") == 0)
+        else if (streq (start + 1, "/ol"))
         {
             *start = '\0';
             insert_text_with_tags ();
             in_ordered_list = -1;
         }
-        else if (strcmp (start + 1, "lt") == 0)
+        else if (streq (start + 1, "lt"))
         {
             *start = '\0';
             insert_text_with_tags ();
             ss = (gchar *) "<";
             insert_text_with_tags ();
         }
-        else if (strcmp (start + 1, "gt") == 0)
+        else if (streq (start + 1, "gt"))
         {
             *start = '\0';
             insert_text_with_tags ();
@@ -568,14 +576,15 @@ parse_to_buffer (GtkTextBuffer *buffer, const gchar *text, gsize text_len)
             *start = '\0';
             insert_text_with_tags ();
             /* get URL */
-            if ((link = strstr (start + 1, "href")) && (link = strchr (link, '"')))
+            if ((link = strstr (start + 1, "href"))
+                    && (link = strchr (link, '"')))
             {
                 /* got one, end it properly */
                 ss = strchr (++link, '"');
                 *ss = '\0';
             }
         }
-        else if (strcmp (start + 1, "/a") == 0)
+        else if (streq (start + 1, "/a"))
         {
             *start = '\0';
             insert_text_with_tags ();
@@ -583,13 +592,13 @@ parse_to_buffer (GtkTextBuffer *buffer, const gchar *text, gsize text_len)
             {
                 /* create a new tag, so we can set the link to it */
                 tag = gtk_text_buffer_create_tag (buffer, NULL,
-                                                  "foreground-rgba",  &color,
-                                                  "underline", PANGO_UNDERLINE_SINGLE,
-                                                  NULL);
+                        "foreground-rgba",  &color,
+                        "underline",        PANGO_UNDERLINE_SINGLE,
+                        NULL);
                 /* links on Arch's website don't always include the http:// part */
                 if (link[0] == '/')
                 {
-                    ss = malloc ((strlen (link) + 25) * sizeof (*ss));
+                    ss = new (gchar, strlen (link) + 25);
                     sprintf (ss, "http://www.archlinux.org%s", link);
                     link = ss;
                 }
@@ -613,7 +622,7 @@ parse_to_buffer (GtkTextBuffer *buffer, const gchar *text, gsize text_len)
         ss = end + 1;
     }
     insert_text_with_tags ();
-    
+
     gtk_text_buffer_delete_mark (buffer, mark);
     free (s);
 }
@@ -634,31 +643,31 @@ xml_parser_news_text (GMarkupParseContext *context,
     gboolean        is_title = FALSE;
     static gboolean skip_next_description = FALSE;
     alpm_list_t   **lists = NULL;
-    
+
     /* have we already reached the last unread item */
     if (parse_news_data->only_updates && parse_news_data->is_last_reached)
     {
         return;
     }
-    
+
     /* is this a tag (title, description, ...) inside an item? */
     list = g_markup_parse_context_get_element_stack (context);
-    if (!list->next || strcmp ("item", list->next->data) != 0)
+    if (!list->next || !streq ("item", list->next->data))
     {
         return;
     }
-    
+
     /* gather whether this is title or description, don't go any further if it's
      * anything else*/
-    if (strcmp ("title", list->data) == 0)
+    if (streq ("title", list->data))
     {
         is_title = TRUE;
     }
-    else if (strcmp ("description", list->data) != 0)
+    else if (!streq ("description", list->data))
     {
         return;
     }
-    
+
     if (parse_news_data->only_updates)
     {
         if (is_title)
@@ -668,18 +677,18 @@ xml_parser_news_text (GMarkupParseContext *context,
             s = strdup (text);
             lists = parse_news_data->lists;
             lists[LIST_TITLES_ALL] = alpm_list_add (lists[LIST_TITLES_ALL], s);
-            
+
             /* is this the last item from last check? */
-            if (NULL != config->news_last && strcmp (config->news_last, text) == 0)
+            if (NULL != config->news_last && streq (config->news_last, text))
             {
                 parse_news_data->is_last_reached = TRUE;
                 return;
             }
-            
+
             /* was this item already read? */
-            for (i = config->news_read; i; i = alpm_list_next (i))
+            FOR_LIST (i, config->news_read)
             {
-                if (strcmp (i->data, text) == 0)
+                if (streq (i->data, text))
                 {
                     /* make a note to skip its description as well */
                     skip_next_description = TRUE;
@@ -693,21 +702,21 @@ xml_parser_news_text (GMarkupParseContext *context,
             return;
         }
     }
-    
+
     if (is_title)
     {
         /* add a LF */
         gtk_text_buffer_get_end_iter (buffer, &iter);
         gtk_text_buffer_insert (buffer, &iter, "\n", -1);
-        
+
         if (parse_news_data->only_updates && lists)
         {
             GtkTextChildAnchor *anchor;
             GtkWidget *check, *label;
-            
+
             /* store title in list of shown titles */
             lists[LIST_TITLES_SHOWN] = alpm_list_add (lists[LIST_TITLES_SHOWN], s);
-            
+
             /* add a widget to check if the news should be marked read */
             anchor = gtk_text_buffer_create_child_anchor(buffer, &iter);
             check = gtk_check_button_new ();
@@ -716,18 +725,22 @@ xml_parser_news_text (GMarkupParseContext *context,
              * lists[LIST_TITLES_READ] */
             g_object_set_data (G_OBJECT (check), "title", s);
             g_signal_connect (G_OBJECT (check), "toggled",
-                              G_CALLBACK (title_toggled_cb), lists);
+                    G_CALLBACK (title_toggled_cb), lists);
             gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON (check), TRUE);
             gtk_widget_show (check);
             label = gtk_label_new (text);
-            gtk_label_set_attributes (GTK_LABEL (label), parse_news_data->attr_list);
+            gtk_label_set_attributes (GTK_LABEL (label),
+                    parse_news_data->attr_list);
             gtk_container_add (GTK_CONTAINER (check), label);
             gtk_widget_show (label);
-            gtk_text_view_add_child_at_anchor (parse_news_data->textview, check, anchor);
+            gtk_text_view_add_child_at_anchor (parse_news_data->textview,
+                    check,
+                    anchor);
         }
         else
         {
-            gtk_text_buffer_insert_with_tags_by_name (buffer, &iter, text, -1, "title", NULL);
+            gtk_text_buffer_insert_with_tags_by_name (buffer, &iter,
+                    text, -1, "title", NULL);
         }
         gtk_text_buffer_insert (buffer, &iter, "\n", -1);
     }
@@ -742,37 +755,37 @@ create_tags (GtkTextBuffer *buffer)
 {
     /* create tags */
     GdkRGBA color;
-    
+
     gdk_rgba_parse (&color, "rgb(0,119,187)");
     gtk_text_buffer_create_tag (buffer, "title",
-        "size-points",      10.0,
-        "weight",           800,
-        "foreground-rgba",  &color,
-        NULL);
-    
+            "size-points",      10.0,
+            "weight",           800,
+            "foreground-rgba",  &color,
+            NULL);
+
     gtk_text_buffer_create_tag (buffer, "bold",
-        "weight",           800,
-        NULL);
-    
+            "weight",           800,
+            NULL);
+
     gdk_rgba_parse (&color, "rgb(255,255,221)");
     gtk_text_buffer_create_tag (buffer, "code",
-        "family",           "Monospace",
-        "background-rgba",  &color,
-        NULL);
-    
+            "family",           "Monospace",
+            "background-rgba",  &color,
+            NULL);
+
     gdk_rgba_parse (&color, "rgb(221,255,221)");
     gtk_text_buffer_create_tag (buffer, "pre",
-        "family",           "Monospace",
-        "background-rgba",  &color,
-        NULL);
-    
+            "family",           "Monospace",
+            "background-rgba",  &color,
+            NULL);
+
     gtk_text_buffer_create_tag (buffer, "italic",
-        "style",            PANGO_STYLE_ITALIC,
-        NULL);
-    
+            "style",            PANGO_STYLE_ITALIC,
+            NULL);
+
     gtk_text_buffer_create_tag (buffer, "listitem",
-        "left-margin",      15,
-        NULL);
+            "left-margin",      15,
+            NULL);
 }
 
 static void
@@ -789,19 +802,19 @@ btn_mark_cb (GtkWidget *button _UNUSED_, GtkWidget *window)
     char *news_last = NULL;
     gboolean is_last_set = FALSE;
     int nb_unread = 0;
-    
+
     gtk_widget_hide (window);
-    
+
     lists = g_object_get_data (G_OBJECT (window), "lists");
     /* reverse this one, to start with the oldest news */
     titles_all = alpm_list_reverse (lists[LIST_TITLES_ALL]);
     titles_shown = lists[LIST_TITLES_SHOWN];
     titles_read = lists[LIST_TITLES_READ];
-    
-    for (i = titles_all; i; i = alpm_list_next (i))
+
+    FOR_LIST (i, titles_all)
     {
         void *shown = alpm_list_find_ptr (titles_shown, i->data);
-        
+
         /* was this news not shown, or shown and mark read? */
         if (!shown || (shown && alpm_list_find_ptr (titles_read, i->data)))
         {
@@ -832,16 +845,16 @@ btn_mark_cb (GtkWidget *button _UNUSED_, GtkWidget *window)
             is_last_set = TRUE;
         }
     }
-    
+
     /* we only free this like so, because everything else (including the data
      * in titles) will be free-d when destroying the window */
     alpm_list_free (titles_all);
-    
+
     /* save */
     FILE *fp;
     char file[MAX_PATH];
     gboolean saved = FALSE;
-    
+
     snprintf (file, MAX_PATH - 1, "%s/.config/kalu/news.conf", g_get_home_dir ());
     if (ensure_path (file))
     {
@@ -851,36 +864,38 @@ btn_mark_cb (GtkWidget *button _UNUSED_, GtkWidget *window)
             fputs ("Last=", fp);
             fputs (news_last, fp);
             fputs ("\n", fp);
-            
-            for (i = news_read; i; i = alpm_list_next (i))
+
+            FOR_LIST (i, news_read)
             {
                 fputs ("Read=", fp);
                 fputs ((const char *) i->data, fp);
                 fputs ("\n", fp);
             }
             fclose (fp);
-            
+
             /* update */
             if (config->news_last)
             {
                 free (config->news_last);
             }
             config->news_last = news_last;
-            
+
             FREELIST (config->news_read);
             config->news_read = news_read;
-            
+
             /* we go and change the last_notifs. if nb_unread = 0 we can
              * simply remove it, else we change it to ask to run the checks again
              * to be up to date */
-            for (i = config->last_notifs; i; i = alpm_list_next (i))
+            FOR_LIST (i, config->last_notifs)
             {
                 notif_t *notif = i->data;
                 if (notif->type & CHECK_NEWS)
                 {
                     if (nb_unread == 0)
                     {
-                        config->last_notifs = alpm_list_remove_item (config->last_notifs, i);
+                        config->last_notifs = alpm_list_remove_item (
+                                config->last_notifs,
+                                i);
                         free_notif (notif);
                     }
                     else
@@ -889,7 +904,7 @@ btn_mark_cb (GtkWidget *button _UNUSED_, GtkWidget *window)
                         notif->data = NULL;
                         free (notif->text);
                         notif->text = strdup ("Read news have changed, "
-                            "you need to run the checks again to be up-to-date.");
+                                "you need to run the checks again to be up-to-date.");
                     }
                     break;
                 }
@@ -898,7 +913,7 @@ btn_mark_cb (GtkWidget *button _UNUSED_, GtkWidget *window)
             saved = TRUE;
         }
     }
-    
+
     if (saved)
     {
         gtk_widget_destroy (window);
@@ -915,13 +930,13 @@ window_destroy_cb (GtkWidget *window, gpointer data _UNUSED_)
 {
     alpm_list_t **lists;
     int i;
-    
+
     if (--nb_windows == 0)
     {
         g_object_unref (cursor_link);
         g_object_unref (cursor_std);
     }
-    
+
     /* will be present if this was a only_updates window */
     lists = g_object_get_data (G_OBJECT (window), "lists");
     if (lists)
@@ -938,7 +953,7 @@ window_destroy_cb (GtkWidget *window, gpointer data _UNUSED_)
         /* this was holding the pointers, free it */
         free (lists);
     }
-    
+
     /* remove from list of open windows */
     remove_open_window (window);
 }
@@ -952,8 +967,8 @@ motion_notify_event_cb (GtkTextView *textview, GdkEventMotion *event)
     gboolean hovering = FALSE;
 
     gtk_text_view_window_to_buffer_coords (textview, GTK_TEXT_WINDOW_WIDGET,
-                                           (gint) event->x, (gint) event->y,
-                                           &x, &y);
+            (gint) event->x, (gint) event->y,
+            &x, &y);
     gtk_text_view_get_iter_at_location (textview, &iter, x, y);
 
     tags = gtk_text_iter_get_tags (&iter);
@@ -971,7 +986,7 @@ motion_notify_event_cb (GtkTextView *textview, GdkEventMotion *event)
     {
         g_slist_free (tags);
     }
-    
+
     /* need to update cursor? */
     if (hovering != hovering_link)
     {
@@ -980,17 +995,17 @@ motion_notify_event_cb (GtkTextView *textview, GdkEventMotion *event)
         if (hovering_link)
         {
             gdk_window_set_cursor (gtk_text_view_get_window (textview,
-                                                             GTK_TEXT_WINDOW_TEXT),
-                                   cursor_link);
+                        GTK_TEXT_WINDOW_TEXT),
+                    cursor_link);
         }
         else
         {
             gdk_window_set_cursor (gtk_text_view_get_window (textview,
-                                                             GTK_TEXT_WINDOW_TEXT),
-                                   cursor_std);
-       }
+                        GTK_TEXT_WINDOW_TEXT),
+                    cursor_std);
+        }
     }
-    
+
     return FALSE;
 }
 
@@ -1002,7 +1017,7 @@ event_after_cb (GtkTextView *textview, GdkEvent *ev, GtkWidget *window)
     GtkTextIter start, end, iter;
     GtkTextBuffer *buffer;
     GdkEventButton *event;
-    
+
     if (ev->type != GDK_BUTTON_RELEASE)
     {
         return FALSE;
@@ -1015,17 +1030,17 @@ event_after_cb (GtkTextView *textview, GdkEvent *ev, GtkWidget *window)
     }
 
     buffer = gtk_text_view_get_buffer (textview);
-    
+
     /* do nothing if the user is selecting something */
     gtk_text_buffer_get_selection_bounds (buffer, &start, &end);
     if (gtk_text_iter_get_offset (&start) != gtk_text_iter_get_offset (&end))
     {
         return FALSE;
     }
-    
+
     gtk_text_view_window_to_buffer_coords (textview, GTK_TEXT_WINDOW_WIDGET,
-                                           (gint) event->x, (gint) event->y,
-                                           &x, &y);
+            (gint) event->x, (gint) event->y,
+            &x, &y);
     gtk_text_view_get_iter_at_location (textview, &iter, x, y);
 
     tags = gtk_text_iter_get_tags (&iter);
@@ -1038,21 +1053,22 @@ event_after_cb (GtkTextView *textview, GdkEvent *ev, GtkWidget *window)
             GError *error = NULL;
             gchar buf[1024], *b, *s, *ss;
             size_t len = strlen (link);
-            
+
             debug ("click on link: %s", link);
-            
+
             if (len + strlen (config->cmdline_link) >= 1024)
             {
-                b = malloc (sizeof (*b) * (len + strlen (config->cmdline_link)));
+                b = new (gchar, len + strlen (config->cmdline_link));
             }
             else
             {
                 b = buf;
             }
-            
+
             for (s = config->cmdline_link, ss = b; s && *s != '\0'; ++s, ++ss)
             {
-                if (*s == '$' && *(s + 1) == 'U' && *(s + 2) == 'R' && *(s + 3) == 'L')
+                if (*s == '$' && *(s + 1) == 'U' && *(s + 2) == 'R'
+                        && *(s + 3) == 'L')
                 {
                     memcpy (ss, link, len);
                     ss += len - 1;
@@ -1065,13 +1081,14 @@ event_after_cb (GtkTextView *textview, GdkEvent *ev, GtkWidget *window)
             }
             *ss = '\0';
             debug ("cmdline: %s", buf);
-            
+
             if (!g_spawn_command_line_async (buf, &error))
             {
-                show_error ("Unable to open link", error->message, GTK_WINDOW (window));
+                show_error ("Unable to open link", error->message,
+                        GTK_WINDOW (window));
                 g_clear_error (&error);
             }
-            
+
             if (b != buf)
             {
                 free (b);
@@ -1095,9 +1112,10 @@ query_tooltip_cb (GtkTextView *textview, gint wx, gint wy,
     gint x, y;
     GtkTextIter iter;
     GSList *tags = NULL, *t;
-    
+
     gtk_text_view_window_to_buffer_coords (textview, GTK_TEXT_WINDOW_WIDGET,
-                                           wx, wy, &x, &y);
+            wx, wy,
+            &x, &y);
     gtk_text_view_get_iter_at_location (textview, &iter, x, y);
 
     tags = gtk_text_iter_get_tags (&iter);
@@ -1116,7 +1134,7 @@ query_tooltip_cb (GtkTextView *textview, gint wx, gint wy,
     {
         g_slist_free (tags);
     }
-    
+
     return FALSE;
 }
 
@@ -1124,37 +1142,39 @@ static void
 new_window (gboolean only_updates, GtkWidget **window, GtkWidget **textview)
 {
     ++nb_windows;
-    
+
     /* window */
     *window = gtk_window_new (GTK_WINDOW_TOPLEVEL);
-    gtk_window_set_title (GTK_WINDOW (*window),
-        (only_updates) ? "Arch Linux Unread News - kalu" : "Arch Linux News - kalu");
+    gtk_window_set_title (GTK_WINDOW (*window), (only_updates)
+            ? "Arch Linux Unread News - kalu"
+            : "Arch Linux News - kalu");
     gtk_window_set_default_size (GTK_WINDOW (*window), 600, 230);
     gtk_container_set_border_width (GTK_CONTAINER (*window), 0);
     gtk_window_set_has_resize_grip (GTK_WINDOW (*window), FALSE);
     g_signal_connect (G_OBJECT (*window), "destroy",
-                      G_CALLBACK (window_destroy_cb), NULL);
+            G_CALLBACK (window_destroy_cb), NULL);
     /* add to list of open windows */
     add_open_window (*window);
     /* icon */
     GdkPixbuf *pixbuf;
-    pixbuf = gtk_widget_render_icon_pixbuf (*window, "kalu-logo", GTK_ICON_SIZE_DIALOG);
+    pixbuf = gtk_widget_render_icon_pixbuf (*window, "kalu-logo",
+            GTK_ICON_SIZE_DIALOG);
     gtk_window_set_icon (GTK_WINDOW (*window), pixbuf);
     g_object_unref (pixbuf);
-    
+
     /* everything in a vbox */
     GtkWidget *vbox;
     vbox = gtk_box_new (GTK_ORIENTATION_VERTICAL, 0);
     gtk_container_add (GTK_CONTAINER (*window), vbox);
     gtk_widget_show (vbox);
-    
+
     /* textview */
     *textview = gtk_text_view_new ();
     g_object_set (G_OBJECT (*textview),
-        "editable",     FALSE,
-        "wrap-mode",    GTK_WRAP_WORD,
-        NULL);
-    
+            "editable",     FALSE,
+            "wrap-mode",    GTK_WRAP_WORD,
+            NULL);
+
     /* if this is the only window, create cursors */
     if (nb_windows == 1)
     {
@@ -1163,39 +1183,39 @@ new_window (gboolean only_updates, GtkWidget **window, GtkWidget **textview)
     }
     /* signals for links (change cursor; handle click) */
     g_signal_connect (*textview, "motion-notify-event",
-                      G_CALLBACK (motion_notify_event_cb), NULL);
+            G_CALLBACK (motion_notify_event_cb), NULL);
     g_signal_connect (*textview, "event-after",
-                        G_CALLBACK (event_after_cb), (gpointer) *window);
+            G_CALLBACK (event_after_cb), (gpointer) *window);
     /* to provide URL in tooltip for links */
     g_object_set (G_OBJECT (*textview), "has-tooltip", TRUE, NULL);
     g_signal_connect (*textview, "query-tooltip",
-                      G_CALLBACK (query_tooltip_cb), NULL);
-    
+            G_CALLBACK (query_tooltip_cb), NULL);
+
     /* scrolled window for the textview */
     GtkWidget *scrolled;
     scrolled = gtk_scrolled_window_new (
-        gtk_scrollable_get_hadjustment (GTK_SCROLLABLE (*textview)),
-        gtk_scrollable_get_vadjustment (GTK_SCROLLABLE (*textview)));
+            gtk_scrollable_get_hadjustment (GTK_SCROLLABLE (*textview)),
+            gtk_scrollable_get_vadjustment (GTK_SCROLLABLE (*textview)));
     gtk_box_pack_start (GTK_BOX (vbox), scrolled, TRUE, TRUE, 0);
     gtk_widget_show (scrolled);
-    
+
     /* adding textview in scrolled */
     gtk_container_add (GTK_CONTAINER (scrolled), *textview);
     gtk_widget_show (*textview);
-    
+
     /* button box */
     GtkWidget *hbox;
     hbox = gtk_box_new (GTK_ORIENTATION_HORIZONTAL, 0);
     gtk_box_pack_start (GTK_BOX (vbox), hbox, FALSE, FALSE, 2);
     gtk_widget_show (hbox);
-    
+
     GtkWidget *button, *image;
-    
+
     if (only_updates)
     {
-        alpm_list_t **lists = calloc (NB_LISTS, sizeof (*lists));
+        alpm_list_t **lists = new0 (alpm_list_t *, NB_LISTS);
         g_object_set_data (G_OBJECT (*window), "lists", lists);
-        
+
         /* Mark read */
         button = gtk_button_new_with_label ("Mark as read");
         image = gtk_image_new_from_stock (GTK_STOCK_APPLY, GTK_ICON_SIZE_MENU);
@@ -1203,15 +1223,15 @@ new_window (gboolean only_updates, GtkWidget **window, GtkWidget **textview)
         gtk_box_pack_end (GTK_BOX (hbox), button, FALSE, FALSE, 4);
         gtk_widget_set_tooltip_text (button, "Mark checked news as read");
         g_signal_connect (G_OBJECT (button), "clicked",
-                          G_CALLBACK (btn_mark_cb), (gpointer) *window);
+                G_CALLBACK (btn_mark_cb), (gpointer) *window);
         gtk_widget_show (button);
     }
-    
+
     /* Close */
     button = gtk_button_new_from_stock (GTK_STOCK_CLOSE);
     gtk_box_pack_end (GTK_BOX (hbox), button, FALSE, FALSE, 2);
     g_signal_connect (G_OBJECT (button), "clicked",
-                      G_CALLBACK (btn_close_cb), (gpointer) *window);
+            G_CALLBACK (btn_close_cb), (gpointer) *window);
     gtk_widget_show (button);
 }
 
@@ -1223,7 +1243,7 @@ news_show (gchar *xml_news, gboolean only_updates, GError **error)
     parse_news_data_t   data;
     GtkWidget          *window;
     GtkWidget          *textview;
-    
+
     /* if no XML was provided, download it */
     if (xml_news == NULL)
     {
@@ -1236,15 +1256,15 @@ news_show (gchar *xml_news, gboolean only_updates, GError **error)
         }
         is_xml_ours = TRUE;
     }
-    
+
     new_window (only_updates, &window, &textview);
-    
-    memset (&data, 0, sizeof (parse_news_data_t));
+
+    zero (data);
     data.only_updates = only_updates;
     data.textview = GTK_TEXT_VIEW (textview);
     data.buffer = gtk_text_view_get_buffer (data.textview);
     data.lists = g_object_get_data (G_OBJECT (window), "lists");
-    
+
     if (!parse_xml (xml_news, FALSE, (gpointer) &data, &local_err))
     {
         if (is_xml_ours)
@@ -1259,8 +1279,8 @@ news_show (gchar *xml_news, gboolean only_updates, GError **error)
     if (is_xml_ours)
     {
         free (xml_news);
-    }    
-    
+    }
+
     gtk_widget_show (window);
     set_kalpm_busy (FALSE);
     return TRUE;
@@ -1274,26 +1294,26 @@ show_help (GError **error)
     GtkWidget     *textview;
     GtkTextBuffer *buffer;
     gchar         *text, *t, *s;
-    
+
     new_window (FALSE, &window, &textview);
     gtk_window_set_title (GTK_WINDOW (window), "Help - kalu");
     gtk_window_set_default_size (GTK_WINDOW (window), 600, 420);
     buffer = gtk_text_view_get_buffer (GTK_TEXT_VIEW (textview));
-    
+
     if (!g_file_get_contents (HTML_MAN_PAGE, &text, NULL, &local_err))
     {
         g_propagate_error (error, local_err);
         gtk_widget_destroy (window);
         return FALSE;
     }
-    
+
     t = text;
     /* skip HTML headers, style & TOC */
     if ((s = strstr (text, "<hr>")))
     {
         text = s + 4;
     }
-    
+
     create_tags (buffer);
     parse_to_buffer (buffer, text, (gsize) strlen (text));
     g_free (t);
@@ -1309,39 +1329,39 @@ show_history (GError **error)
     GtkWidget     *textview;
     GtkTextBuffer *buffer;
     gchar         *text, *s;
-    
+
     new_window (FALSE, &window, &textview);
     gtk_window_set_title (GTK_WINDOW (window), "History - kalu");
     gtk_window_set_default_size (GTK_WINDOW (window), 600, 420);
     buffer = gtk_text_view_get_buffer (GTK_TEXT_VIEW (textview));
-    
+
     if (!g_file_get_contents (HISTORY, &text, NULL, &local_err))
     {
         g_propagate_error (error, local_err);
         gtk_widget_destroy (window);
         return FALSE;
     }
-    
+
     /* to preserves '<' */
     s = strreplace (text, "<", " <lt>");
     g_free (text);
     text = s;
-    
+
     /* to preserves '>' */
     s = strreplace (text, ">", " <gt>");
     g_free (text);
     text = s;
-    
+
     /* to preserve LF-s */
     s = strreplace (text, "\n\n", " <br>");
     g_free (text);
     text = s;
-    
+
     /* add empty line before each new line (change) */
     s = strreplace (text, "<br>-", "<br><br>-");
     g_free (text);
     text = s;
-    
+
     /* to turn date/version number into titles (w/ some styling) */
     s = strreplace (text, "\n# ", "<br><h2>");
     g_free (text);
@@ -1358,7 +1378,7 @@ show_history (GError **error)
             *(s + 4) = '>';
         }
     }
-    
+
     create_tags (buffer);
     parse_to_buffer (buffer, text, (gsize) strlen (text));
     g_free (text);
@@ -1386,9 +1406,10 @@ show_pacman_conflict ()
         "<p>If a new version of kalu for the new pacman isn't available on the "
         "AUR yet, make sure to flag it as out-of-date.</p>"
         ;
-    
+
     new_window (FALSE, &window, &textview);
-    gtk_window_set_title (GTK_WINDOW (window), "Possible pacman/kalu conflict - kalu");
+    gtk_window_set_title (GTK_WINDOW (window),
+            "Possible pacman/kalu conflict - kalu");
     gtk_window_set_default_size (GTK_WINDOW (window), 600, 230);
     buffer = gtk_text_view_get_buffer (GTK_TEXT_VIEW (textview));
     create_tags (buffer);
