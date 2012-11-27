@@ -93,7 +93,9 @@ typedef enum {
     DO_CHECK,
     DO_SYSUPGRADE,
     DO_TOGGLE_WINDOWS,
-    DO_LAST_NOTIFS
+    DO_LAST_NOTIFS,
+    DO_TOGGLE_PAUSE,
+    DO_SAME_AS_ACTIVE
 } on_click_t;
 
 typedef enum {
@@ -140,6 +142,8 @@ typedef struct _config_t {
     gboolean         check_pacman_conflict;
     on_click_t       on_sgl_click;
     on_click_t       on_dbl_click;
+    on_click_t       on_sgl_click_paused;
+    on_click_t       on_dbl_click_paused;
     int              use_ip;
     
     templates_t     *tpl_upgrades;
@@ -180,7 +184,16 @@ typedef struct _kalu_package_t {
     guint    new_size; /* new installed size */
 } kalu_package_t;
 
+typedef enum {
+    SKIP_UNKNOWN = 0,
+    SKIP_BEGIN,
+    SKIP_END
+} skip_next_t;
+
 typedef struct _kalpm_state_t {
+    gboolean    is_paused;
+    skip_next_t skip_next;
+    guint       timeout_skip;
     gint        is_busy;
     guint       timeout;
     guint       timeout_icon;
@@ -208,16 +221,6 @@ void debug (const char *fmt, ...);
 void free_package (kalu_package_t *package);
 void free_watched_package (watched_package_t *w_pkg);
 
-#ifndef DISABLE_GUI
-gboolean reload_watched (gboolean is_aur, GError **error);
-
-void set_kalpm_busy (gboolean busy);
-void set_kalpm_nb (check_t type, gint nb, gboolean update_icon);
-void set_kalpm_nb_syncdbs (gint nb);
-
-void add_open_window (gpointer window);
-void remove_open_window (gpointer window);
-#endif /* DISABLE_GUI */
 void kalu_check_work (gboolean is_auto);
 
 #endif /* _KALU_H */

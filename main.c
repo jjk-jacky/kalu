@@ -73,7 +73,7 @@ static void free_config (void);
 
 #else
 
-kalpm_state_t kalpm_state = { 0, 0, 0, NULL, 0, 0, 0, 0, 0, 0 };
+kalpm_state_t kalpm_state;
 static gboolean is_cli = FALSE;
 
 #define do_notify_error(summary, text)  if (!is_cli)    \
@@ -794,6 +794,49 @@ extern GPtrArray *open_windows;
 #endif
 
 static GtkIconSet *
+get_paused_iconset (GdkPixbuf *pixbuf)
+{
+    cairo_surface_t *s;
+    cairo_t         *cr;
+    GdkPixbuf       *pb;
+    GtkIconSet      *iconset;
+
+    s = cairo_image_surface_create (CAIRO_FORMAT_ARGB32, 48, 48);
+    cr = cairo_create (s);
+
+    /* put the icon from pixbuf */
+    gdk_cairo_set_source_pixbuf (cr, pixbuf, 0, 0);
+    cairo_rectangle (cr, 0, 0, 48, 48);
+    cairo_fill (cr);
+
+    /* draw black borders */
+    cairo_rectangle (cr, 13, 12, 10, 2);
+    cairo_rectangle (cr, 21, 14, 2, 24);
+    cairo_rectangle (cr, 13, 36, 10, 2);
+    cairo_rectangle (cr, 13, 14, 2, 24);
+    cairo_rectangle (cr, 25, 12, 10, 2);
+    cairo_rectangle (cr, 33, 14, 2, 24);
+    cairo_rectangle (cr, 25, 36, 10, 2);
+    cairo_rectangle (cr, 25, 14, 2, 24);
+    cairo_set_source_rgba (cr, 0, 0, 0, 0.6);
+    cairo_fill (cr);
+
+    /* draw white rectangles */
+    cairo_rectangle (cr, 15, 14, 6, 22);
+    cairo_rectangle (cr, 27, 14, 6, 22);
+    cairo_set_source_rgba (cr, 1, 1, 1, 0.8);
+    cairo_fill (cr);
+
+    cairo_destroy (cr);
+    pb = gdk_pixbuf_get_from_surface (s, 0, 0, 48, 48);
+    cairo_surface_destroy (s);
+
+    iconset = gtk_icon_set_new_from_pixbuf (pb);
+    g_object_unref (G_OBJECT (pb));
+    return iconset;
+}
+
+static GtkIconSet *
 get_gray_iconset (GdkPixbuf *pixbuf, GdkPixbuf **pixbuf_gray)
 {
     cairo_surface_t *s;
@@ -840,6 +883,7 @@ main (int argc, char *argv[])
     gchar            conffile[MAX_PATH];
     
     config = calloc (1, sizeof(*config));
+    memset (&kalpm_state, 0, sizeof (kalpm_state));
     
     /* parse command line */
     gboolean         show_version       = FALSE;
@@ -910,6 +954,8 @@ main (int argc, char *argv[])
     #endif
     config->on_sgl_click = DO_CHECK;
     config->on_dbl_click = DO_SYSUPGRADE;
+    config->on_sgl_click_paused = DO_SAME_AS_ACTIVE;
+    config->on_dbl_click_paused = DO_TOGGLE_PAUSE;
     config->sane_sort_order = TRUE;
     config->check_pacman_conflict = TRUE;
     config->cmdline_link = strdup ("xdg-open '$URL'");
@@ -1003,9 +1049,15 @@ main (int argc, char *argv[])
     pixbuf = gdk_pixbuf_new_from_inline (-1, arch, FALSE, NULL);
     iconset = gtk_icon_set_new_from_pixbuf (pixbuf);
     gtk_icon_factory_add (factory, "kalu-logo", iconset);
+    /* add paused version */
+    iconset = get_paused_iconset (pixbuf);
+    gtk_icon_factory_add (factory, "kalu-logo-paused", iconset);
     /* kalu-logo-gray */
     iconset = get_gray_iconset (pixbuf, &pixbuf_gray);
     gtk_icon_factory_add (factory, "kalu-logo-gray", iconset);
+    /* add paused version */
+    iconset = get_paused_iconset (pixbuf_gray);
+    gtk_icon_factory_add (factory, "kalu-logo-gray-paused", iconset);
     /* free pixbufs */
     g_object_unref (G_OBJECT (pixbuf));
     g_object_unref (G_OBJECT (pixbuf_gray));
@@ -1025,10 +1077,11 @@ main (int argc, char *argv[])
                       G_CALLBACK (icon_press_cb), NULL);
 
     gtk_status_icon_set_visible (icon, TRUE);
-    
-    /* set timer, first check in 2 seconds */
-    kalpm_state.timeout = g_timeout_add_seconds (2, (GSourceFunc) kalu_auto_check, NULL);
-    
+
+    /* takes care of setting timeout_skip (if needed) and also triggers the
+     * auto-checks (unless within skip period) */
+    skip_next_timeout ();
+
     notify_init ("kalu");
     gtk_main ();
 eop:

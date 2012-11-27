@@ -45,6 +45,10 @@ the tooltip) what was found.
 
 If the icon happens to blink from gray to blue, it means kalu is currently busy.
 
+kalu can also be paused, meaning automatic checks will not be ran anymore until
+automatic checks are resumed, either through manual action, or automatically
+when then "paused period" ends (see L<B<PREFERENCES>|/PREFERENCES> below).
+
 kalu can check for a few things, each one resulting in a separate
 notification (if something is found) :
 
@@ -202,8 +206,11 @@ This is e.g. in case you keep your computer on 24/7, yet go to sleep at
 some point. It would then make sense that you not want kalu to do its
 checks while you're sleeping.
 
-Specify here the period during which no (automatic) checks will be
-performed (Of course, you can always ask for one manually).
+When specifying a "paused period" here, kalu will automatically pause its
+automatic checks at the beginning time, and resume them at end time.
+
+You can obviously "overwrite" the period, e.g. by manually resuming automatic
+checks during the paused period.
 
 =item I<During an automatic check, check for ..>
 
@@ -290,7 +297,7 @@ notification.
 
 When using kalu's updater, you can define one or more processes to be ran after
 a system upgrade was completed. Specify their command-line in the list, and
-they'll be started after a succesful system upgrade.
+they'll be started after a successful system upgrade.
 
 You can use B<$PACKAGES> in the command line, which will be replaced by the
 list of all packages involved in the sysupgrade (i.e. packages upgraded, as well
@@ -530,9 +537,17 @@ not.
 
 =item I<When (double) clicking the systray icon>
 
-Defines the action to be done when you single/double click on kalu's systray icon.
+Defines the action to be done when you single/double click on kalu's systray
+icon.
+
+You can define actions to be taken when kalu is active (i.e. not paused), and a
+different set of actions when it is paused.
 
 =over
+
+=item B<* Same as when active/not paused>
+
+[Only when kalu is paused] Do the same as when kalu is active (defined above).
 
 =item B<* Do nothing>
 
@@ -561,6 +576,10 @@ window is hidden, an indication will be featured on the tooltip (" +" next to
 
 Will re-show all notifications resulting from the last time checks were ran
 (automatic or manual).
+
+=item B<* Toggle pause/resume automatic checks>
+
+Will toggle kalu's paused state, pausing or resuming automatic checks.
 
 =back
 
