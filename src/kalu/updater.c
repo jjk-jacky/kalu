@@ -38,9 +38,10 @@
 #include "util-gtk.h"
 #include "util.h"
 #include "kalu-updater.h"
-#include "kupdater.h"
 #include "conf.h"
 #include "gui.h" /* show_notif() */
+
+#include "../kalu-dbus/kupdater.h"
 
 /* split of pctg of each step in the global progress of the sysupgrade */
 #define PCTG_DOWNLOAD           0.42

@@ -32,7 +32,8 @@
 #include "kalu.h"
 #include "kalu-updater.h"
 #include "closures.h"
-#include "updater-dbus.h"
+
+#include "../kalu-dbus/updater-dbus.h"
 
 
 struct _KaluUpdater

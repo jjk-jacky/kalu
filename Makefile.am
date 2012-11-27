@@ -1,32 +1,12 @@
+DISTCLEANFILES = \
+	doc/kalu.1 \
+	doc/index.html
 
-CLEANFILES = kalu.1 index.html kalu.png org.jjk.kalu.service
+CLEANFILES = \
+	misc/kalu.png \
+	misc/org.jjk.kalu.service
 
-bin_PROGRAMS = kalu
-if ! DISABLE_UPDATER
-bin_PROGRAMS += kalu-dbus
-dist_bin_SCRIPTS = kalu-dbus-launcher
-endif
-
-nodist_man_MANS = kalu.1
-dist_doc_DATA = AUTHORS COPYING HISTORY LICENSE README.md
-doc_DATA = index.html
-
-if ! DISABLE_GUI
-logodir = $(datadir)/pixmaps
-logo_DATA = kalu.png
-
-desktopdir = /usr/share/applications
-dist_desktop_DATA = kalu.desktop
-endif
-
-if ! DISABLE_UPDATER
-policydir = /usr/share/polkit-1/actions
-dist_policy_DATA = org.jjk.kalu.policy
-dbusservicedir = /usr/share/dbus-1/system-services
-nodist_dbusservice_DATA = org.jjk.kalu.service
-dbusconfdir = /etc/dbus-1/system.d
-dist_dbusconf_DATA = org.jjk.kalu.conf
-endif
+ACLOCAL_AMFLAGS = -I m4
 
 if USE_GIT_VERSION
 _VERSION = `git describe --abbrev=4 --dirty`
@@ -35,65 +15,114 @@ else
 _VERSION = $(PACKAGE_VERSION)
 endif
 
-install-data-hook:
-	mkdir "$(DESTDIR)$(docdir)/html"
-	mv "$(DESTDIR)$(docdir)/index.html" "$(DESTDIR)$(docdir)/html/"
+bin_PROGRAMS = kalu
+if ! DISABLE_UPDATER
+bin_PROGRAMS += kalu-dbus
+dist_bin_SCRIPTS = src/kalu-dbus/kalu-dbus-launcher
+endif
 
-dist-hook:
-	cp "$(srcdir)/kalu.pod" "$(distdir)/"
-	cp "$(srcdir)/org.jjk.kalu.service.tpl" "$(distdir)/"
-	cp "$(srcdir)/arch_linux_48x48_icon_by_painlessrob.png" "$(distdir)/"
-
-AM_CPPFLAGS = -DDOCDIR='"$(docdir)"'
-AM_CFLAGS = -g \
-		-Wall -Wextra -pedantic -Wshadow -Wpointer-arith -Wcast-align \
-		-Wwrite-strings -Wmissing-prototypes -Wmissing-declarations \
-		-Wredundant-decls -Wnested-externs -Winline -Wno-long-long \
-		-Wuninitialized -Wconversion -Wstrict-prototypes
-AM_CFLAGS += -D_BSD_SOURCE
+AM_CFLAGS = \
+	-g \
+	-DDOCDIR='"$(docdir)"' \
+	-D_BSD_SOURCE \
+	${WARNING_CFLAGS}
 
 kalu_CFLAGS = ${AM_CFLAGS}
 kalu_LDADD = -lalpm -lm @LIBCURL@
-kalu_SOURCES = main.c arch_linux.h kalu.h \
-		conf.h conf.c \
-		util.h util.c \
-		kalu-alpm.h kalu-alpm.c \
-		curl.h curl.c \
-		cJSON.h cJSON.c \
-		aur.h aur.c \
-		news.h news.c
+kalu_SOURCES = \
+	src/kalu/main.c \
+	src/kalu/arch_linux.h \
+	src/kalu/kalu.h \
+	src/kalu/conf.h \
+	src/kalu/conf.c \
+	src/kalu/util.h \
+	src/kalu/util.c \
+	src/kalu/kalu-alpm.h \
+	src/kalu/kalu-alpm.c \
+	src/kalu/curl.h \
+	src/kalu/curl.c \
+	src/kalu/cJSON.h \
+	src/kalu/cJSON.c \
+	src/kalu/aur.h \
+	src/kalu/aur.c \
+	src/kalu/news.h \
+	src/kalu/news.c
+
 if ! DISABLE_GUI
 kalu_CFLAGS += @GTK_CFLAGS@ @NOTIFY_CFLAGS@
 kalu_LDADD += @GTK_LIBS@ @NOTIFY_LIBS@
-kalu_SOURCES += gui.h gui.c \
-		util-gtk.h util-gtk.c \
-		watched.h watched.c  \
-		preferences.h preferences.c
+kalu_SOURCES += \
+	src/kalu/gui.h \
+	src/kalu/gui.c \
+	src/kalu/util-gtk.h \
+	src/kalu/util-gtk.c \
+	src/kalu/watched.h \
+	src/kalu/watched.c \
+	src/kalu/preferences.h \
+	src/kalu/preferences.c
 else
 kalu_CFLAGS += @GLIB2_CFLAGS@
 kalu_LDADD += @GLIB2_LIBS@
 endif
-if ! DISABLE_UPDATER
-kalu_SOURCES += closures.h closures.c \
-		updater-dbus.h kupdater.h \
-		kalu-updater.h kalu-updater.c \
-		updater.h updater.c
 
+if ! DISABLE_UPDATER
+kalu_SOURCES += \
+	src/kalu-dbus/updater-dbus.h \
+	src/kalu-dbus/kupdater.h \
+	src/kalu/closures.h \
+	src/kalu/closures.c \
+	src/kalu/kalu-updater.h \
+	src/kalu/kalu-updater.c \
+	src/kalu/updater.h \
+	src/kalu/updater.c
 
 kalu_dbus_CFLAGS = ${AM_CFLAGS} @GTK_CFLAGS@ @POLKIT_CFLAGS@
-kalu_dbus_LDADD = @GTK_LIBS@ @POLKIT_LIBS@ -lalpm
-kalu_dbus_SOURCES = updater-dbus.h kupdater.h kalu-dbus.c
+kalu_dbus_LDADD = -lalpm @GTK_LIBS@ @POLKIT_LIBS@
+kalu_dbus_SOURCES = \
+	src/kalu-dbus/updater-dbus.h \
+	src/kalu-dbus/kupdater.h \
+	src/kalu-dbus/kalu-dbus.c
 endif
 
-org.jjk.kalu.service: org.jjk.kalu.service.tpl
-	sed 's|@BINDIR@|$(bindir)|' org.jjk.kalu.service.tpl > org.jjk.kalu.service
+if ! DISABLE_GUI
+logodir = $(datadir)/pixmaps
+logo_DATA = misc/kalu.png
 
-kalu.1: kalu.pod
-	pod2man --center='Keeping Arch Linux Up-to-date' --section=1 --release=$(_VERSION) kalu.pod kalu.1
+desktopdir = /usr/share/applications
+dist_desktop_DATA = misc/kalu.desktop
+endif
 
-index.html: kalu.1
-	groff -T html -man kalu.1 > index.html
+if ! DISABLE_UPDATER
+policydir = /usr/share/polkit-1/actions
+dist_policy_DATA = misc/org.jjk.kalu.policy
+dbusservicedir = /usr/share/dbus-1/system-services
+nodist_dbusservice_DATA = misc/org.jjk.kalu.service
+dbusconfdir = /etc/dbus-1/system.d
+dist_dbusconf_DATA = misc/org.jjk.kalu.conf
+endif
 
-kalu.png: arch_linux_48x48_icon_by_painlessrob.png
-	$(LN_S) arch_linux_48x48_icon_by_painlessrob.png kalu.png
+dist_man_MANS = doc/kalu.1
+dist_doc_DATA = doc/index.html
 
+EXTRA_DIST = \
+	doc/kalu.pod \
+	misc/org.jjk.kalu.service.tpl \
+	misc/arch_linux_48x48_icon_by_painlessrob.png
+
+doc/kalu.1: doc/kalu.pod
+	$(AM_V_GEN)pod2man --center='Keeping Arch Linux Up-to-date' --section=1 \
+		--release=$(_VERSION) doc/kalu.pod doc/kalu.1
+
+doc/index.html: doc/kalu.1
+	$(AM_V_GEN)groff -T html -man doc/kalu.1 > doc/index.html
+
+misc/org.jjk.kalu.service: misc/org.jjk.kalu.service.tpl
+	$(AM_V_GEN)cd misc && sed 's|@BINDIR@|$(bindir)|' org.jjk.kalu.service.tpl \
+		> org.jjk.kalu.service
+
+misc/kalu.png: misc/arch_linux_48x48_icon_by_painlessrob.png
+	$(AM_V_GEN)$(LN_S) arch_linux_48x48_icon_by_painlessrob.png misc/kalu.png
+
+install-data-hook:
+	mkdir "$(DESTDIR)$(docdir)/html"
+	mv "$(DESTDIR)$(docdir)/index.html" "$(DESTDIR)$(docdir)/html/"
