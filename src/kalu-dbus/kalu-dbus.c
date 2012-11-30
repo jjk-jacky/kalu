@@ -45,7 +45,6 @@
 #define CHOICE_FREE             -1
 #define CHOICE_WAITING          -2
 
-static GDBusNodeInfo *introspection_data = NULL;
 static GDBusConnection *connection = NULL;
 
 static GMainLoop *loop;
@@ -1235,7 +1234,7 @@ on_bus_acquired (GDBusConnection *conn,
     registration_id = g_dbus_connection_register_object (
             connection,
             OBJECT_PATH,
-            introspection_data->interfaces[0],
+            (GDBusInterfaceInfo *) &interface_info,
             &interface_vtable,
             NULL,
             NULL,
@@ -1267,13 +1266,6 @@ main (int argc _UNUSED_, char *argv[] _UNUSED_)
 
     g_type_init ();
 
-    /* We are lazy here - we don't want to manually provide
-     * the introspection data structures - so we just build
-     * them from XML.
-     */
-    introspection_data = g_dbus_node_info_new_for_xml (introspection_xml, NULL);
-    g_assert (introspection_data != NULL);
-
     owner_id = g_bus_own_name (G_BUS_TYPE_SYSTEM,
             "org.jjk.kalu",
             G_BUS_NAME_OWNER_FLAGS_NONE,
@@ -1287,6 +1279,5 @@ main (int argc _UNUSED_, char *argv[] _UNUSED_)
     g_main_loop_run (loop);
 
     g_bus_unown_name (owner_id);
-    g_dbus_node_info_unref (introspection_data);
     return 0;
 }

@@ -1,0 +1,232 @@
+#!/bin/bash
+
+# kalu - Copyright (C) 2012 Olivier Brunel
+#
+# gen-interface
+# Copyright (C) 2012 Olivier Brunel <i.am.jack.mail@gmail.com>
+#
+# This file is part of kalu.
+#
+# kalu is free software: you can redistribute it and/or modify it under the
+# terms of the GNU General Public License as published by the Free Software
+# Foundation, either version 3 of the License, or (at your option) any later
+# version.
+#
+# kalu is distributed in the hope that it will be useful, but WITHOUT ANY
+# WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+# FOR A PARTICULAR PURPOSE.
+# See the GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License along with
+# kalu. If not, see http://www.gnu.org/licenses/
+
+echo "/**
+ * kalu - Copyright (C) 2012 Olivier Brunel
+ *
+ * updater-dbus.h
+ * Copyright (C) 2012 Olivier Brunel <i.am.jack.mail@gmail.com>
+ *
+ * This file is part of kalu.
+ *
+ * kalu is free software: you can redistribute it and/or modify it under the
+ * terms of the GNU General Public License as published by the Free Software
+ * Foundation, either version 3 of the License, or (at your option) any later
+ * version.
+ *
+ * kalu is distributed in the hope that it will be useful, but WITHOUT ANY
+ * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE.
+ * See the GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along with
+ * kalu. If not, see http://www.gnu.org/licenses/
+ */
+
+#ifndef _KALU_UPDATER_DBUS_H
+#define _KALU_UPDATER_DBUS_H
+
+#include \"kupdater.h\"
+
+#define DBUS_NAME               \"org.jjk.kalu\"
+#define OBJECT_PATH             \"/org/jjk/kalu/Updater\"
+#define INTERFACE_NAME          \"org.jjk.kalu.UpdaterInterface\"
+
+"
+
+err() {
+    [[ $line -gt 0 ]] && echo -n "Line $line: " >&2
+    echo "$@" >&2
+    exit 1
+}
+
+chk() {
+    [[ -z "$1" ]] && err "$2"
+}
+
+# quick function to "parse" XML
+read_dom() {
+    local IFS=\>;
+    read -d \< K V;
+    if [[ $? -ne 0 ]]; then
+        return 1
+    fi
+    TAG=${K%% *}
+    ATTR=${K#* }
+}
+
+_INTERFACE=
+_TYPE=
+_NAME=
+declare -A nb
+nb["method"]=0
+nb["signal"]=0
+declare -a methods signals args_in args_out
+nb_in=0
+nb_out=0
+# because with read_dom we have a "first line" before the first tag
+line=-1
+pos=0
+while read_dom; do
+    (( line++ ))
+    if [[ $pos = 0 ]]; then
+        [[ $TAG = "node" ]] && (( pos++ ))
+        continue
+    elif [[ $pos = 1 ]]; then
+        if [[ $TAG = "interface" ]]; then
+            (( pos++ ))
+            name=
+            eval $ATTR
+            chk "$name" "Interface name missing"
+            _INTERFACE=$name
+        fi
+        continue
+    elif [[ $pos -ne 2 ]]; then
+        err "Invalid structure at pos=$pos, tag=$TAG"
+        exit 1
+    fi
+
+    if [[ $TAG = "method" || $TAG = "signal" ]]; then
+        name=
+        eval $ATTR
+        chk "$name" "Name of $TAG missing"
+        (( nb[$TAG]++ ))
+        if [[ $TAG = "method" ]]; then
+            methods[${nb[$TAG]}]="_method_$name"
+        else
+            signals[${nb[$TAG]}]="_signal_$name"
+        fi
+        _TYPE=$TAG
+        _NAME=$name
+        ARG=
+    elif [[ $TAG = "/method" || $TAG = "/signal" ]]; then
+        [[ ${TAG:1} = $_TYPE ]] || err "Ending ${TAG:1} while in $_TYPE"
+        if [[ $nb_in -gt 0 ]]; then
+            echo "static const GDBusArgInfo * const _arg_${_NAME}_in[] = {";
+            for (( i=1; $i <= $nb_in; i++)); do
+                echo "    &${args_in[$i]},"
+            done
+            echo -e "    NULL\n};"
+        fi
+        if [[ $nb_out -gt 0 ]]; then
+            echo "static const GDBusArgInfo * const _arg_${_NAME}_out[] = {";
+            for i in {1..$nb_out}; do
+                echo "    &${args_out[$i]},"
+            done
+            echo -e "    NULL\n};"
+        fi
+        if [[ $_TYPE = "method" ]]; then
+            echo "static const GDBusMethodInfo _method_${_NAME} = {"
+        else
+            echo "static const GDBusSignalInfo _signal_${_NAME} = {"
+        fi
+        echo -e "    -1,\n    (gchar *) \"$_NAME\","
+        if [[ $nb_in = 0 && $nb_out = 0 ]]; then
+            if [[ $_TYPE = "signal" ]]; then
+                echo "    NULL,"
+            else
+                echo -e "    NULL,\n    NULL,"
+            fi
+        else
+            if [[ $nb_in = 0 ]]; then
+                echo "    NULL,";
+            else
+                echo "    (GDBusArgInfo **) (&_arg_${_NAME}_in),"
+            fi
+            if [[ $_TYPE = "method" ]]; then
+                if [[ $nb_out = 0 ]]; then
+                    echo "    NULL,";
+                else
+                    echo "    (GDBusArgInfo **) (&_arg_${_NAME}_out),"
+                fi
+            fi
+        fi
+        echo -e "    NULL\n};"
+        _TYPE=
+        _NAME=
+        unset args_in args_out
+        declare -a args_in args_out
+        nb_in=0
+        nb_out=0
+    elif [[ $TAG = "arg" ]]; then
+        chk "$_NAME" "Argument without parent"
+        l=${#ATTR}
+        [[ ${ATTR:l - 1} = "/" ]] && ATTR=${ATTR:0:l - 1}
+        name=
+        type=
+        direction=
+        eval $ATTR
+        chk "$name" "Argument name missing"
+        chk "$type" "Argument type missing"
+        if [[ $_TYPE = "method" ]]; then
+            chk "$direction" "Argument direction missing"
+            s="_arg_${_NAME}_${direction}_${name}"
+        else
+            s="_arg_${_NAME}_${name}"
+        fi
+        echo "static const GDBusArgInfo $s = {
+    -1,
+    (gchar *) \"$name\",
+    (gchar *) \"$type\",
+    NULL
+};"
+        if [[ $_TYPE = "signal" || $direction = "in" ]]; then
+            (( nb_in++ ))
+            args_in[nb_in]=$s
+        else
+            (( nb_out++ ))
+            args_out[nb_out]=$s
+        fi
+    fi
+done < updater-dbus.xml
+
+if [[ ${nb["method"]} -gt 0 ]]; then
+    echo "static const GDBusMethodInfo * const _methods[] = {"
+    for name in ${methods[*]}; do
+        echo "    &$name,"
+    done
+    echo -e "    NULL\n};"
+fi
+if [[ ${nb["signal"]} -gt 0 ]]; then
+    echo "static const GDBusSignalInfo * const _signals[] = {"
+    for name in ${signals[*]}; do
+        echo "    &$name,"
+    done
+    echo -e "    NULL\n};"
+fi
+
+echo "const GDBusInterfaceInfo interface_info = {
+    -1,
+    (gchar *) \"$_INTERFACE\","
+if [[ ${nb["method"]} -gt 0 ]]; then
+    echo "    (GDBusMethodInfo **) (&_methods),"
+else
+    echo "    NULL,"
+fi
+if [[ ${nb["signal"]} -gt 0 ]]; then
+    echo "    (GDBusSignalInfo **) (&_signals),"
+else
+    echo "    NULL,"
+fi
+echo -e "    NULL,\n    NULL\n};"
+
+echo "#endif /* _KALU_UPDATER_DBUS_H */ "

@@ -1,4 +1,5 @@
 DISTCLEANFILES = \
+	src/kalu-dbus/updater-dbus.h \
 	doc/kalu.1 \
 	doc/index.html
 
@@ -71,6 +72,9 @@ kalu_LDADD += @GLIB2_LIBS@
 endif
 
 if ! DISABLE_UPDATER
+BUILT_SOURCES = \
+	src/kalu-dbus/updater-dbus.h
+
 kalu_SOURCES += \
 	src/kalu-dbus/updater-dbus.h \
 	src/kalu-dbus/kupdater.h \
@@ -110,9 +114,14 @@ dist_man_MANS = doc/kalu.1
 dist_doc_DATA = doc/index.html
 
 EXTRA_DIST = \
+	src/kalu-dbus/gen-interface \
+	src/kalu-dbus/updater-dbus.xml \
 	doc/kalu.pod \
 	misc/org.jjk.kalu.service.tpl \
 	misc/arch_linux_48x48_icon_by_painlessrob.png
+
+src/kalu-dbus/updater-dbus.h: src/kalu-dbus/updater-dbus.xml
+	$(AM_V_GEN)cd src/kalu-dbus && ./gen-interface > updater-dbus.h
 
 doc/kalu.1: doc/kalu.pod
 	$(AM_V_GEN)pod2man --center='Keeping Arch Linux Up-to-date' --section=1 \

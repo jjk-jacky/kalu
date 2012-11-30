@@ -243,28 +243,12 @@ kalu_updater_finalize (GObject *object)
     }
 }
 
-static GDBusInterfaceInfo *
-kalu_updater_get_interface_info (void)
-{
-    static gsize has_info = 0;
-    static GDBusInterfaceInfo *info = NULL;
-    if (g_once_init_enter (&has_info))
-    {
-        GDBusNodeInfo *introspection_data;
-        introspection_data = g_dbus_node_info_new_for_xml (introspection_xml,
-                NULL);
-        info = introspection_data->interfaces[0];
-        g_once_init_leave (&has_info, 1);
-    }
-    return info;
-}
-
 static void
 kalu_updater_init (KaluUpdater *kupdater)
 {
     /* Sets the expected interface */
     g_dbus_proxy_set_interface_info (G_DBUS_PROXY (kupdater),
-            kalu_updater_get_interface_info ());
+            (GDBusInterfaceInfo *) &interface_info);
 
     kupdater->priv = G_TYPE_INSTANCE_GET_PRIVATE (kupdater,
             KALU_TYPE_UPDATER,
