@@ -56,52 +56,68 @@ static void free_config (void);
 
 #ifdef DISABLE_GUI
 
-#define do_notify_error(summary, text)  do {    \
-        fprintf (stderr, "%s\n", summary);      \
-        if (text)                               \
-        {                                       \
-            fprintf (stderr, "%s\n", text);     \
-        }                                       \
-    } while (0)
+static inline void
+do_notify_error (const gchar *summary, const gchar *text)
+{
+    fprintf (stderr, "%s\n", summary);
+    if (text)
+    {
+        fprintf (stderr, "%s\n", text);
+    }
+}
 
-#define do_show_error(message, submessage, parent)  do {    \
-        fprintf (stderr, "%s\n", message);                  \
-        if (submessage)                                     \
-        {                                                   \
-            fprintf (stderr, "%s\n", submessage);           \
-        }                                                   \
-    } while (0)
+static void
+do_show_error (
+        const gchar *message,
+        const gchar *submessage,
+        void *parent _UNUSED_
+        )
+{
+    fprintf (stderr, "%s\n", message);
+    if (submessage)
+    {
+        fprintf (stderr, "%s\n", submessage);
+    }
+}
 
 #else
 
 kalpm_state_t kalpm_state;
 static gboolean is_cli = FALSE;
 
-#define do_notify_error(summary, text)  if (!is_cli)    \
-    {                                                   \
-        notify_error (summary, text);                   \
-    }                                                   \
-    else                                                \
-    {                                                   \
-        fprintf (stderr, "%s\n", summary);              \
-        if (text)                                       \
-        {                                               \
-            fprintf (stderr, "%s\n", text);             \
-        }                                               \
+static inline void
+do_notify_error (const gchar *summary, const gchar *text)
+{
+    if (!is_cli)
+    {
+        notify_error (summary, text);
     }
+    else
+    {
+        fprintf (stderr, "%s\n", summary);
+        if (text)
+        {
+            fprintf (stderr, "%s\n", text);
+        }
+    }
+}
 
-#define do_show_error(message, submessage, parent)  if (!is_cli)    \
-    {                                                               \
-        show_error (message, submessage, parent);                   \
-    }                                                               \
-    else                                                            \
-    {                                                               \
-        fprintf (stderr, "%s\n", message);                          \
-        if (submessage)                                             \
-        {                                                           \
-            fprintf (stderr, "%s\n", submessage);                   \
-        }                                                           \
+static void
+do_show_error (const gchar *message, const gchar *submessage, GtkWindow *parent)
+{
+    if (!is_cli)
+    {
+        show_error (message, submessage, parent);
     }
+    else
+    {
+        fprintf (stderr, "%s\n", message);
+        if (submessage)
+        {
+            fprintf (stderr, "%s\n", submessage);
+        }
+    }
+}
 
 #endif /* DISABLE_GUI*/
 
@@ -136,6 +152,7 @@ notify_updates (
 
 #ifdef DISABLE_GUI
     (void) xml_news;
+    (void) show_it;
 #endif
 
     templates_t *t, *tt;
@@ -826,7 +843,6 @@ debug (const char *fmt, ...)
 #ifndef DISABLE_GUI
 extern GtkStatusIcon *icon;
 extern GPtrArray     *open_windows;
-#endif
 
 static GtkIconSet *
 get_paused_iconset (GdkPixbuf *pixbuf)
@@ -904,6 +920,7 @@ get_gray_iconset (GdkPixbuf *pixbuf, GdkPixbuf **pixbuf_gray)
     *pixbuf_gray = pb;
     return iconset;
 }
+#endif
 
 int
 main (int argc, char *argv[])
@@ -918,7 +935,9 @@ main (int argc, char *argv[])
     gchar            conffile[MAX_PATH];
 
     config = new0 (config_t, 1);
+#ifndef DISABLE_GUI
     zero (kalpm_state);
+#endif
 
     /* parse command line */
     gboolean         show_version       = FALSE;
@@ -995,7 +1014,9 @@ main (int argc, char *argv[])
     config->on_dbl_click_paused = DO_TOGGLE_PAUSE;
     config->sane_sort_order = TRUE;
     config->check_pacman_conflict = TRUE;
+#ifndef DISABLE_GUI
     config->cmdline_link = strdup ("xdg-open '$URL'");
+#endif
 
     config->tpl_upgrades = new0 (templates_t, 1);
     config->tpl_upgrades->title = strdup ("$NB updates available (D: $DL; N: $NET)");
@@ -1111,7 +1132,7 @@ main (int argc, char *argv[])
 
     icon = gtk_status_icon_new_from_stock ("kalu-logo-gray");
     gtk_status_icon_set_name (icon, "kalu");
-    gtk_status_icon_set_title (icon, "kalu -- keeping arch linux updated");
+    gtk_status_icon_set_title (icon, "kalu");
     gtk_status_icon_set_tooltip_text (icon, "kalu");
 
     g_signal_connect (G_OBJECT (icon), "query-tooltip",

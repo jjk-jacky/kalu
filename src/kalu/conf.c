@@ -321,7 +321,7 @@ parse_pacman_conf (const char       *file,
             int globret;
             size_t gindex;
 
-            if (depth + 1 >= max_depth)
+            if (depth >= max_depth - 1)
             {
                 set_error ("parsing exceeded max recursion depth of %d",
                         max_depth);

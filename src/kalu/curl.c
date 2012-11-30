@@ -100,7 +100,7 @@ curl_download (const char *url, GError **error)
         {
             free (data.content);
         }
-        g_set_error (error, KALU_ERROR, 1, errmsg);
+        g_set_error (error, KALU_ERROR, 1, "%s", errmsg);
         return NULL;
     }
     curl_easy_cleanup (curl);

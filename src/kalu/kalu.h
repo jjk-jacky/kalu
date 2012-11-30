@@ -157,7 +157,7 @@ typedef struct _config_t {
 
     char            *news_last;
     alpm_list_t     *news_read;
-#ifndef DISABLE_UPDATER
+#ifndef DISABLE_GUI
     char            *cmdline_link;
 #endif
 

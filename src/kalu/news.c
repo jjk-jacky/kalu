@@ -70,6 +70,12 @@ typedef struct _parse_news_data_t {
     alpm_list_t    **lists;
 } parse_news_data_t;
 
+typedef void (*GMP_text_fn) (GMarkupParseContext *context,
+                             const gchar         *text,
+                             gsize                text_len,
+                             gpointer             user_data,
+                             GError             **error);
+
 static void
 create_tags (GtkTextBuffer *buffer);
 
@@ -89,7 +95,6 @@ static GdkCursor *cursor_link = NULL;
 /* nb of windows open */
 static gint nb_windows = 0;
 
-#endif /* DISABLE_GUI */
 
 static void
 xml_parser_updates_text (GMarkupParseContext   *context,
@@ -138,6 +143,8 @@ xml_parser_updates_text (GMarkupParseContext   *context,
     }
 }
 
+#endif /* DISABLE_GUI */
+
 static gboolean
 parse_xml (gchar *xml, gboolean for_updates, gpointer data_out, GError **error)
 {
@@ -148,7 +155,9 @@ parse_xml (gchar *xml, gboolean for_updates, gpointer data_out, GError **error)
     zero (parser);
     if (for_updates)
     {
-        parser.text = xml_parser_updates_text;
+#ifndef DISABLE_GUI
+        parser.text = (GMP_text_fn) xml_parser_updates_text;
+#endif
     }
     else
     {
@@ -158,7 +167,7 @@ parse_xml (gchar *xml, gboolean for_updates, gpointer data_out, GError **error)
         parse_news_data_t   *data;
         GtkTextBuffer       *buffer;
 
-        parser.text = xml_parser_news_text;
+        parser.text = (GMP_text_fn) xml_parser_news_text;
         data = data_out;
         buffer = data->buffer;
 

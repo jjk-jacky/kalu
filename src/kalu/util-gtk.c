@@ -206,11 +206,11 @@ new_notification (const gchar *summary, const gchar *text)
             if (s[1] != 'a' && s[2] != 'm' && s[3] != 'p' && s[4] != ';')
             {
                 /* do we need to (re)alloc some memory? */
-                if (diff + 5 > alloc)
+                if (diff + 5 - alloc > 0)
                 {
                     if (alloc == 0)
                     {
-                        alloc = strlen (text);
+                        alloc = (int) strlen (text);
                     }
                     alloc += 24; /* should be more than enough, as that's 6 '&' */
                     t = renew (gchar, alloc + 1, t);
@@ -222,7 +222,7 @@ new_notification (const gchar *summary, const gchar *text)
                     }
                 }
                 /* position of s in t */
-                int pos = (s - text) + diff;
+                int pos = (int) ((s - text) + diff);
                 /* move the text after the &, making room for amp; */
                 memcpy (t + pos + 4 + 1, s + 1, strlen (s + 1) + 1);
                 t[++pos] = 'a';

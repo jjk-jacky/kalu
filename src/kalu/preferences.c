@@ -168,6 +168,7 @@ upg_action_toggled_cb (GtkToggleButton *button, gpointer data _UNUSED_)
 #endif
 }
 
+#ifndef DISABLE_UPDATER
 static void
 upg_action_changed_cb (GtkComboBox *combo, gpointer data _UNUSED_)
 {
@@ -176,21 +177,18 @@ upg_action_changed_cb (GtkComboBox *combo, gpointer data _UNUSED_)
     {
         gtk_widget_hide (cmdline_label);
         gtk_widget_hide (cmdline_entry);
-#ifndef DISABLE_UPDATER
         gtk_widget_show (cmdline_post_hbox);
         gtk_widget_show (confirm_post);
-#endif
     }
     else if (choice == 1)
     {
         gtk_widget_show (cmdline_label);
         gtk_widget_show (cmdline_entry);
-#ifndef DISABLE_UPDATER
         gtk_widget_hide (cmdline_post_hbox);
         gtk_widget_hide (confirm_post);
-#endif
     }
 }
+#endif
 
 static void
 notif_icon_combo_changed_cb (GtkComboBox *combo, gpointer data _UNUSED_)
@@ -346,8 +344,9 @@ renderer_edited_cb (GtkCellRendererText *renderer, gchar *path,
 }
 
 static gchar *
-timeout_format_value (GtkScale *scale _UNUSED_, gdouble value, gpointer data _UNUSED_)
+timeout_format_value (GtkScale *scale _UNUSED_, gdouble val, gpointer data _UNUSED_)
 {
+    int value = (int) val;
     if (value == 0)
     {
         return g_strdup ("Default");
@@ -358,7 +357,7 @@ timeout_format_value (GtkScale *scale _UNUSED_, gdouble value, gpointer data _UN
     }
     else
     {
-        return g_strdup_printf ("%d seconds", 3 + (int) value);
+        return g_strdup_printf ("%d seconds", 3 + value);
     }
 }
 

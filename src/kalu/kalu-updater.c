@@ -182,7 +182,7 @@ enum
 
 static guint signals[NB_SIGNALS] = { 0 };
 
-G_DEFINE_TYPE (KaluUpdater, kalu_updater, G_TYPE_DBUS_PROXY);
+G_DEFINE_TYPE (KaluUpdater, kalu_updater, G_TYPE_DBUS_PROXY)
 
 void
 kalu_updater_new (
