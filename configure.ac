@@ -124,6 +124,9 @@ AC_FUNC_REALLOC
 AC_CHECK_FUNCS([floor memmove memset mkdir pow rmdir strchr strdup strerror strrchr strstr uname utime])
 
 # Defines some constants
+AC_DEFINE_UNQUOTED([KALU_LOGO],
+                   ["$(eval echo $(eval echo ${datadir}))/pixmaps/kalu.png"],
+                   [Path/to/kalu.png])
 AC_DEFINE_UNQUOTED([NEWS_RSS_URL], ["$NEWS_RSS_URL"],
         [News RSS URL])
 AC_DEFINE_UNQUOTED([AUR_URL_PREFIX], ["$AUR_URL_PREFIX"],

@@ -42,7 +42,6 @@
 #include "kalu-alpm.h"
 #include "conf.h"
 #include "util.h"
-#include "arch_linux.h"
 #include "aur.h"
 #include "news.h"
 
@@ -84,6 +83,8 @@ do_show_error (
 
 kalpm_state_t kalpm_state;
 static gboolean is_cli = FALSE;
+extern const void *_binary_kalu_logo_start;
+extern const void *_binary_kalu_logo_size;
 
 static inline void
 do_notify_error (const gchar *summary, const gchar *text)
@@ -927,6 +928,7 @@ main (int argc, char *argv[])
 {
     GError          *error = NULL;
 #ifndef DISABLE_GUI
+    GInputStream    *stream;
     GtkIconFactory  *factory;
     GtkIconSet      *iconset;
     GdkPixbuf       *pixbuf;
@@ -1112,7 +1114,17 @@ main (int argc, char *argv[])
      * widgets) automatically */
     factory = gtk_icon_factory_new ();
     /* kalu-logo */
-    pixbuf = gdk_pixbuf_new_from_inline (-1, arch, FALSE, NULL);
+    pixbuf = gdk_pixbuf_new_from_file (KALU_LOGO, NULL);
+    if (!pixbuf)
+    {
+        /* fallback to inline logo */
+        stream = g_memory_input_stream_new_from_data (
+                &_binary_kalu_logo_start,
+                (gssize) &_binary_kalu_logo_size,
+                NULL);
+        pixbuf = gdk_pixbuf_new_from_stream (stream, NULL, NULL);
+        g_object_unref (G_OBJECT (stream));
+    }
     iconset = gtk_icon_set_new_from_pixbuf (pixbuf);
     gtk_icon_factory_add (factory, "kalu-logo", iconset);
     /* add paused version */

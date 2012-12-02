@@ -16,6 +16,8 @@ config.status
 configure
 /kalu
 /kalu-dbus
+kalu.png
+kalu-logo
 libtool
 doc/kalu.1
 doc/index.html
@@ -25,6 +27,5 @@ m4/ltoptions.m4
 m4/ltsugar.m4
 m4/ltversion.m4
 m4/lt~obsolete.m4
-misc/kalu.png
 misc/org.jjk.kalu.service
 stamp-h1

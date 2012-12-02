@@ -4,7 +4,8 @@ DISTCLEANFILES = \
 	doc/index.html
 
 CLEANFILES = \
-	misc/kalu.png \
+	kalu.png \
+	kalu-logo \
 	misc/org.jjk.kalu.service
 
 ACLOCAL_AMFLAGS = -I m4
@@ -37,7 +38,6 @@ kalu_CFLAGS = ${AM_CFLAGS}
 kalu_LDADD = libshared.la -lalpm -lm @LIBCURL@
 kalu_SOURCES = \
 	src/kalu/main.c \
-	src/kalu/arch_linux.h \
 	src/kalu/kalu.h \
 	src/kalu/conf.h \
 	src/kalu/conf.c \
@@ -56,7 +56,10 @@ kalu_SOURCES = \
 
 if ! DISABLE_GUI
 kalu_CFLAGS += @GTK_CFLAGS@ @NOTIFY_CFLAGS@
-kalu_LDADD += @GTK_LIBS@ @NOTIFY_LIBS@
+kalu_LDADD += \
+	@GTK_LIBS@ \
+	@NOTIFY_LIBS@ \
+	kalu-logo.o
 kalu_SOURCES += \
 	src/kalu/gui.h \
 	src/kalu/gui.c \
@@ -95,7 +98,7 @@ endif
 
 if ! DISABLE_GUI
 logodir = $(datadir)/pixmaps
-logo_DATA = misc/kalu.png
+logo_DATA = kalu.png
 
 desktopdir = /usr/share/applications
 dist_desktop_DATA = misc/kalu.desktop
@@ -123,6 +126,12 @@ EXTRA_DIST = \
 src/kalu-dbus/updater-dbus.h: src/kalu-dbus/updater-dbus.xml
 	$(AM_V_GEN)cd src/kalu-dbus && ./gen-interface > updater-dbus.h
 
+kalu-logo.o: kalu-logo
+	$(AM_V_GEN)$(LD) -r -b binary -o kalu-logo.o kalu-logo
+
+kalu-logo: kalu.png
+	$(AM_V_at)$(LN_S) kalu.png kalu-logo
+
 doc/kalu.1: doc/kalu.pod
 	$(AM_V_GEN)pod2man --center='Keeping Arch Linux Up-to-date' --section=1 \
 		--release=$(_VERSION) doc/kalu.pod doc/kalu.1
@@ -134,8 +143,8 @@ misc/org.jjk.kalu.service: misc/org.jjk.kalu.service.tpl
 	$(AM_V_GEN)cd misc && sed 's|@BINDIR@|$(bindir)|' org.jjk.kalu.service.tpl \
 		> org.jjk.kalu.service
 
-misc/kalu.png: misc/arch_linux_48x48_icon_by_painlessrob.png
-	$(AM_V_GEN)$(LN_S) arch_linux_48x48_icon_by_painlessrob.png misc/kalu.png
+kalu.png: misc/arch_linux_48x48_icon_by_painlessrob.png
+	$(AM_V_GEN)$(LN_S) misc/arch_linux_48x48_icon_by_painlessrob.png kalu.png
 
 install-data-hook:
 	mkdir "$(DESTDIR)$(docdir)/html"
