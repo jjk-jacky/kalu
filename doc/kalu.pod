@@ -115,20 +115,51 @@ using B<xdg-open(1)> to be opened them in your default browser.
 
 =back
 
-=head1 DATA LOCATION
+=head1 DATA LOCATION & FORMAT
 
-Every setting/data kalu stores will be done in folder F<~/.config/kalu/> which
-can contain the following files :
+Every setting/data kalu stores will be done in folder F<~/.config/kalu/>, all
+files following a simple format of B<Key = Value>
+
+The following files are used :
 
 =over
 
 =item - I<kalu.conf> : your preferences
 
+This files uses B<[sections]>, as common in conf/INI files. The main section
+[options] defines the preferences, other sections define the different
+templates : [template-upgrades], [template-watched], [template-aur],
+[template-watched-aur] and [template-news]
+
+Each of those support the same keys: I<Title>, I<Package> and I<Sep>
+
 =item - I<watched.conf> : the list of watched packages
 
 =item - I<watched-aur.conf> : the list of watched AUR packages
 
+A simple list of watched (AUR) packages, where keys are the packages names,
+and values the version numbers.
+
 =item - I<news.conf> : information about which news you have already read
+
+The news has a key I<Last> containing the title of the last read news. Every
+news from this one on is considered read. When there are a mix of read & unread
+news before, the key I<Read> can be specified as many times as needed to
+indicate read news (using the news title as value as well).
+
+For example:
+
+=over
+
+=item Last=News 5
+
+=item Read=News 1
+
+=item Read=News 3
+
+=back
+
+Will have "News 2" and "News 4" unread.
 
 =back
 
@@ -160,7 +191,7 @@ the body of the notification (i.e. in the fields B<Package/News item> and
 B<Separator> but not in B<Title>), such as <b> ... </b> for bold, <i> ... </i> for
 italic or <u> ... </u> for underline.
 
-Note that though support is recommanded, whether or not those will actually be
+Note that though support is recommended, whether or not those will actually be
 applied on the notifications depends on your notification daemon.
 
 Preferences are presented under the following tabs :
@@ -171,11 +202,15 @@ Preferences are presented under the following tabs :
 
 =item I<Configuration file (pacman.conf)>
 
+=item PacmanConf = path/to/file
+
 This is the configuration file used to initialize the Arch Linux Package
 Management (ALPM) library (whose most famous front end is no other than
 pacman).
 
 =item I<Icon used on notifications>
+
+=item NotificationIcon = KALU|NONE|/path/to/file
 
 Specify the icon to be used on notifications. Can be none, kalu's icon (small)
 or selecting a file to load it from.
@@ -189,6 +224,8 @@ If loading the icon fails, kalu will silently fall back to using it own icon
 
 =item I<Notifications expire after (seconds)>
 
+=item Timeout = I<SECONDS>
+
 The delay after which the notification should expire/be automatically
 closed by the daemon. The left-most value will use the default (from
 the daemon), while the right-most value will set notifications to never
@@ -197,10 +234,14 @@ or for notifications with an action button until kalu is closed.
 
 =item I<Check for upgrades every (minutes)>
 
+=item Interval = I<MINUTES>
+
 How often must kalu run its automatic check. Select from the list, or
 type in what you want.
 
 =item I<Do not check between .. and ..>
+
+=item SkipPeriod = I<HH:MM-HH:MM>
 
 This is e.g. in case you keep your computer on 24/7, yet go to sleep at
 some point. It would then make sense that you not want kalu to do its
@@ -214,10 +255,14 @@ checks during the paused period.
 
 =item I<During an automatic check, check for ..>
 
+=item AutoChecks = [NEWS] [UPGRADES] [WATCHED] [AUR] [WATCHED_AUR]
+
 Select one or more checks that will be performed during every automatic
 check, i.e. run on start or at the interval specified above.
 
 =item I<During a manual check, check for ..>
+
+=item ManualChecks = [NEWS] [UPGRADES] [WATCHED] [AUR] [WATCHED_AUR]
 
 Select one or more checks that will be performed when you start a manual
 check, i.e. using menu "Check for Upgrades"
@@ -229,6 +274,8 @@ check, i.e. using menu "Check for Upgrades"
 =over
 
 =item I<Command line to open links>
+
+=item CmdLineLink = I<cmdline>
 
 The command line to be executed when a link (on news) is clicked. Use variable
 B<$URL> as placeholder for the full URL to be opened.
@@ -271,6 +318,8 @@ No variables available.
 
 =item I<Check for pacman/kalu conflict>
 
+=item CheckPacmanConflict = 0|1
+
 When showing the notification, kalu will check if there's an upgrade of pacman
 likely to prevent the system upgrade due to kalu's dependency to the current
 version of pacman (i.e. due to API changes in libalpm).
@@ -280,20 +329,28 @@ about the reason for such a conflict, and how to perform the system upgrade.
 
 =item I<Show a button "Upgrade system" on notifications (and on kalu's menu)>
 
+=item UpgradeAction = KALU|CMDLINE|NONE
+
 Whether or not notifications should feature a button "Upgrade system" and
 kalu's menu (right-click on its systray icon) feature an item "System upgrade"
 
 =item I<When clicking the button>
+
+=item (see UpgradeAction above)
 
 Clicking the button can either start kalu's own updater (see L<B<PREFERENCES>|/PREFERENCES>
 below), or simply run the program of your choice.
 
 =item I<Command-line>
 
+=item CmdLine = I<cmdline>
+
 The command line to start when pressing the button "Upgrade system" from the
 notification.
 
 =item I<After completing a system upgrade, ask whether to start the following>
+
+=item PostSysUpgrade = I<cmdline>
 
 When using kalu's updater, you can define one or more processes to be ran after
 a system upgrade was completed. Specify their command-line in the list, and
@@ -304,6 +361,8 @@ list of all packages involved in the sysupgrade (i.e. packages upgraded, as well
 as those added or removed, for instance when a package is replaced by another one).
 
 =item I<Ask confirmation before starting anything>
+
+=item ConfirmPostSysUpgrade = 0|1
 
 If enabled, a confirmation will be asked before any process is started after the
 sysupgrade. In case you specify more than one, the full list will be featured
@@ -424,6 +483,8 @@ be featured.
 
 =item I<When clicking the button, run the following>
 
+=item CmdLineAur = I<cmdline>
+
 The command line to start when pressing the button "Update AUR packages" from the
 notification.
 
@@ -431,6 +492,8 @@ You can use B<$PACKAGES> in the command line, which will be replaced by the
 list of all packages for which an upgrade is available in the AUR.
 
 =item I<Do not check the AUR for the following packages>
+
+=item AurIgnore = I<PACKAGE>...
 
 By default kalu determines the list of all foreign packages (i.e. not found
 in any repo, or what you'd have from running `pacman -Qm`) and check to see
@@ -524,6 +587,8 @@ No variables available.
 
 =item I<Use sane indicator>
 
+=item SaneSortOrder = 0|1
+
 Because in the Linux world, when a list is ordered descendingly, the arrow points...
 up!? This option restores sanity and have it point down.
 
@@ -531,11 +596,21 @@ This is used when sorting packages in kalu's updater.
 
 =item I<Show if databases can be synchronized in tooltip>
 
+=item SyncDbsInTooltip = 0|1
+
 An indication of how many databases can by synchronized (i.e. are not up-to-date)
 will be featured on the tooltip, regardless of whether upgrades are available or
 not.
 
 =item I<When (double) clicking the systray icon>
+
+=item OnSglClick = I<ACTION>
+
+=item OnDblClick = I<ACTION>
+
+=item OnSglClickPaused = I<ACTION>
+
+=item OnDblClickPaused = I<ACTION>
 
 Defines the action to be done when you single/double click on kalu's systray
 icon.
@@ -545,19 +620,19 @@ different set of actions when it is paused.
 
 =over
 
-=item B<* Same as when active/not paused>
+=item B<* Same as when active/not paused> ( SAME_AS_ACTIVE )
 
 [Only when kalu is paused] Do the same as when kalu is active (defined above).
 
-=item B<* Do nothing>
+=item B<* Do nothing> ( NOTHING )
 
 Does exactly that
 
-=item B<* Check for Upgrades>
+=item B<* Check for Upgrades> ( CHECK )
 
 Start a manual check
 
-=item B<* System Upgrade>
+=item B<* System Upgrade> ( SYSUPGRADE )
 
 Start a system upgrade. This will do the same as using menu "System Upgrade" or
 the button "Upgrade system" on notification; i.e. the specified action done
@@ -566,18 +641,18 @@ depends on your settings under B<Upgrades>
 Note that if no button "Upgrade system" is shown on notification, this option
 will have the same effect as B<Do nothing>
 
-=item B<* Hide/show opened windows (except kalu's updater)>
+=item B<* Hide/show opened windows (except kalu's updater)> ( TOGGLE_WINDOWS )
 
 Will hide all opened windows (except for kalu's updater). If at least one
 window is hidden, an indication will be featured on the tooltip (" +" next to
 "kalu") and triggering the action again will then show all hidden windows.
 
-=item B<* Re-show last notifications...>
+=item B<* Re-show last notifications...> ( LAST_NOTIFS )
 
 Will re-show all notifications resulting from the last time checks were ran
 (automatic or manual).
 
-=item B<* Toggle pause/resume automatic checks>
+=item B<* Toggle pause/resume automatic checks> ( TOGGLE_PAUSE )
 
 Will toggle kalu's paused state, pausing or resuming automatic checks.
 
@@ -596,7 +671,7 @@ The following tweaks are supported, and can be used in I<kalu.conf> (under the
 
 =over
 
-=item B<UseIP = [4|6]>
+=item B<UseIP = 4|6>
 
 This will force kalu to use IPv4 or IPv6. This only applies for connections done
 via kalu, i.e. news & AUR, but doesn't apply to ALPM.
