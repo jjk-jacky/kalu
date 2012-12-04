@@ -71,7 +71,7 @@ curl_download (const char *url, GError **error)
     curl = curl_easy_init();
     if (!curl)
     {
-        g_set_error (error, KALU_ERROR, 1, "Unable to init cURL\n");
+        g_set_error (error, KALU_ERROR, 1, _("Unable to init cURL\n"));
         return NULL;
     }
 

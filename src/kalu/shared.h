@@ -27,6 +27,47 @@
 #include <stdlib.h>
 #include <string.h>
 
+#ifdef ENABLE_NLS
+#include <libintl.h>
+#define gettext_noop(s)         s
+#define N_(s)                   gettext_noop (s)
+#define _(s)                    gettext (s)
+#define _c(c, s)                pgettext (c, s)
+#define _n(s1, s2, n)           ngettext (s1, s2, n)
+
+/* The separator between msgctxt and msgid in a .mo file.  */
+#define GETTEXT_CONTEXT_GLUE    "\004"
+
+#define pgettext(c, s) \
+    pgettext_aux (NULL, c GETTEXT_CONTEXT_GLUE s, s, LC_MESSAGES)
+
+#ifdef __GNUC__
+__inline
+#endif
+static const char *
+pgettext_aux (const char *domain,
+              const char *msg_ctxt_id,
+              const char *msgid,
+              int category)
+{
+    const char *translation = dcgettext (domain, msg_ctxt_id, category);
+    if (translation == msg_ctxt_id)
+    {
+        return msgid;
+    }
+    else
+    {
+        return translation;
+    }
+}
+
+#else /* ENABLE_NLS */
+#define N_(s)                   s
+#define _(s)                    s
+#define _c(c, s)                s
+#define _n(s1, s2, n)           ((n == 1) ? s1 : s2)
+#endif /* ENABLE_NLS */
+
 #define _UNUSED_                __attribute__ ((unused))
 
 #define streq(s1, s2)           (strcmp (s1, s2) == 0)

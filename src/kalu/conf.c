@@ -108,16 +108,18 @@ process_siglevel (alpm_list_t *values, alpm_siglevel_t *storage,
         const char *original = i->data, *value;
         int package = 0, database = 0;
 
-        if (strncmp (original, "Package", strlen ("Package")) == 0)
+        /* 7 == strlen ("Package") */
+        if (strncmp (original, "Package", 7) == 0)
         {
             /* only packages are affected, don't flip flags for databases */
-            value = original + strlen("Package");
+            value = original + 7;
             package = 1;
         }
-        else if (strncmp (original, "Database", strlen ("Database")) == 0)
+        /* 8 == strlen ("Database") */
+        else if (strncmp (original, "Database", 8) == 0)
         {
             /* only databases are affected, don't flip flags for packages */
-            value = original + strlen("Database");
+            value = original + 8;
             database = 1;
         }
         else
@@ -193,8 +195,11 @@ process_siglevel (alpm_list_t *values, alpm_siglevel_t *storage,
         }
         else
         {
-            g_set_error (error, KALU_ERROR, 1, "Config file %s, line %d: "
-                    "invalid value for SigLevel: %s", file, linenum, original);
+            g_set_error (error, KALU_ERROR, 1,
+                    _("Config file %s, line %d: invalid value for SigLevel: %s"),
+                    file,
+                    linenum,
+                    original);
             ret = 1;
             break;
         }
@@ -209,7 +214,7 @@ process_siglevel (alpm_list_t *values, alpm_siglevel_t *storage,
 }
 
 #define set_error(fmt, ...)  g_set_error (error, KALU_ERROR, 1, \
-    "Config file %s, line %d: " fmt, file, linenum, __VA_ARGS__);
+    _("Config file %s, line %d: " fmt), file, linenum, __VA_ARGS__);
 /** inspired from pacman's function */
 gboolean
 parse_pacman_conf (const char       *file,
@@ -241,7 +246,8 @@ parse_pacman_conf (const char       *file,
     fp = fopen (file, "r");
     if (fp == NULL)
     {
-        g_set_error (error, KALU_ERROR, 1, "Config file %s could not be read",
+        g_set_error (error, KALU_ERROR, 1,
+                _("Config file %s could not be read"),
                 file);
         success = FALSE;
         goto cleanup;
@@ -271,7 +277,7 @@ parse_pacman_conf (const char       *file,
             /* only possibility here is a line == '[]' */
             if (line_len <= 2)
             {
-                set_error ("%s", "bad section name");
+                set_error ("%s", _("bad section name"));
                 success = FALSE;
                 goto cleanup;
             }
@@ -303,14 +309,14 @@ parse_pacman_conf (const char       *file,
 
         if (key == NULL)
         {
-            set_error ("%s", "syntax error: missing key.");
+            set_error ("%s", _("syntax error: missing key."));
             success = FALSE;
             goto cleanup;
         }
         /* For each directive, compare to the camelcase string. */
         if (name == NULL)
         {
-            set_error ("%s", "All directives must belong to a section.");
+            set_error ("%s", _("All directives must belong to a section."));
             success = FALSE;
             goto cleanup;
         }
@@ -498,7 +504,8 @@ parse_pacman_conf (const char       *file,
                     success = FALSE;
                     goto cleanup;
                 }
-                cur_db->servers = alpm_list_add (cur_db->servers, strdup (value));
+                cur_db->servers = alpm_list_add (cur_db->servers,
+                        strdup (value));
             }
             else if (strcmp (key, "SigLevel") == 0)
             {
@@ -512,7 +519,8 @@ parse_pacman_conf (const char       *file,
             }
             else
             {
-                set_error ("directive %s in section %s not recognized.", key, name);
+                set_error ("directive %s in section %s not recognized.",
+                        key, name);
                 success = FALSE;
                 goto cleanup;
             }
@@ -680,7 +688,7 @@ setstringoption (char *value, const char *option, char **cfg)
         err_msg = g_string_sized_new (1024);        \
     }                                               \
     g_string_append_printf (err_msg,                \
-            "Config file %s, line %d: " fmt "\n",   \
+            _("Config file %s, line %d: " fmt "\n"),\
             file, linenum, __VA_ARGS__);            \
 } while (0)
 /** inspired from pacman's function */
@@ -708,7 +716,7 @@ parse_config_file (const char       *file,
         {
             success = FALSE;
             g_set_error (error, KALU_ERROR, 1,
-                    "Config file %s could not be read: %s",
+                    _("Config file %s could not be read: %s"),
                     file,
                     local_err->message);
         }
@@ -743,7 +751,7 @@ parse_config_file (const char       *file,
             /* only possibility here is a line == '[]' */
             if (line_len <= 2)
             {
-                add_error ("%s", "bad section name");
+                add_error ("%s", _("bad section name"));
                 free (section);
                 section = NULL;
                 continue;
@@ -767,7 +775,7 @@ parse_config_file (const char       *file,
 
         if (key == NULL)
         {
-            add_error ("%s", "syntax error: missing key");
+            add_error ("%s", _("syntax error: missing key"));
             continue;
         }
 
@@ -836,7 +844,8 @@ parse_config_file (const char       *file,
                                 || end_hour < 0 || end_hour > 23
                                 || end_minute < 0 || end_minute > 59)
                         {
-                            add_error ("invalid value for SkipPeriod: %s", value);
+                            add_error ("invalid value for SkipPeriod: %s",
+                                    value);
                             continue;
                         }
                         config->has_skip = TRUE;
@@ -896,7 +905,8 @@ parse_config_file (const char       *file,
                     }
                     else
                     {
-                        add_error ("Invalid value for UpgradeAction: %s", value);
+                        add_error ("Invalid value for UpgradeAction: %s",
+                                value);
                         continue;
                     }
                     debug ("config: action: %d", config->action);

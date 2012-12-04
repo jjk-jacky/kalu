@@ -349,15 +349,19 @@ timeout_format_value (GtkScale *scale _UNUSED_, gdouble val, gpointer data _UNUS
     int value = (int) val;
     if (value == 0)
     {
-        return g_strdup ("Default");
+        return g_strdup (_c("expiration-delay", "Default"));
     }
     else if (value == 40)
     {
-        return g_strdup ("Never");
+        return g_strdup (_c("expiration-delay", "Never"));
     }
     else
     {
-        return g_strdup_printf ("%d seconds", 3 + value);
+        /* TRANSLATORS: context "expiration-delay" Also note this can only be
+         * from 4 to 42 */
+        return g_strdup_printf (_n("%d seconds", "%d seconds",
+                    (long unsigned int) (3 + value)),
+                3 + value);
     }
 }
 
@@ -589,24 +593,24 @@ add_template (GtkWidget    *grid,
     /* notification template */
     label = gtk_label_new (NULL);
     gtk_widget_set_size_request (label, 420, -1);
-    gtk_label_set_markup (GTK_LABEL (label), "<b>Notification template</b>");
+    gtk_label_set_markup (GTK_LABEL (label), _("<b>Notification template</b>"));
     gtk_widget_set_margin_top (label, 15);
     gtk_grid_attach (GTK_GRID (grid), label, 0, top, 4, 1);
     gtk_widget_show (label);
 
     /* Title */
     ++top;
-    add_label ("Title :", title);
+    add_label (_("Title :"), title);
 
     *title_entry = gtk_entry_new ();
     /* set tooltip */
     tooltip = g_strconcat (
-            "The following variables are available :"
-            "\n- <b>$NB</b> : number of packages/news items",
+            _(  "The following variables are available :"
+                "\n- <b>$NB</b> : number of packages/news items"),
             (type & (CHECK_UPGRADES | CHECK_WATCHED))
-            ? "\n- <b>$DL</b> : total download size"
-              "\n- <b>$INS</b> : total installed size"
-              "\n- <b>$NET</b> : total net (post-install difference) size"
+            ? _("\n- <b>$DL</b> : total download size"
+                "\n- <b>$INS</b> : total installed size"
+                "\n- <b>$NET</b> : total net (post-install difference) size")
             : NULL,
             NULL);
     gtk_widget_set_tooltip_markup (*title_entry, tooltip);
@@ -621,21 +625,22 @@ add_template (GtkWidget    *grid,
 
     /* Package */
     ++top;
-    add_label ((type & CHECK_NEWS) ? "News item :" : "Package :", package);
+    add_label ((type & CHECK_NEWS) ? _("News item :") : _("Package :"),
+            package);
 
     *package_entry = gtk_entry_new ();
     /* set tooltip */
     tooltip = g_strconcat (
-            "The following variables are available :",
+            _("The following variables are available :"),
             (type & CHECK_NEWS)
-            ? "\n- <b>$NEWS</b> : the news title"
-            : "\n- <b>$PKG</b> : package name"
-              "\n- <b>$OLD</b> : old/current version number"
-              "\n- <b>$NEW</b> : new version number",
+            ? _("\n- <b>$NEWS</b> : the news title")
+            : _("\n- <b>$PKG</b> : package name"
+                "\n- <b>$OLD</b> : old/current version number"
+                "\n- <b>$NEW</b> : new version number"),
             (type & (CHECK_UPGRADES | CHECK_WATCHED))
-            ? "\n- <b>$DL</b> : download size"
-              "\n- <b>$INS</b> : installed size"
-              "\n- <b>$NET</b> : net (post-install difference) size"
+            ? _("\n- <b>$DL</b> : download size"
+                "\n- <b>$INS</b> : installed size"
+                "\n- <b>$NET</b> : net (post-install difference) size")
             : NULL,
             NULL);
     gtk_widget_set_tooltip_markup (*package_entry, tooltip);
@@ -651,11 +656,11 @@ add_template (GtkWidget    *grid,
 
     /* Separator */
     ++top;
-    add_label ("Separator :", sep);
+    add_label (_("Separator :"), sep);
 
     *sep_entry = gtk_entry_new ();
     /* set tooltip */
-    gtk_widget_set_tooltip_text (*sep_entry, "No variables available.");
+    gtk_widget_set_tooltip_text (*sep_entry, _("No variables available."));
     /* set value if any, else unsensitive */
     set_entry (*sep_entry, sep);
     /* if it's a check-button, connect to toggled (now that we have the related
@@ -694,7 +699,7 @@ btn_manage_watched_cb (GtkButton *button _UNUSED_, gboolean is_aur)
 } while (0)
 #define error_on_page(page, errmsg)    do {                             \
     gtk_notebook_set_current_page (GTK_NOTEBOOK (notebook), page);      \
-    show_error ("Unable to apply/save preferences", errmsg,             \
+    show_error (_("Unable to apply/save preferences"), errmsg,          \
             GTK_WINDOW (window));                                       \
     goto clean_on_error;                                                \
 } while (0)
@@ -704,7 +709,7 @@ btn_manage_watched_cb (GtkButton *button _UNUSED_, gboolean is_aur)
         s = (char *) gtk_entry_get_text (GTK_ENTRY (entry));                \
         if (*s == '\0')                                                     \
         {                                                                   \
-            error_on_page (page, "Template missing field " field ".");      \
+            error_on_page (page, _("Template missing field " field "."));   \
         }                                                                   \
         if (!has_tpl)                                                       \
         {                                                                   \
@@ -821,7 +826,7 @@ btn_save_cb (GtkButton *button _UNUSED_, gpointer data _UNUSED_)
     if (NULL == s)
     {
         error_on_page (0,
-                "You need to select the configuration file to use for libalpm (pacman.conf)");
+                _("You need to select the configuration file to use for libalpm (pacman.conf)"));
     }
     add_to_conf ("PacmanConf = %s\n", s);
     new_config.pacmanconf = strdup (s);
@@ -843,7 +848,7 @@ btn_save_cb (GtkButton *button _UNUSED_, gpointer data _UNUSED_)
         if (NULL == s)
         {
             error_on_page (0,
-                    "You need to select the file to use as icon on notifications");
+                    _("You need to select the file to use as icon on notifications"));
         }
         add_to_conf ("NotificationIcon = %s\n", s);
         new_config.notif_icon = ICON_USER;
@@ -854,13 +859,13 @@ btn_save_cb (GtkButton *button _UNUSED_, gpointer data _UNUSED_)
     if (*s == '\0')
     {
         g_free (s);
-        error_on_page (0, "You need to specify an interval.");
+        error_on_page (0, _("You need to specify an interval."));
     }
     nb = atoi (s);
     if (nb <= 0)
     {
         g_free (s);
-        error_on_page (0, "Invalid value for the auto-check interval.");
+        error_on_page (0, _("Invalid value for the auto-check interval."));
         return;
     }
     add_to_conf ("Interval = %s\n", s);
@@ -902,7 +907,7 @@ btn_save_cb (GtkButton *button _UNUSED_, gpointer data _UNUSED_)
                 || end_hour < 0 || end_hour > 23
                 || end_minute < 0 || end_minute > 59)
         {
-            error_on_page (0, "Invalid value for the auto-check interval.");
+            error_on_page (0, _("Invalid value for the auto-check interval."));
         }
 
         add_to_conf ("SkipPeriod = %02d:%02d-%02d:%02d\n",
@@ -941,7 +946,7 @@ btn_save_cb (GtkButton *button _UNUSED_, gpointer data _UNUSED_)
     }
     if (type == 0)
     {
-        error_on_page (0, "Nothing selected for automatic checks.");
+        error_on_page (0, _("Nothing selected for automatic checks."));
     }
     add_to_conf ("AutoChecks =%s%s%s%s%s\n",
             (type & CHECK_NEWS)        ? " NEWS"        : "",
@@ -975,7 +980,7 @@ btn_save_cb (GtkButton *button _UNUSED_, gpointer data _UNUSED_)
     }
     if (type == 0)
     {
-        error_on_page (0, "Nothing selected for manual checks.");
+        error_on_page (0, _("Nothing selected for manual checks."));
     }
     add_to_conf ("ManualChecks =%s%s%s%s%s\n",
             (type & CHECK_NEWS)        ? " NEWS"        : "",
@@ -991,12 +996,12 @@ btn_save_cb (GtkButton *button _UNUSED_, gpointer data _UNUSED_)
     if (s == NULL || *s == '\0')
     {
         error_on_page (1,
-                "You need to specify the command-line to open links.");
+                _("You need to specify the command-line to open links."));
     }
     else if (!strstr (s, "$URL"))
     {
         error_on_page (1,
-                "You need to use $URL on the command line to open links.");
+                _("You need to use $URL on the command line to open links."));
     }
     add_to_conf ("CmdLineLink = %s\n", s);
     new_config.cmdline_link = strdup (s);
@@ -1023,7 +1028,7 @@ btn_save_cb (GtkButton *button _UNUSED_, gpointer data _UNUSED_)
             new_config.action = UPGRADE_ACTION_CMDLINE;
             if (s == NULL || *s == '\0')
             {
-                error_on_page (2, "You need to specify the command-line.");
+                error_on_page (2, _("You need to specify the command-line."));
             }
 #ifndef DISABLE_UPDATER
         }
@@ -1068,7 +1073,7 @@ btn_save_cb (GtkButton *button _UNUSED_, gpointer data _UNUSED_)
         s = (char *) gtk_entry_get_text (GTK_ENTRY (aur_cmdline_entry));
         if (s == NULL || *s == '\0')
         {
-            error_on_page (4, "You need to specify the command-line.");
+            error_on_page (4, _("You need to specify the command-line."));
         }
         add_to_conf ("CmdLineAur = %s\n", s);
         new_config.cmdline_aur = strdup (s);
@@ -1236,16 +1241,16 @@ btn_save_cb (GtkButton *button _UNUSED_, gpointer data _UNUSED_)
     {
         s = strrchr (conffile, '/');
         *s = '\0';
-        s = g_strdup_printf ("%s cannot be created or is not a folder",
+        s = g_strdup_printf (_("%s cannot be created or is not a folder"),
                 conffile);
-        show_error ("Unable to write configuration file", s,
+        show_error (_("Unable to write configuration file"), s,
                 GTK_WINDOW (window));
         g_free (s);
         goto clean_on_error;
     }
     if (!g_file_set_contents (conffile, conf, -1, &error))
     {
-        show_error ("Unable to write configuration file", error->message,
+        show_error (_("Unable to write configuration file"), error->message,
                 GTK_WINDOW (window));
         g_clear_error (&error);
         goto clean_on_error;
@@ -1429,8 +1434,8 @@ add_on_click_actions (
 
     ++*top;
     label = gtk_label_new ((is_sgl_click)
-            ? "When clicking the systray icon :"
-            : "When double clicking the systray icon :");
+            ? _("When clicking the systray icon :")
+            : _("When double clicking the systray icon :"));
     gtk_grid_attach (GTK_GRID (grid), label, 0, *top, 1, 1);
     gtk_widget_show (label);
 
@@ -1442,25 +1447,25 @@ add_on_click_actions (
     if (is_paused)
     {
         gtk_combo_box_text_append (GTK_COMBO_BOX_TEXT (*combo), "SAME_AS_ACTIVE",
-                "Same as when active/not paused");
+                _("Same as when active/not paused"));
     }
     gtk_combo_box_text_append (GTK_COMBO_BOX_TEXT (*combo), "NOTHING",
-            "Do nothing");
+            _("Do nothing"));
     gtk_combo_box_text_append (GTK_COMBO_BOX_TEXT (*combo), "CHECK",
-            "Check for Upgrades...");
+            _("Check for Upgrades..."));
     gtk_combo_box_text_append (GTK_COMBO_BOX_TEXT (*combo), "SYSUPGRADE",
-            "System upgrade...");
+            _("System upgrade..."));
     gtk_combo_box_text_append (GTK_COMBO_BOX_TEXT (*combo), "TOGGLE_WINDOWS",
 #ifndef DISABLE_UPDATER
-            "Hide/show opened windows (except kalu's updater)"
+            _("Hide/show opened windows (except kalu's updater)")
 #else
-            "Hide/show opened windows"
+            _("Hide/show opened windows")
 #endif
             );
     gtk_combo_box_text_append (GTK_COMBO_BOX_TEXT (*combo), "LAST_NOTIFS",
-            "Re-show last notifications...");
+            _("Re-show last notifications..."));
     gtk_combo_box_text_append (GTK_COMBO_BOX_TEXT (*combo), "TOGGLE_PAUSE",
-            "Toggle pause/resume automatic checks");
+            _("Toggle pause/resume automatic checks"));
     gtk_grid_attach (GTK_GRID (grid), *combo, 1, *top, 1, 1);
     gtk_widget_show (*combo);
 
@@ -1509,7 +1514,7 @@ show_prefs (void)
 
     /* the window */
     window = gtk_window_new (GTK_WINDOW_TOPLEVEL);
-    gtk_window_set_title (GTK_WINDOW (window), "Preferences - kalu");
+    gtk_window_set_title (GTK_WINDOW (window), _("Preferences - kalu"));
     gtk_container_set_border_width (GTK_CONTAINER (window), 2);
     gtk_window_set_resizable (GTK_WINDOW (window), FALSE);
     /* add to list of open windows */
@@ -1546,14 +1551,14 @@ show_prefs (void)
     /* [ General ] */
     top = 0;
     grid = gtk_grid_new ();
-    lbl_page = gtk_label_new ("General");
+    lbl_page = gtk_label_new (_c("prefs-tab", "General"));
 
     /* PacmanConf */
-    label = gtk_label_new ("Configuration file (pacman.conf) to use:");
+    label = gtk_label_new (_("Configuration file (pacman.conf) to use:"));
     gtk_grid_attach (GTK_GRID (grid), label, 0, top, 1, 1);
     gtk_widget_show (label);
 
-    filechooser = gtk_file_chooser_button_new ("Select your pacman.conf",
+    filechooser = gtk_file_chooser_button_new (_("Select your pacman.conf"),
             GTK_FILE_CHOOSER_ACTION_OPEN);
     gtk_grid_attach (GTK_GRID (grid), filechooser, 1, top, 1, 1);
     gtk_file_chooser_set_filename (GTK_FILE_CHOOSER (filechooser),
@@ -1562,17 +1567,17 @@ show_prefs (void)
 
     ++top;
     /* NotificationIcon */
-    label = gtk_label_new ("Icon used on notifications :");
+    label = gtk_label_new (_("Icon used on notifications :"));
     gtk_grid_attach (GTK_GRID (grid), label, 0, top, 1, 1);
     gtk_widget_show (label);
 
     notif_icon_combo = gtk_combo_box_text_new ();
     gtk_combo_box_text_append (GTK_COMBO_BOX_TEXT (notif_icon_combo), "1",
-            "No icon");
+            _("No icon"));
     gtk_combo_box_text_append (GTK_COMBO_BOX_TEXT (notif_icon_combo), "2",
-            "kalu's icon (small)");
+            _("kalu's icon (small)"));
     gtk_combo_box_text_append (GTK_COMBO_BOX_TEXT (notif_icon_combo), "3",
-            "Select file:");
+            _("Select file:"));
     gtk_grid_attach (GTK_GRID (grid), notif_icon_combo, 1, top, 1, 1);
     gtk_widget_show (notif_icon_combo);
     if (config->notif_icon == ICON_KALU)
@@ -1590,10 +1595,10 @@ show_prefs (void)
 
     ++top;
     notif_icon_filechooser = gtk_file_chooser_button_new (
-            "Select notification icon",
+            _("Select notification icon"),
             GTK_FILE_CHOOSER_ACTION_OPEN);
     file_filter = gtk_file_filter_new ();
-    gtk_file_filter_set_name (file_filter, "Supported Images");
+    gtk_file_filter_set_name (file_filter, _("Supported Images"));
     gtk_file_filter_add_pixbuf_formats (file_filter);
     gtk_file_chooser_add_filter (GTK_FILE_CHOOSER (notif_icon_filechooser),
             file_filter);
@@ -1613,9 +1618,9 @@ show_prefs (void)
 
     ++top;
     /* Timeout */
-    label = gtk_label_new ("Notifications expire after (seconds) :");
+    label = gtk_label_new (_("Notifications expire after (seconds) :"));
     gtk_widget_set_tooltip_text (label,
-            "Delay after which the notification should expire/be automatically closed by the daemon.");
+            _("Delay after which the notification should expire/be automatically closed by the daemon."));
     gtk_grid_attach (GTK_GRID (grid), label, 0, top, 1, 1);
     gtk_widget_show (label);
 
@@ -1623,7 +1628,7 @@ show_prefs (void)
     timeout_scale = gtk_scale_new_with_range (GTK_ORIENTATION_HORIZONTAL,
             0, 40, 1);
     gtk_widget_set_tooltip_text (timeout_scale,
-            "Delay after which the notification should expire/be automatically closed by the daemon.");
+            _("Delay after which the notification should expire/be automatically closed by the daemon."));
     if (config->timeout == NOTIFY_EXPIRES_DEFAULT)
     {
         gtk_range_set_value (GTK_RANGE (timeout_scale), 0);
@@ -1644,7 +1649,7 @@ show_prefs (void)
 
     ++top;
     /* Interval */
-    label = gtk_label_new ("Check for upgrades every (minutes) :");
+    label = gtk_label_new (_("Check for upgrades every (minutes) :"));
     gtk_grid_attach (GTK_GRID (grid), label, 0, top, 1, 1);
     gtk_widget_show (label);
 
@@ -1658,11 +1663,11 @@ show_prefs (void)
     gtk_combo_box_text_append (GTK_COMBO_BOX_TEXT (combo_interval),
             "30", "30");
     gtk_combo_box_text_append (GTK_COMBO_BOX_TEXT (combo_interval),
-            "60", "60 (Hour)");
+            "60", _c("delay-in-minutes", "60 (Hour)"));
     gtk_combo_box_text_append (GTK_COMBO_BOX_TEXT (combo_interval),
-            "120", "120 (Two hours)");
+            "120", _c("delay-in-minutes", "120 (Two hours)"));
     gtk_combo_box_text_append (GTK_COMBO_BOX_TEXT (combo_interval),
-            "1440", "1440 (Day)");
+            "1440", _c("delay-in-minutes", "1440 (Day)"));
     /* Note: config->interval actually is in seconds, not minutes */
     if (config->interval == 900 /* 15m */)
     {
@@ -1686,7 +1691,8 @@ show_prefs (void)
     gtk_grid_attach (GTK_GRID (grid), box, 0, top, 2, 1);
     gtk_widget_show (box);
 
-    button_skip = gtk_check_button_new_with_label ("Do not check between");
+    button_skip = gtk_check_button_new_with_label (
+            _c("skip-between", "Do not check between"));
     gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON (button_skip),
             config->has_skip);
     gtk_box_pack_start (GTK_BOX (box), button_skip, FALSE, FALSE, 0);
@@ -1710,7 +1716,7 @@ show_prefs (void)
     gtk_box_pack_start (GTK_BOX (box), spin_begin_minute, FALSE, FALSE, 0);
     gtk_widget_show (spin_begin_minute);
 
-    label = gtk_label_new ("and");
+    label = gtk_label_new (_c("skip-between", "and"));
     gtk_widget_set_margin_left (label, 5);
     gtk_widget_set_margin_right (label, 5);
     gtk_box_pack_start (GTK_BOX (box), label, FALSE, FALSE, 0);
@@ -1744,42 +1750,43 @@ show_prefs (void)
                 config->skip_end_minute);
     }
 
+    const gchar *chk_news        = _c("checks", "Arch Linux news");
+    const gchar *chk_upgrades    = _c("checks", "Package upgrades");
+    const gchar *chk_watched     = _c("checks", "Watched package upgrades");
+    const gchar *chk_aur         = _c("checks", "AUR package upgrades");
+    const gchar *chk_watched_aur = _c("checks", "AUR watched package upgrades");
+
     ++top;
     /* AutoChecks */
-    label = gtk_label_new ("During an automatic check, check for :");
+    label = gtk_label_new (_("During an automatic check, check for :"));
     gtk_grid_attach (GTK_GRID (grid), label, 0, top, 1, 1);
     gtk_widget_show (label);
 
-    auto_news = gtk_check_button_new_with_label (
-            "Arch Linux news");
+    auto_news = gtk_check_button_new_with_label (chk_news);
     gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON (auto_news),
             config->checks_auto & CHECK_NEWS);
     gtk_grid_attach (GTK_GRID (grid), auto_news, 1, top, 1, 1);
     gtk_widget_show (auto_news);
     ++top;
-    auto_upgrades = gtk_check_button_new_with_label (
-            "Package upgrades");
+    auto_upgrades = gtk_check_button_new_with_label (chk_upgrades);
     gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON (auto_upgrades),
             config->checks_auto & CHECK_UPGRADES);
     gtk_grid_attach (GTK_GRID (grid), auto_upgrades, 1, top, 1, 1);
     gtk_widget_show (auto_upgrades);
     ++top;
-    auto_watched = gtk_check_button_new_with_label (
-            "Watched package upgrades");
+    auto_watched = gtk_check_button_new_with_label (chk_watched);
     gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON (auto_watched),
             config->checks_auto & CHECK_WATCHED);
     gtk_grid_attach (GTK_GRID (grid), auto_watched, 1, top, 1, 1);
     gtk_widget_show (auto_watched);
     ++top;
-    auto_aur = gtk_check_button_new_with_label (
-            "AUR package upgrades");
+    auto_aur = gtk_check_button_new_with_label (chk_aur);
     gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON (auto_aur),
             config->checks_auto & CHECK_AUR);
     gtk_grid_attach (GTK_GRID (grid), auto_aur, 1, top, 1, 1);
     gtk_widget_show (auto_aur);
     ++top;
-    auto_watched_aur = gtk_check_button_new_with_label (
-            "AUR watched package upgrades");
+    auto_watched_aur = gtk_check_button_new_with_label (chk_watched_aur);
     gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON (auto_watched_aur),
             config->checks_auto & CHECK_WATCHED_AUR);
     gtk_grid_attach (GTK_GRID (grid), auto_watched_aur, 1, top, 1, 1);
@@ -1787,42 +1794,37 @@ show_prefs (void)
 
     ++top;
     /* ManualChecks */
-    label = gtk_label_new ("During a manual check, check for :");
+    label = gtk_label_new (_("During a manual check, check for :"));
     gtk_widget_set_margin_top (label, 10);
     gtk_grid_attach (GTK_GRID (grid), label, 0, top, 1, 1);
     gtk_widget_show (label);
 
-    manual_news = gtk_check_button_new_with_label (
-            "Arch Linux news");
+    manual_news = gtk_check_button_new_with_label (chk_news);
     gtk_widget_set_margin_top (manual_news, 10);
     gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON (manual_news),
             config->checks_manual & CHECK_NEWS);
     gtk_grid_attach (GTK_GRID (grid), manual_news, 1, top, 1, 1);
     gtk_widget_show (manual_news);
     ++top;
-    manual_upgrades = gtk_check_button_new_with_label (
-            "Package upgrades");
+    manual_upgrades = gtk_check_button_new_with_label (chk_upgrades);
     gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON (manual_upgrades),
             config->checks_manual & CHECK_UPGRADES);
     gtk_grid_attach (GTK_GRID (grid), manual_upgrades, 1, top, 1, 1);
     gtk_widget_show (manual_upgrades);
     ++top;
-    manual_watched = gtk_check_button_new_with_label (
-            "Watched package upgrades");
+    manual_watched = gtk_check_button_new_with_label (chk_watched);
     gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON (manual_watched),
             config->checks_manual & CHECK_WATCHED);
     gtk_grid_attach (GTK_GRID (grid), manual_watched, 1, top, 1, 1);
     gtk_widget_show (manual_watched);
     ++top;
-    manual_aur = gtk_check_button_new_with_label (
-            "AUR package upgrades");
+    manual_aur = gtk_check_button_new_with_label (chk_aur);
     gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON (manual_aur),
             config->checks_manual & CHECK_AUR);
     gtk_grid_attach (GTK_GRID (grid), manual_aur, 1, top, 1, 1);
     gtk_widget_show (manual_aur);
     ++top;
-    manual_watched_aur = gtk_check_button_new_with_label (
-            "AUR watched package upgrades");
+    manual_watched_aur = gtk_check_button_new_with_label (chk_watched_aur);
     gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON (manual_watched_aur),
             config->checks_manual & CHECK_WATCHED_AUR);
     gtk_grid_attach (GTK_GRID (grid), manual_watched_aur, 1, top, 1, 1);
@@ -1860,15 +1862,15 @@ show_prefs (void)
     /* [ News ] */
     top = 0;
     grid = gtk_grid_new ();
-    lbl_page = gtk_label_new ("News");
+    lbl_page = gtk_label_new (_c("prefs-tab", "News"));
 
-    label = gtk_label_new ("Command line to open links :");
+    label = gtk_label_new (_("Command line to open links :"));
     gtk_grid_attach (GTK_GRID (grid), label, 0, top, 1, 1);
     gtk_widget_show (label);
 
     cmdline_link_entry = gtk_entry_new ();
     gtk_widget_set_tooltip_markup (cmdline_link_entry,
-            "Use variable <b>$URL</b> for the URL to open");
+            _("Use variable <b>$URL</b> for the URL to open"));
     if (config->cmdline_link != NULL)
     {
         gtk_entry_set_text (GTK_ENTRY (cmdline_link_entry), config->cmdline_link);
@@ -1893,15 +1895,15 @@ show_prefs (void)
     /* [ Upgrades ] */
     top = 0;
     grid = gtk_grid_new ();
-    lbl_page = gtk_label_new ("Upgrades");
+    lbl_page = gtk_label_new (_c("prefs-tab", "Upgrades"));
 
     /* CheckPacmanConflict */
     check_pacman_conflict = gtk_check_button_new_with_label (
-            "Check for pacman/kalu conflict");
-    gtk_widget_set_tooltip_text (check_pacman_conflict, 
-            "Check whether an upgrade of pacman is likely to fail due to kalu's dependency, "
-            "and if so adds a button on to notification to show a message about why "
-            "and how to upgrade.");
+            _("Check for pacman/kalu conflict"));
+    gtk_widget_set_tooltip_text (check_pacman_conflict,
+            _("Check whether an upgrade of pacman is likely to fail due to "
+                "kalu's dependency, and if so adds a button on to notification "
+                "to show a message about why and how to upgrade."));
     gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON (check_pacman_conflict),
             config->check_pacman_conflict);
     gtk_grid_attach (GTK_GRID (grid), check_pacman_conflict, 0, top, 4, 1);
@@ -1910,10 +1912,10 @@ show_prefs (void)
     ++top;
     /* UpgradeAction */
     button_upg_action = gtk_check_button_new_with_label (
-            "Show a button \"Upgrade system\" on notifications (and on kalu's menu)");
+            _("Show a button \"Upgrade system\" on notifications (and on kalu's menu)"));
     gtk_widget_set_tooltip_text (button_upg_action,
-            "Whether or not to show a button \"Upgrade system\" on notifications, "
-            "as well as an item \"System upgrade\" on kalu's menu");
+            _("Whether or not to show a button \"Upgrade system\" on notifications, "
+                "as well as an item \"System upgrade\" on kalu's menu"));
     gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON (button_upg_action),
             config->action != UPGRADE_NO_ACTION);
     gtk_grid_attach (GTK_GRID (grid), button_upg_action, 0, top, 4, 1);
@@ -1923,25 +1925,25 @@ show_prefs (void)
 
 #ifndef DISABLE_UPDATER
     ++top;
-    label = gtk_label_new ("When clicking the button/menu :");
+    label = gtk_label_new (_("When clicking the button/menu :"));
     gtk_widget_set_tooltip_text (label,
-            "When clicking the button \"Upgrade system\" on notifications, "
-            "or the menu \"System upgrade\"");
+            _("When clicking the button \"Upgrade system\" on notifications, "
+                "or the menu \"System upgrade\""));
     gtk_grid_attach (GTK_GRID (grid), label, 0, top, 2, 1);
     gtk_widget_show (label);
 
     upg_action_combo = gtk_combo_box_text_new ();
     gtk_widget_set_tooltip_text (upg_action_combo,
-            "When clicking the button \"Upgrade system\" on notifications, "
-            "or the menu \"System upgrade\"");
+            _("When clicking the button \"Upgrade system\" on notifications, "
+                "or the menu \"System upgrade\""));
     gtk_widget_set_sensitive (upg_action_combo,
             config->action != UPGRADE_NO_ACTION);
     gtk_combo_box_text_append (GTK_COMBO_BOX_TEXT (upg_action_combo),
             "1",
-            "Run kalu's system updater");
+            _("Run kalu's system updater"));
     gtk_combo_box_text_append (GTK_COMBO_BOX_TEXT (upg_action_combo),
             "2",
-            "Run the specified command-line");
+            _("Run the specified command-line"));
     gtk_grid_attach (GTK_GRID (grid), upg_action_combo, 2, top, 2, 1);
     gtk_widget_show (upg_action_combo);
     if (config->action == UPGRADE_ACTION_CMDLINE)
@@ -1956,7 +1958,7 @@ show_prefs (void)
 
     ++top;
     /* CmdLine */
-    cmdline_label = gtk_label_new ("Command-line:");
+    cmdline_label = gtk_label_new (_("Command-line:"));
     gtk_grid_attach (GTK_GRID (grid), cmdline_label, 0, top, 2, 1);
 
     cmdline_entry = gtk_entry_new ();
@@ -1982,27 +1984,28 @@ show_prefs (void)
     ++top;
     /* PostSysUpgrade */
     add_list (grid, top, &cmdline_post_store, &cmdline_post_hbox,
-            "After completing a system upgrade, start the following :",
-            "You can use <b>$PACKAGES</b> to be replaced by the list of upgraded packages",
-            "Add a new command-line",
-            "Edit selected command-line",
-            "Remove selected command-line",
+            _("After completing a system upgrade, start the following :"),
+            _("You can use <b>$PACKAGES</b> to be replaced by the list of upgraded packages"),
+            _("Add a new command-line"),
+            _("Edit selected command-line"),
+            _("Remove selected command-line"),
             config->cmdline_post);
     gtk_widget_set_sensitive (cmdline_post_hbox,
             config->action != UPGRADE_NO_ACTION);
     ++top;
     /* ConfirmPostSysUpgrade */
     confirm_post = gtk_check_button_new_with_label (
-            "Ask confirmation before starting anything");
+            _("Ask confirmation before starting anything"));
     gtk_widget_set_tooltip_text (confirm_post,
-            "Confirmation will be asked before starting those processes. "
-            "With multiple ones, you'll be able to select which one(s) to start.");
+            _("Confirmation will be asked before starting those processes. "
+                "With multiple ones, you'll be able to select which one(s) to start."));
     gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON (confirm_post),
             config->confirm_post);
     gtk_grid_attach (GTK_GRID (grid), confirm_post, 0, top, 2, 1);
     gtk_widget_show (confirm_post);
 
-    /* doing this now otherwise it's triggered with non-yet-existing widgets to hide/show */
+    /* doing this now otherwise it's triggered with non-yet-existing widgets
+     * to hide/show */
     g_signal_connect (G_OBJECT (upg_action_combo), "changed",
             G_CALLBACK (upg_action_changed_cb), NULL);
 #endif
@@ -2024,9 +2027,9 @@ show_prefs (void)
     /* [ Watched ] */
     top = 0;
     grid = gtk_grid_new ();
-    lbl_page = gtk_label_new ("Watched");
+    lbl_page = gtk_label_new (_c("prefs-tab", "Watched"));
 
-    button = gtk_button_new_with_label ("Manage watched packages...");
+    button = gtk_button_new_with_label (_("Manage watched packages..."));
     gtk_widget_set_margin_top (button, 10);
     gtk_grid_attach (GTK_GRID (grid), button, 1, top, 2, 1);
     gtk_widget_show (button);
@@ -2050,11 +2053,11 @@ show_prefs (void)
     /* [ AUR ] */
     top = 0;
     grid = gtk_grid_new ();
-    lbl_page = gtk_label_new ("AUR");
+    lbl_page = gtk_label_new (_c("prefs-tab", "AUR"));
 
     /* CmdLine */
     button = gtk_check_button_new_with_label (
-            "Show a button \"Update AUR packages\" on notifications");
+            _("Show a button \"Update AUR packages\" on notifications"));
     gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON (button),
             config->cmdline_aur != NULL);
     gtk_grid_attach (GTK_GRID (grid), button, 0, top, 4, 1);
@@ -2063,14 +2066,14 @@ show_prefs (void)
             G_CALLBACK (aur_action_toggled_cb), NULL);
 
     ++top;
-    label = gtk_label_new ("When clicking the button, run the following :");
+    label = gtk_label_new (_("When clicking the button, run the following :"));
     gtk_grid_attach (GTK_GRID (grid), label, 0, top, 2, 1);
     gtk_widget_show (label);
 
     aur_cmdline_entry = gtk_entry_new ();
     gtk_widget_set_tooltip_markup (aur_cmdline_entry,
-            "You can use <b>$PACKAGES</b> to be replaced by the list of AUR packages "
-            "with upgrades available");
+            _("You can use <b>$PACKAGES</b> to be replaced by the list of AUR "
+                "packages with upgrades available"));
     if (config->cmdline_aur != NULL)
     {
         gtk_entry_set_text (GTK_ENTRY (aur_cmdline_entry), config->cmdline_aur);
@@ -2084,18 +2087,19 @@ show_prefs (void)
 
     ++top;
     /* AurIgnore */
-    label = gtk_label_new ("Do not check the AUR for the following packages :");
+    label = gtk_label_new (
+            _("Do not check the AUR for the following packages :"));
     gtk_widget_set_margin_top (label, 10);
     gtk_grid_attach (GTK_GRID (grid), label, 0, top, 4, 1);
     gtk_widget_show (label);
 
     ++top;
     add_list (grid, top, &aur_ignore_store, &hbox,
-            "Package name",
+            _("Package name"),
             NULL,
-            "Add a new package",
-            "Edit selected package",
-            "Remove selected package",
+            _("Add a new package"),
+            _("Edit selected package"),
+            _("Remove selected package"),
             config->aur_ignore);
 
     /* template */
@@ -2116,9 +2120,9 @@ show_prefs (void)
     /* [ Watched AUR ] */
     top = 0;
     grid = gtk_grid_new ();
-    lbl_page = gtk_label_new ("Watched AUR");
+    lbl_page = gtk_label_new (_c("prefs-tab", "Watched AUR"));
 
-    button = gtk_button_new_with_label ("Manage watched AUR packages...");
+    button = gtk_button_new_with_label (_("Manage watched AUR packages..."));
     gtk_widget_set_margin_top (button, 10);
     gtk_grid_attach (GTK_GRID (grid), button, 1, top, 2, 1);
     gtk_widget_show (button);
@@ -2142,12 +2146,13 @@ show_prefs (void)
     /* [ Misc ] */
     top = 0;
     grid = gtk_grid_new ();
-    lbl_page = gtk_label_new ("Misc");
+    lbl_page = gtk_label_new (_c("prefs-tab", "Misc"));
 
-    sane_sort_order = gtk_check_button_new_with_label ("Use sane sort indicator");
+    sane_sort_order = gtk_check_button_new_with_label (
+            _("Use sane sort indicator"));
     gtk_widget_set_tooltip_text (sane_sort_order,
-            "So when sorted descendingly, the arrow points down...\n"
-            "This is used for the packages list in kalu's updater");
+            _("So when sorted descendingly, the arrow points down...\n"
+                "This is used for the packages list in kalu's updater"));
     gtk_widget_set_margin_top (sane_sort_order, 10);
     gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON (sane_sort_order),
             config->sane_sort_order);
@@ -2156,7 +2161,7 @@ show_prefs (void)
 
     ++top;
     syncdbs_in_tooltip = gtk_check_button_new_with_label (
-            "Show if databases can be synchronized in tooltip");
+            _("Show if databases can be synchronized in tooltip"));
     gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON (syncdbs_in_tooltip),
             config->syncdbs_in_tooltip);
     gtk_grid_attach (GTK_GRID (grid), syncdbs_in_tooltip, 0, top, 2, 1);
@@ -2166,9 +2171,9 @@ show_prefs (void)
     label = gtk_label_new (NULL);
     gtk_widget_set_margin_top (label, 10);
     gtk_label_set_markup (GTK_LABEL (label),
-            "When kalu is <b>active</b> :");
+            _("When kalu is <b>active</b> :"));
     gtk_widget_set_tooltip_markup (label,
-            "Actions to be done when kalu is <b>not</b> paused.");
+            _("Actions to be done when kalu is <b>not</b> paused."));
     gtk_grid_attach (GTK_GRID (grid), label, 0, top, 2, 1);
     gtk_widget_show (label);
 
@@ -2179,9 +2184,9 @@ show_prefs (void)
     label = gtk_label_new (NULL);
     gtk_widget_set_margin_top (label, 23);
     gtk_label_set_markup (GTK_LABEL (label),
-            "When kalu is <b>paused</b> :");
+            _("When kalu is <b>paused</b> :"));
     gtk_widget_set_tooltip_markup (label,
-            "Actions to be done when kalu is <b>paused</b>.");
+            _("Actions to be done when kalu is <b>paused</b>."));
     gtk_grid_attach (GTK_GRID (grid), label, 0, top, 2, 1);
     gtk_widget_show (label);
 
@@ -2200,11 +2205,11 @@ show_prefs (void)
     gtk_widget_show (hbox);
 
     GtkWidget *image;
-    button = gtk_button_new_with_label ("Save preferences");
+    button = gtk_button_new_with_label (_("Save preferences"));
     image = gtk_image_new_from_stock (GTK_STOCK_SAVE, GTK_ICON_SIZE_MENU);
     gtk_button_set_image (GTK_BUTTON (button), image);
     gtk_box_pack_end (GTK_BOX (hbox), button, FALSE, FALSE, 4);
-    gtk_widget_set_tooltip_text (button, "Apply and save preferences");
+    gtk_widget_set_tooltip_text (button, _("Apply and save preferences"));
     g_signal_connect (G_OBJECT (button), "clicked",
             G_CALLBACK (btn_save_cb), NULL);
     gtk_widget_show (button);

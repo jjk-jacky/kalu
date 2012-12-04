@@ -1,0 +1,17 @@
+# List of source files which contain translatable strings.
+src/kalu/aur.c
+src/kalu/conf.c
+src/kalu/curl.c
+src/kalu/gui.c
+src/kalu/kalu-alpm.c
+src/kalu/kalu-updater.c
+src/kalu/main.c
+src/kalu/news.c
+src/kalu/preferences.c
+src/kalu/shared.c
+src/kalu/updater.c
+src/kalu/util.c
+src/kalu/util-gtk.c
+src/kalu/watched.c
+
+src/kalu-dbus/kalu-dbus.c

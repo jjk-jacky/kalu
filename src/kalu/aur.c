@@ -197,7 +197,7 @@ aur_has_updates (alpm_list_t **packages,
         {
             debug ("invalid json");
             g_set_error (error, KALU_ERROR, 8,
-                    "Invalid JSON response from the AUR");
+                    _("Invalid JSON response from the AUR"));
             FREELIST (urls);
             FREE_PACKAGE_LIST (*packages);
             free (data);
@@ -221,7 +221,7 @@ aur_has_updates (alpm_list_t **packages,
                 {
                     debug ("package %s not found in aur_pkgs", pkgname);
                     g_set_error (error, KALU_ERROR, 8,
-                            "Unexpected results from the AUR [%s]",
+                            _("Unexpected results from the AUR [%s]"),
                             pkgname);
                     FREELIST (urls);
                     FREE_PACKAGE_LIST (*packages);

@@ -310,7 +310,7 @@ kalu_updater_g_signal (GDBusProxy   *proxy,
         g_variant_get (parameters, "(ss)", &name, &msg);
         if (msg == NULL)
         {
-            msg = strdup ("No error message specified in MethodFailed\n");
+            msg = strdup (_("No error message specified in MethodFailed\n"));
         }
 
         if (g_strcmp0 (name, "Answer") == 0)
@@ -1057,7 +1057,7 @@ check_method (KaluUpdater *kupdater, const gchar *name,
     if (!KALU_IS_UPDATER (kupdater))
     {
         g_set_error (error, KALU_UPDATER_ERROR, 1,
-                "Object is not a KaluUpdater\n");
+                _("Object is not a KaluUpdater\n"));
         return FALSE;
     }
 
@@ -1069,7 +1069,7 @@ check_method (KaluUpdater *kupdater, const gchar *name,
             if (mc->is_running)
             {
                 g_set_error (error, KALU_UPDATER_ERROR, 1,
-                        "Cannot call method %s: already running\n", name);
+                        _("Cannot call method %s: already running\n"), name);
                 return FALSE;
             }
             mc->is_running = TRUE;
@@ -1080,7 +1080,7 @@ check_method (KaluUpdater *kupdater, const gchar *name,
         else if (mc->name == NULL)
         {
             g_set_error (error, KALU_UPDATER_ERROR, 1,
-                    "Internal method definition missing for %s\n", name);
+                    _("Internal method definition missing for %s\n"), name);
             return FALSE;
         }
     }

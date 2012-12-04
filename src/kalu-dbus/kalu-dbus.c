@@ -163,7 +163,7 @@ event_cb (alpm_event_t event, void *data1, void *data2)
 {
     if (event == ALPM_EVENT_ADD_DONE)
     {
-        alpm_logaction (handle, "kalu: installed %s (%s)\n",
+        alpm_logaction (handle, _("kalu: installed %s (%s)\n"),
                 alpm_pkg_get_name (data1),
                 alpm_pkg_get_version (data1));
 
@@ -185,7 +185,7 @@ event_cb (alpm_event_t event, void *data1, void *data2)
     }
     else if (event == ALPM_EVENT_REMOVE_DONE)
     {
-        alpm_logaction (handle, "kalu: removed %s (%s)\n",
+        alpm_logaction (handle, _("kalu: removed %s (%s)\n"),
                 alpm_pkg_get_name (data1),
                 alpm_pkg_get_version (data1));
         emit_signal ("EventRemoved", "ss",
@@ -194,7 +194,7 @@ event_cb (alpm_event_t event, void *data1, void *data2)
     }
     else if (event == ALPM_EVENT_UPGRADE_DONE)
     {
-        alpm_logaction (handle, "kalu: upgraded %s (%s -> %s)\n",
+        alpm_logaction (handle, _("kalu: upgraded %s (%s -> %s)\n"),
                 alpm_pkg_get_name (data1),
                 alpm_pkg_get_version (data2),
                 alpm_pkg_get_version (data1));
@@ -521,7 +521,7 @@ init (GVariant *parameters)
     if (is_init)
     {
         free (sender);
-        method_failed ("Init", "Session already initialized\n");
+        method_failed ("Init", _("Session already initialized\n"));
         return FALSE;
     }
     /* checking auth */
@@ -553,7 +553,7 @@ init (GVariant *parameters)
     {
         free (sender);
         g_object_unref (result);
-        method_failed ("Init", "Authorization from PolicyKit failed\n");
+        method_failed ("Init", _("Authorization from PolicyKit failed\n"));
         /* we have no reason to keep running */
         g_main_loop_quit (loop);
         return FALSE;
@@ -620,14 +620,14 @@ init_alpm (GVariant *parameters)
     handle = alpm_initialize (rootdir, dbpath, &err);
     if (!handle)
     {
-        method_failed ("InitAlpm", "Failed to initialize alpm library: %s\n",
+        method_failed ("InitAlpm", _("Failed to initialize alpm library: %s\n"),
                 alpm_strerror (err));
         return FALSE;
     }
 
     if (!(alpm_capabilities () & ALPM_CAPABILITY_DOWNLOADER))
     {
-        method_failed ("InitAlpm", "ALPM has no downloader capability\n");
+        method_failed ("InitAlpm", _("ALPM has no downloader capability\n"));
         return FALSE;
     }
 
@@ -642,7 +642,7 @@ init_alpm (GVariant *parameters)
     ret = alpm_option_set_logfile (handle, logfile);
     if (ret != 0)
     {
-        method_failed ("InitAlpm", "Unable to set log file: %s\n",
+        method_failed ("InitAlpm", _("Unable to set log file: %s\n"),
                 alpm_strerror (alpm_errno (handle)));
         return FALSE;
     }
@@ -652,7 +652,7 @@ init_alpm (GVariant *parameters)
     ret = alpm_option_set_gpgdir (handle, gpgdir);
     if (ret != 0)
     {
-        method_failed ("InitAlpm", "Unable to set gpgdir: %s\n",
+        method_failed ("InitAlpm", _("Unable to set gpgdir: %s\n"),
                 alpm_strerror (alpm_errno (handle)));
         return FALSE;
     }
@@ -667,7 +667,7 @@ init_alpm (GVariant *parameters)
     if (0 != alpm_option_set_cachedirs (handle, cachedirs))
     {
         FREELIST (cachedirs);
-        method_failed ("InitAlpm", "Unable to set cache dirs: %s\n",
+        method_failed ("InitAlpm", _("Unable to set cache dirs: %s\n"),
                 alpm_strerror (alpm_errno (handle)));
         return FALSE;
     }
@@ -675,7 +675,7 @@ init_alpm (GVariant *parameters)
 
     if (0 != alpm_option_set_default_siglevel (handle, siglevel))
     {
-        method_failed ("Unable to set default siglevel: %s\n",
+        method_failed (_("Unable to set default siglevel: %s\n"),
                 alpm_strerror (alpm_errno (handle)));
         return FALSE;
     }
@@ -736,7 +736,7 @@ free_alpm (GVariant *parameters)
     /* free alpm */
     if (handle && alpm_release (handle) == -1)
     {
-        method_failed ("FreeAlpm", "Failed to release alpm library\n");
+        method_failed ("FreeAlpm", _("Failed to release alpm library\n"));
     }
     else
     {
@@ -770,7 +770,7 @@ add_db (GVariant *parameters)
     db = alpm_db_register_sync (handle, name, (alpm_siglevel_t) siglevel);
     if (db == NULL)
     {
-        method_failed ("AddDb", "Could not register database %s: %s\n",
+        method_failed ("AddDb", _("Could not register database %s: %s\n"),
                 name, alpm_strerror (alpm_errno (handle)));
         return FALSE;
     }
@@ -801,7 +801,7 @@ add_db (GVariant *parameters)
                 free (temp);
                 FREELIST (servers);
                 method_failed ("AddDb",
-                        "Server %s contains the $arch variable, but no Architecture was defined",
+                        _("Server %s contains the $arch variable, but no Architecture was defined.\n"),
                         value);
                 return FALSE;
             }
@@ -814,8 +814,11 @@ add_db (GVariant *parameters)
             FREELIST (servers);
             free (server);
             /* pm_errno is set by alpm_db_setserver */
-            method_failed ("AddDb", "Could not add server %s to database %s: %s\n",
-                    server, name, alpm_strerror (alpm_errno (handle)));
+            method_failed ("AddDb",
+                    _("Could not add server %s to database %s: %s\n"),
+                    server,
+                    name,
+                    alpm_strerror (alpm_errno (handle)));
             return FALSE;
         }
         free (server);
@@ -825,8 +828,9 @@ add_db (GVariant *parameters)
     /* ensure db is valid */
     if (alpm_db_get_valid (db))
     {
-        method_failed ("AddDb", "Database %s is not valid: %s\n",
-                name, alpm_strerror (alpm_errno (handle)));
+        method_failed ("AddDb", _("Database %s is not valid: %s\n"),
+                name,
+                alpm_strerror (alpm_errno (handle)));
         return FALSE;
     }
 
@@ -865,7 +869,7 @@ sync_dbs (GVariant *parameters)
         else
         {
             result = SYNC_SUCCESS;
-            alpm_logaction (handle, "kalu: synchronized database %s\n",
+            alpm_logaction (handle, _("kalu: synchronized database %s\n"),
                     alpm_db_get_name (db));
         }
         emit_signal ("SyncDbEnd", "i", result);
@@ -885,7 +889,8 @@ answer (GVariant *parameters)
 
     if (choice != CHOICE_WAITING)
     {
-        method_failed ("Answer", "Invalid call to Answer, no Question pending");
+        method_failed ("Answer",
+                _("Invalid call to Answer, no Question pending.\n"));
         return FALSE;
     }
 
@@ -909,7 +914,8 @@ get_packages (GVariant *parameters)
 
     if (alpm_trans_init (handle, 0) == -1)
     {
-        method_failed ("GetPackages", "Failed to initiate transaction: %s\n",
+        method_failed ("GetPackages",
+                _("Failed to initiate transaction: %s\n"),
                 alpm_strerror (alpm_errno (handle)));
         return FALSE;
     }
@@ -933,7 +939,8 @@ get_packages (GVariant *parameters)
         {
             FOR_LIST (i, alpm_data)
             {
-                snprintf (buf, 255, "- Package %s does not have a valid architecture\n",
+                snprintf (buf, 255,
+                        _("- Package %s does not have a valid architecture\n"),
                         (const char *) i->data);
                 details = alpm_list_add (details, strdup (buf));
                 len += strlen (buf);
@@ -945,8 +952,10 @@ get_packages (GVariant *parameters)
             {
                 alpm_depmissing_t *miss = i->data;
                 char *depstring = alpm_dep_compute_string (miss->depend);
-                snprintf (buf, 255, "- Package %s requires %s\n",
-                        miss->target, depstring);
+                snprintf (buf, 255,
+                        _("- Package %s requires %s\n"),
+                        miss->target,
+                        depstring);
                 free (depstring);
                 details = alpm_list_add (details, strdup (buf));
                 len += strlen (buf);
@@ -959,14 +968,19 @@ get_packages (GVariant *parameters)
                 alpm_conflict_t *conflict = i->data;
                 if (conflict->reason->mod == ALPM_DEP_MOD_ANY)
                 {
-                    snprintf (buf, 255, "- Packages %s and %s are in conflict\n",
-                            conflict->package1, conflict->package2);
+                    snprintf (buf, 255,
+                            _("- Packages %s and %s are in conflict\n"),
+                            conflict->package1,
+                            conflict->package2);
                 }
                 else
                 {
                     char *reason = alpm_dep_compute_string (conflict->reason);
-                    snprintf (buf, 255, "- Packages %s and %s are in conflict: %s\n",
-                            conflict->package1, conflict->package2, reason);
+                    snprintf (buf, 255,
+                            _("- Packages %s and %s are in conflict: %s\n"),
+                            conflict->package1,
+                            conflict->package2,
+                            reason);
                     free (reason);
                 }
                 details = alpm_list_add (details, strdup (buf));
@@ -984,13 +998,16 @@ get_packages (GVariant *parameters)
             }
             alpm_list_free (details);
             details = NULL;
-            method_failed ("GetPackages", "Failed to prepare transaction: %s :\n%s\n",
-                    alpm_strerror (err), errmsg);
+            method_failed ("GetPackages",
+                    _("Failed to prepare transaction: %s :\n%s\n"),
+                    alpm_strerror (err),
+                    errmsg);
             free (errmsg);
         }
         else
         {
-            method_failed ("GetPackages", "Failed to prepare transaction: %s\n",
+            method_failed ("GetPackages",
+                    _("Failed to prepare transaction: %s\n"),
                     alpm_strerror (err));
         }
 
@@ -1051,7 +1068,7 @@ sysupgrade (GVariant *parameters)
 {
     g_variant_unref (parameters);
 
-    alpm_logaction (handle, "kalu: starting sysupgrade...\n");
+    alpm_logaction (handle, _("kalu: starting sysupgrade...\n"));
 
     alpm_list_t *alpm_data = NULL;
     if (alpm_trans_commit (handle, &alpm_data) == -1)
@@ -1067,20 +1084,23 @@ sysupgrade (GVariant *parameters)
                 alpm_fileconflict_t *conflict = i->data;
                 if (conflict->type == ALPM_FILECONFLICT_TARGET)
                 {
-                    snprintf (buf, 255, "- %s exists in both %s and %s\n",
+                    snprintf (buf, 255,
+                            _("- %s exists in both %s and %s\n"),
                             conflict->file,
                             conflict->target,
                             conflict->ctarget);
                 }
                 else if (conflict->type == ALPM_FILECONFLICT_FILESYSTEM)
                 {
-                    snprintf (buf, 255, "- %s exists in both %s and current filesystem\n",
+                    snprintf (buf, 255,
+                            _("- %s exists in both %s and current filesystem\n"),
                             conflict->file,
                             conflict->target);
                 }
                 else
                 {
-                    snprintf (buf, 255, "- Unknown conflict for %s\n",
+                    snprintf (buf, 255,
+                            _("- Unknown conflict for %s\n"),
                             conflict->target);
                 }
 
@@ -1095,7 +1115,8 @@ sysupgrade (GVariant *parameters)
         {
             for (i = alpm_data; i; i = alpm_list_next (i))
             {
-                snprintf (buf, 255, "- %s in invalid or corrupted\n",
+                snprintf (buf, 255,
+                        _("- %s in invalid or corrupted\n"),
                         (const char *) i->data);
                 details = alpm_list_add (details, strdup (buf));
                 len += strlen (buf);
@@ -1112,18 +1133,22 @@ sysupgrade (GVariant *parameters)
             }
             alpm_list_free (details);
             details = NULL;
-            method_failed ("SysUpgrade", "Failed to commit transaction: %s :\n%s\n",
-                    alpm_strerror (err), errmsg);
+            method_failed ("SysUpgrade",
+                    _("Failed to commit transaction: %s :\n%s\n"),
+                    alpm_strerror (err),
+                    errmsg);
             free (errmsg);
         }
         else
         {
-            method_failed ("SysUpgrade", "Failed to commit transaction: %s\n",
+            method_failed ("SysUpgrade",
+                    _("Failed to commit transaction: %s\n"),
                     alpm_strerror (err));
         }
 
         FREELIST (alpm_data);
-        alpm_logaction (handle, "kalu: Failed to commit sysupgrade transaction: %s\n",
+        alpm_logaction (handle,
+                _("kalu: Failed to commit sysupgrade transaction: %s\n"),
                 alpm_strerror (err));
         alpm_trans_release (handle);
         return FALSE;
@@ -1131,7 +1156,7 @@ sysupgrade (GVariant *parameters)
 
     FREELIST (alpm_data);
     alpm_trans_release (handle);
-    alpm_logaction (handle, "kalu: sysupgrade completed\n");
+    alpm_logaction (handle, _("kalu: sysupgrade completed\n"));
     method_finished ("SysUpgrade");
     return FALSE;
 }
@@ -1194,13 +1219,14 @@ handle_method_call (GDBusConnection       *conn _UNUSED_,
     /* at this point, we must be init.. */
     if (!is_init)
     {
-        send_error ("NoInitError", "Session not initialized");
+        send_error ("NoInitError", _("Session not initialized\n"));
         return;
     }
     /* ..and only accept from client */
     if (g_strcmp0 (sender, client) != 0)
     {
-        send_error ("InvalidInitError", "Session initialized for another client");
+        send_error ("InvalidInitError",
+                _("Session initialized for another client\n"));
         return;
     }
 
@@ -1215,7 +1241,7 @@ handle_method_call (GDBusConnection       *conn _UNUSED_,
     if_method ("SysUpgrade",    sysupgrade);
     if_method ("NoSysUpgrade",  no_sysupgrade);
 
-    send_error ("UnknownMethod", "Unknown method: %s\n", method_name);
+    send_error ("UnknownMethod", _("Unknown method: %s\n"), method_name);
 }
 #undef if_method
 #undef send_error
@@ -1263,6 +1289,12 @@ int
 main (int argc _UNUSED_, char *argv[] _UNUSED_)
 {
     guint owner_id;
+
+#ifdef ENABLE_NLS
+    setlocale (LC_ALL, "");
+    bindtextdomain (PACKAGE, LOCALEDIR);
+    textdomain (PACKAGE);
+#endif
 
     g_type_init ();
 

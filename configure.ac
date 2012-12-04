@@ -24,6 +24,9 @@ AM_PROG_CC_C_O
 
 LT_INIT
 
+AM_GNU_GETTEXT([external], [need-ngettext])
+AM_GNU_GETTEXT_VERSION([0.18.1])
+
 # Option for News URL
 AC_ARG_WITH([news-rss-url],
         AC_HELP_STRING([--with-news-rss-url=URL], [set the RSS URL for Arch Linux News]),
@@ -198,7 +201,7 @@ else
     AC_MSG_RESULT([no])
 fi
 
-AC_CONFIG_FILES([Makefile])
+AC_CONFIG_FILES([Makefile po/Makefile.in])
 AC_OUTPUT
 
 echo "

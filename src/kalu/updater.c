@@ -245,7 +245,7 @@ _show_error (const gchar *msg, const gchar *fmt, ...)
         va_end (args);
     }
 
-    add_log (LOGTYPE_ERROR, "Error: %s: %s", msg, buffer);
+    add_log (LOGTYPE_ERROR, _("Error: %s: %s"), msg, buffer);
 
     gtk_label_set_markup (GTK_LABEL (updater->lbl_main), buf);
     gtk_widget_hide (updater->pbar_main);
@@ -352,12 +352,12 @@ rend_pbar_pb (GtkTreeViewColumn *column _UNUSED_, GtkCellRenderer *renderer,
         gtk_tree_model_get (store, iter, UCOL_DL_SIZE, &dl_size, -1);
         size = humanize_size (dl_size, '\0', &unit);
         snprint_size (buf_tot, 23, size, unit);
-        snprintf (buf, 255, "%d%% of %s", val, buf_tot);
+        snprintf (buf, 255, _("%d%% of %s"), val, buf_tot);
         g_object_set (renderer, "text", buf, NULL);
     }
     else if (val == 100)
     {
-        g_object_set (renderer, "text", "Post-processing...", NULL);
+        g_object_set (renderer, "text", _("Post-processing..."), NULL);
     }
     else
     {
@@ -418,11 +418,11 @@ on_log (KaluUpdater *kupdater _UNUSED_, loglevel_t level, const gchar *msg)
 {
     if (level & LOG_ERROR)
     {
-        add_log (LOGTYPE_ERROR, "Error: %s", msg);
+        add_log (LOGTYPE_ERROR, _("Error: %s"), msg);
     }
     else if (level & LOG_WARNING)
     {
-        add_log (LOGTYPE_WARNING, "Warning: %s", msg);
+        add_log (LOGTYPE_WARNING, _("Warning: %s"), msg);
     }
     else if (level & LOG_DEBUG)
     {
@@ -430,7 +430,7 @@ on_log (KaluUpdater *kupdater _UNUSED_, loglevel_t level, const gchar *msg)
     }
     else if (level & LOG_FUNCTION)
     {
-        add_log (LOGTYPE_UNIMPORTANT, "ALPM: %s", msg);
+        add_log (LOGTYPE_UNIMPORTANT, _("ALPM: %s"), msg);
     }
 }
 
@@ -447,25 +447,25 @@ on_event (KaluUpdater *kupdater _UNUSED_, event_t event)
     switch (event)
     {
         case EVENT_CHECKING_DEPS:
-            msg = "Checking dependencies...";
+            msg = _("Checking dependencies...");
             break;
         case EVENT_RESOLVING_DEPS:
-            msg = "Resolving dependencies...";
+            msg = _("Resolving dependencies...");
             break;
         case EVENT_INTERCONFLICTS:
-            msg = "Checking inter-conflict...";
+            msg = _("Checking inter-conflict...");
             break;
         case EVENT_DELTA_INTEGRITY:
-            msg = "Checking delta integrity...";
+            msg = _("Checking delta integrity...");
             break;
         case EVENT_DELTA_PATCHES:
-            msg = "Applying delta patches...";
+            msg = _("Applying delta patches...");
             break;
         case EVENT_DELTA_PATCH_DONE:
-            msg = "Delta patching done.";
+            msg = _("Delta patching done.");
             break;
         case EVENT_DELTA_PATCH_FAILED:
-            msg = "Delta patching failed.";
+            msg = _("Delta patching failed.");
             break;
         default:
             return;
@@ -544,12 +544,12 @@ on_event_installed (KaluUpdater *kupdater _UNUSED_, const gchar *pkg,
 {
     alpm_list_t *i;
 
-    add_log (LOGTYPE_NORMAL, "Package installed: %s (%s)\n", pkg, version);
+    add_log (LOGTYPE_NORMAL, _("Package installed: %s (%s)\n"), pkg, version);
     finish_pkg_install (pkg, version);
 
     if (optdeps != NULL)
     {
-        add_log (LOGTYPE_INFO, "Optional dependencies for %s:\n", pkg);
+        add_log (LOGTYPE_INFO, _("Optional dependencies for %s:\n"), pkg);
         FOR_LIST (i, optdeps)
         {
             add_log (LOGTYPE_INFO, "- %s\n", (const char *) i->data);
@@ -561,7 +561,7 @@ static void
 on_event_removed (KaluUpdater *kupdater _UNUSED_, const gchar *pkg,
                     const gchar *version)
 {
-    add_log (LOGTYPE_NORMAL, "Package removed: %s (%s)\n", pkg, version);
+    add_log (LOGTYPE_NORMAL, _("Package removed: %s (%s)\n"), pkg, version);
     finish_pkg_install (pkg, version);
 }
 
@@ -572,13 +572,13 @@ on_event_upgraded (KaluUpdater *kupdater _UNUSED_, const gchar *pkg,
 {
     alpm_list_t *i;
 
-    add_log (LOGTYPE_NORMAL, "Package upgraded: %s (%s -> %s)\n",
+    add_log (LOGTYPE_NORMAL, _("Package upgraded: %s (%s -> %s)\n"),
             pkg, old_version, new_version);
     finish_pkg_install (pkg, new_version);
 
     if (newoptdeps != NULL)
     {
-        add_log (LOGTYPE_INFO, "New optional dependencies for %s-%s:\n",
+        add_log (LOGTYPE_INFO, _("New optional dependencies for %s-%s:\n"),
                 pkg, new_version);
         FOR_LIST (i, newoptdeps)
         {
@@ -590,11 +590,11 @@ on_event_upgraded (KaluUpdater *kupdater _UNUSED_, const gchar *pkg,
 static void
 on_event_retrieving_pkgs (KaluUpdater *kupdater _UNUSED_, const gchar *repo)
 {
-    add_log (LOGTYPE_NORMAL, "Downloading packages from %s\n", repo);
+    add_log (LOGTYPE_NORMAL, _("Downloading packages from %s\n"), repo);
     if (updater->step == STEP_NONE)
     {
         gtk_label_set_text (GTK_LABEL (updater->lbl_action),
-                "Downloading packages...");
+                _("Downloading packages..."));
         gtk_widget_show (updater->lbl_action);
         gtk_widget_hide (updater->pbar_action);
     }
@@ -610,7 +610,8 @@ static void
 on_event_delta_generating (KaluUpdater *kupdater _UNUSED_, const gchar *delta,
                            const gchar *dest)
 {
-    add_log (LOGTYPE_NORMAL, "Using delta %s to generate %s...", delta, dest);
+    add_log (LOGTYPE_NORMAL, _("Using delta %s to generate %s..."),
+            delta, dest);
 }
 
 static void
@@ -625,29 +626,29 @@ on_progress (KaluUpdater *kupdater _UNUSED_, event_t event, const gchar *pkg,
     {
         case EVENT_PKG_INTEGRITY:
             step = STEP_PKG_INTEGRITY;
-            msg = "Checking packages integrity...";
+            msg = _("Checking packages integrity...");
             pctg_step = updater->pctg_pkg_integrity;
             break;
         case EVENT_FILE_CONFLICTS:
             step = STEP_FILE_CONFLICTS;
-            msg = "Checking for file conflicts...";
+            msg = _("Checking for file conflicts...");
             pctg_step = updater->pctg_file_conflicts;
             break;
         case EVENT_LOAD_PKGFILES:
             step = STEP_LOAD_PKGFILES;
-            msg = "Loading package files...";
+            msg = _("Loading package files...");
             pctg_step = updater->pctg_load_pkgfiles;
             break;
         case EVENT_CHECKING_DISKSPACE:
             step = STEP_CHECKING_DISKSPACE;
-            msg = "Checking disk space...";
+            msg = _("Checking disk space...");
             pctg_step = updater->pctg_check_diskspace;
             break;
         case EVENT_INSTALLING:
         case EVENT_UPGRADING:
         case EVENT_REMOVING:
             step = STEP_UPGRADING;
-            msg = "Upgrading system...";
+            msg = _("Upgrading system...");
             break;
         default:
             return;
@@ -777,14 +778,15 @@ on_install_ignorepkg (KaluUpdater *kupdater _UNUSED_, const gchar *pkg)
     gchar question[255], lbl_yes[42], lbl_no[42];
     gboolean answer;
 
-    snprintf (question, 255, "%s is in IngorePkg/IgnoreGroup. Install anyway ?",
+    snprintf (question, 255,
+            _("%s is in IngorePkg/IgnoreGroup. Install anyway ?"),
             pkg);
-    snprintf (lbl_yes, 42,   "Install %s anyway", pkg);
-    snprintf (lbl_no,  42,   "Do not install %s", pkg);
+    snprintf (lbl_yes, 42,   _("Install %s anyway"), pkg);
+    snprintf (lbl_no,  42,   _("Do not install %s"), pkg);
     add_log (LOGTYPE_INFO, "%s", question);
     answer = confirm (question, NULL, lbl_yes, NULL, lbl_no, NULL,
             updater->window);
-    add_log (LOGTYPE_INFO, " %s\n", (answer) ? "Yes" : "No");
+    add_log (LOGTYPE_INFO, " %s\n", (answer) ? _("Yes") : _("No"));
     return answer;
 }
 
@@ -795,14 +797,15 @@ on_replace_pkg (KaluUpdater *kupdater _UNUSED_, const gchar *repo1,
     gchar question[255], lbl_yes[42], lbl_no[42];
     gboolean answer;
 
-    snprintf (question, 255, "Do you want to replace %s (%s) with %s (%s) ?",
+    snprintf (question, 255,
+            _("Do you want to replace %s (%s) with %s (%s) ?"),
             pkg1, repo1, pkg2, repo2);
-    snprintf (lbl_yes, 42,   "Replace with %s", pkg2);
-    snprintf (lbl_no,  42,   "Keep %s", pkg1);
+    snprintf (lbl_yes, 42,   _("Replace with %s"), pkg2);
+    snprintf (lbl_no,  42,   _("Keep %s"), pkg1);
     add_log (LOGTYPE_INFO, "%s", question);
     answer = confirm (question, NULL, lbl_yes, NULL, lbl_no, NULL,
             updater->window);
-    add_log (LOGTYPE_INFO, " %s\n", (answer) ? "Yes" : "No");
+    add_log (LOGTYPE_INFO, " %s\n", (answer) ? _("Yes"): _("No"));
     return answer;
 }
 
@@ -813,14 +816,15 @@ on_conflict_pkg (KaluUpdater *kupdater _UNUSED_, const gchar *pkg1, const gchar 
     gchar question[255], lbl_yes[42], lbl_no[42];
     gboolean answer;
 
-    snprintf (question, 255, "%s and %s and in conflict. Remove %s ?",
+    snprintf (question, 255,
+            _("%s and %s and in conflict. Remove %s ?"),
             pkg1, pkg2, pkg2);
-    snprintf (lbl_yes, 42,   "Remove %s", pkg2);
-    snprintf (lbl_no,  42,   "Keep %s", pkg1);
+    snprintf (lbl_yes, 42,   _("Remove %s"), pkg2);
+    snprintf (lbl_no,  42,   _("Keep %s"), pkg1);
     add_log (LOGTYPE_INFO, "%s", question);
     answer = confirm (question, reason, lbl_yes, NULL, lbl_no, NULL,
             updater->window);
-    add_log (LOGTYPE_INFO, " %s\n", (answer) ? "Yes" : "No");
+    add_log (LOGTYPE_INFO, " %s\n", (answer) ? _("Yes") : _("No"));
     return answer;
 }
 
@@ -834,9 +838,10 @@ on_remove_pkgs (KaluUpdater *kupdater _UNUSED_, alpm_list_t *pkgs)
     {
         alpm_list_t *i;
         gchar *s, *ss;
-        const gchar *q = "Do you want to skip the packages listed below ?";
+        const gchar *q = _("Do you want to skip the packages listed below ?");
 
-        s = g_strdup ("Those packages cannot be upgraded due to unresolvable dependencies :\n");
+        s = g_strdup (_("Those packages cannot be upgraded due to "
+                    "unresolvable dependencies :\n"));
         add_log (LOGTYPE_INFO, "%s\n", q);
         add_log (LOGTYPE_INFO, "%s", s);
         FOR_LIST (i, pkgs)
@@ -849,30 +854,30 @@ on_remove_pkgs (KaluUpdater *kupdater _UNUSED_, alpm_list_t *pkgs)
         }
 
         answer = confirm (q, s,
-                "Yes, skip those packages", NULL,
-                "No, abort upgrade", NULL,
+                _("Yes, skip those packages"), NULL,
+                _("No, abort upgrade"), NULL,
                 updater->window);
         g_free (s);
     }
     else
     {
         snprintf (question, 255,
-                "Do you want to skip package %s ?",
+                _("Do you want to skip package %s ?"),
                 (const char *) pkgs->data);
         snprintf (buf, 255,
-                "Package %s cannot be upgraded due to unresolvable dependencies.",
+                _("Package %s cannot be upgraded due to unresolvable dependencies."),
                 (const char *) pkgs->data);
         snprintf (lbl_yes, 42,
-                "Yes, skip %s",
+                _("Yes, skip %s"),
                 (const char *) pkgs->data);
         add_log (LOGTYPE_INFO, "%s\n", question);
         add_log (LOGTYPE_INFO, "%s\n", buf);
         answer = confirm (question, buf,
-                lbl_yes,             NULL,
-                "No, abort upgrade", NULL,
+                lbl_yes,                NULL,
+                _("No, abort upgrade"), NULL,
                 updater->window);
     }
-    add_log (LOGTYPE_INFO, "\t%s\n", (answer) ? "Yes" : "No");
+    add_log (LOGTYPE_INFO, "\t%s\n", (answer) ? _("Yes") : _("No"));
     return answer;
 }
 
@@ -943,7 +948,7 @@ on_select_provider (KaluUpdater *kupdater _UNUSED_, const gchar *pkg, alpm_list_
 {
     gchar question[255];
     snprintf (question, 255,
-            "There are %d providers available for %s.\nPlease select the one to install :",
+            _("There are %d providers available for %s.\nPlease select the one to install :"),
             (int) alpm_list_count (providers),
             pkg);
     add_log (LOGTYPE_INFO, "%s\n", question);
@@ -993,21 +998,24 @@ on_select_provider (KaluUpdater *kupdater _UNUSED_, const gchar *pkg, alpm_list_
     GtkTreeViewColumn *column;
     renderer = gtk_cell_renderer_text_new ();
     /* column: Repo */
-    column = gtk_tree_view_column_new_with_attributes ("Repo",
+    column = gtk_tree_view_column_new_with_attributes (
+            _c("column", "Repo"),
             renderer,
             "text", 1,
             NULL);
     gtk_tree_view_column_set_resizable (column, TRUE);
     gtk_tree_view_append_column (GTK_TREE_VIEW (list), column);
     /* column: Package */
-    column = gtk_tree_view_column_new_with_attributes ("Package",
+    column = gtk_tree_view_column_new_with_attributes (
+            _c("column", "Package"),
             renderer,
             "text", 2,
             NULL);
     gtk_tree_view_column_set_resizable (column, TRUE);
     gtk_tree_view_append_column (GTK_TREE_VIEW (list), column);
     /* column: Version */
-    column = gtk_tree_view_column_new_with_attributes ("Version",
+    column = gtk_tree_view_column_new_with_attributes (
+            _c("column", "Version"),
             renderer,
             "text", 3,
             NULL);
@@ -1039,11 +1047,11 @@ on_select_provider (KaluUpdater *kupdater _UNUSED_, const gchar *pkg, alpm_list_
 
     /* button Cancel */
     GtkWidget *button;
-    button = gtk_dialog_add_button (GTK_DIALOG (dialog), "Abort", 0);
+    button = gtk_dialog_add_button (GTK_DIALOG (dialog), _("Abort"), 0);
     /* button Use selected provider */
     GtkWidget *image;
     image = gtk_image_new_from_stock (GTK_STOCK_APPLY, GTK_ICON_SIZE_BUTTON);
-    button = gtk_button_new_with_label ("Use selected provider");
+    button = gtk_button_new_with_label (_("Use selected provider"));
     gtk_button_set_image (GTK_BUTTON (button), image);
     gtk_widget_set_sensitive (button, FALSE);
     gtk_widget_show (button);
@@ -1083,17 +1091,17 @@ on_local_newer (KaluUpdater *kupdater _UNUSED_, const gchar *pkg, const gchar *p
     gboolean answer;
 
     snprintf (question, 255,
-            "Local version of %s is newer (%s) than in %s (%s). Install anyway ?",
+            _("Local version of %s is newer (%s) than in %s (%s). Install anyway ?"),
             pkg,
             pkg_version,
             repo,
             repo_version);
-    snprintf (lbl_yes, 42,   "Install %s", pkg);
-    snprintf (lbl_no,  42,   "Skip %s", pkg);
+    snprintf (lbl_yes, 42,   _("Install %s"), pkg);
+    snprintf (lbl_no,  42,   _("Skip %s"), pkg);
     add_log (LOGTYPE_INFO, "%s", question);
     answer = confirm (question, NULL, lbl_yes, NULL, lbl_no, NULL,
             updater->window);
-    add_log (LOGTYPE_INFO, " %s\n", (answer) ? "Yes" : "No");
+    add_log (LOGTYPE_INFO, " %s\n", (answer) ? _("Yes") : _("No"));
     return answer;
 }
 
@@ -1103,14 +1111,15 @@ on_corrupted_pkg (KaluUpdater *kupdater _UNUSED_, const gchar *file, const gchar
     gchar question[255], lbl_yes[42], lbl_no[42];
     gboolean answer;
 
-    snprintf (question, 255, "File %s is corrupted. Do you want to delete it ?",
+    snprintf (question, 255,
+            _("File %s is corrupted. Do you want to delete it ?"),
             file);
-    snprintf (lbl_yes, 42,   "Delete %s", file);
-    snprintf (lbl_no,  42,   "Do not delete %s", file);
+    snprintf (lbl_yes, 42,   _("Delete %s"), file);
+    snprintf (lbl_no,  42,   _("Do not delete %s"), file);
     add_log (LOGTYPE_INFO, "%s", question);
     answer = confirm (question, error, lbl_yes, NULL, lbl_no, NULL,
             updater->window);
-    add_log (LOGTYPE_INFO, " %s\n", (answer) ? "Yes" : "No");
+    add_log (LOGTYPE_INFO, " %s\n", (answer) ? _("Yes") : _("No"));
     return answer;
 }
 
@@ -1122,17 +1131,18 @@ on_import_key (KaluUpdater *kupdater _UNUSED_, const gchar *key_fingerprint,
     gchar *det;
     gboolean answer;
 
-    snprintf (question, 255, "Do you want to import key %s ?", key_fingerprint);
-    snprintf (details,  255, "Key %s: %s (created %s)",
+    snprintf (question, 255, _("Do you want to import key %s ?"),
+            key_fingerprint);
+    snprintf (details,  255, _("Key %s: %s (created %s)"),
             key_fingerprint,
             key_uid,
             key_created);
     det = g_markup_escape_text (details, -1);
     add_log (LOGTYPE_INFO, "%s\n%s\n", question, det);
-    answer = confirm (question, det, "Yes, import key", NULL, "No", NULL,
+    answer = confirm (question, det, _("Yes, import key"), NULL, _("No"), NULL,
             updater->window);
     g_free (det);
-    add_log (LOGTYPE_INFO, "\t%s\n", (answer) ? "Yes" : "No");
+    add_log (LOGTYPE_INFO, "\t%s\n", (answer) ? _("Yes") : _("No"));
     return answer;
 }
 
@@ -1170,7 +1180,7 @@ on_download (KaluUpdater *kupdater _UNUSED_, const gchar *filename,
                     if (!gtk_widget_get_visible (updater->lbl_action))
                     {
                         gchar buf[255];
-                        snprintf (buf, 255, "Downloading %s ...", filename);
+                        snprintf (buf, 255, _("Downloading %s ..."), filename);
                         gtk_label_set_text (GTK_LABEL (updater->lbl_action),
                                 buf);
                         gtk_widget_show (updater->lbl_action);
@@ -1183,7 +1193,7 @@ on_download (KaluUpdater *kupdater _UNUSED_, const gchar *filename,
         case STEP_USER_CONFIRMED:
             /* adding "Downloading packages" to the log is done on corresponding event */
             gtk_label_set_text (GTK_LABEL (updater->lbl_action),
-                    "Downloading packages...");
+                    _("Downloading packages..."));
             gtk_progress_bar_set_fraction (
                     GTK_PROGRESS_BAR (updater->pbar_action), 0.0);
             gtk_widget_show (updater->lbl_action);
@@ -1284,15 +1294,18 @@ on_sync_dbs (KaluUpdater *kupdater _UNUSED_, gint nb)
     if (updater->step != STEP_SYNC_DBS)
     {
         add_log (LOGTYPE_ERROR,
-                "Error: got a SYNC_DBS event while not synchronizing databases\n");
+                _("Error: got a SYNC_DBS event while not synchronizing databases\n"));
         return;
     }
 
     sync_dbs_t *sync_db = updater->step_data;
     sync_db->total = nb;
-    add_log (LOGTYPE_UNIMPORTANT, "Synchronizing %d databases\n", nb);
+    add_log (LOGTYPE_UNIMPORTANT,
+            _n("Synchronizing a database\n", "Synchronizing %d databases\n",
+                (long unsigned int) nb),
+            nb);
     gtk_label_set_text (GTK_LABEL (updater->lbl_main),
-            "Synchronizing databases...");
+            _("Synchronizing databases..."));
 }
 
 static void
@@ -1301,14 +1314,14 @@ on_sync_db_start (KaluUpdater *kupdater _UNUSED_, const gchar *name)
     if (updater->step != STEP_SYNC_DBS)
     {
         add_log (LOGTYPE_ERROR,
-                "Error: got a SYNC_DB_START event while not synchronizing databases\n");
+                _("Error: got a SYNC_DB_START event while not synchronizing databases\n"));
         return;
     }
 
     sync_dbs_t *sync_db = updater->step_data;
     double pctg;
 
-    add_log (LOGTYPE_NORMAL, "Synchronizing database %s... ", name);
+    add_log (LOGTYPE_NORMAL, _("Synchronizing database %s... "), name);
     pctg = (double) sync_db->processed / sync_db->total;
     gtk_progress_bar_set_fraction (GTK_PROGRESS_BAR (updater->pbar_main), pctg);
 }
@@ -1319,7 +1332,7 @@ on_sync_db_end (KaluUpdater *kupdater _UNUSED_, sync_db_results_t result)
     if (updater->step != STEP_SYNC_DBS)
     {
         add_log (LOGTYPE_ERROR,
-                "Error: got a SYNC_DB_END event while not synchronizing databases\n");
+                _("Error: got a SYNC_DB_END event while not synchronizing databases\n"));
         return;
     }
 
@@ -1328,11 +1341,11 @@ on_sync_db_end (KaluUpdater *kupdater _UNUSED_, sync_db_results_t result)
 
     if (result == SYNC_FAILURE)
     {
-        add_log (LOGTYPE_ERROR, "failed\n");
+        add_log (LOGTYPE_ERROR, _("failed\n"));
     }
     else
     {
-        add_log (LOGTYPE_NORMAL, "ok\n");
+        add_log (LOGTYPE_NORMAL, _("ok\n"));
     }
 
     if (sync_db->total > 0)
@@ -1372,13 +1385,13 @@ updater_sysupgrade_cb (KaluUpdater *kupdater _UNUSED_, const gchar *errmsg)
 
     if (errmsg != NULL)
     {
-        _show_error ("System update failed", "%s", errmsg);
+        _show_error (_("System update failed"), "%s", errmsg);
         return;
     }
 
-    add_log (LOGTYPE_NORMAL, "System upgrade complete.\n");
+    add_log (LOGTYPE_NORMAL, _("System upgrade complete.\n"));
     gtk_label_set_markup (GTK_LABEL (updater->lbl_main),
-            "<big><b><span color=\"blue\">System upgrade complete.</span></b></big>");
+            _("<big><b><span color=\"blue\">System upgrade complete.</span></b></big>"));
     gtk_progress_bar_set_fraction (GTK_PROGRESS_BAR (updater->pbar_main), 1.0);
     gtk_widget_hide (updater->lbl_action);
     gtk_widget_hide (updater->pbar_action);
@@ -1408,20 +1421,20 @@ updater_sysupgrade_cb (KaluUpdater *kupdater _UNUSED_, const gchar *errmsg)
             if (config->confirm_post)
             {
                 add_log (LOGTYPE_INFO,
-                        "Do you want to run the post-sysupgrade process ?");
-                if (confirm ("Do you want to run the post-sysupgrade process ?",
+                        _("Do you want to run the post-sysupgrade process ?"));
+                if (confirm (_("Do you want to run the post-sysupgrade process ?"),
                             updater->cmdline_post->data,
-                            "Yes, Start it now", NULL,
-                            "No", NULL,
+                            _("Yes, Start it now"), NULL,
+                            _("No"), NULL,
                             updater->window))
                 {
-                    add_log (LOGTYPE_INFO, " Yes\n");
+                    add_log (LOGTYPE_INFO, _(" Yes\n"));
                     cmdlines = alpm_list_add (cmdlines,
                             updater->cmdline_post->data);
                 }
                 else
                 {
-                    add_log (LOGTYPE_INFO, " No\n");
+                    add_log (LOGTYPE_INFO, _(" No\n"));
                 }
             }
             else
@@ -1435,23 +1448,24 @@ updater_sysupgrade_cb (KaluUpdater *kupdater _UNUSED_, const gchar *errmsg)
             if (config->confirm_post)
             {
                 add_log (LOGTYPE_INFO,
-                        "Do you want to run the post-sysupgrade processes ?");
+                        _("Do you want to run the post-sysupgrade processes ?"));
                 cmdlines = confirm_choices (
-                        "Do you want to run the following post-sysupgrade processes ?",
-                        "Only checked processes will be launch.",
-                        "Yes, run checked processes now", NULL,
-                        "No", NULL,
-                        "Run",
-                        "Command-line",
+                        _("Do you want to run the following post-sysupgrade processes ?"),
+                        _("Only checked processes will be launch."),
+                        _("Yes, run checked processes now"), NULL,
+                        _("No"), NULL,
+                        /* TRANSLATORS: as in, run selected process */
+                        _c("column", "Run"),
+                        _c("column", "Command-line"),
                         updater->cmdline_post,
                         updater->window);
                 if (NULL != cmdlines)
                 {
-                    add_log (LOGTYPE_INFO, " Yes\n");
+                    add_log (LOGTYPE_INFO, _(" Yes\n"));
                 }
                 else
                 {
-                    add_log (LOGTYPE_INFO, " No\n");
+                    add_log (LOGTYPE_INFO, _(" No\n"));
                 }
             }
             else
@@ -1482,18 +1496,18 @@ updater_sysupgrade_cb (KaluUpdater *kupdater _UNUSED_, const gchar *errmsg)
             {
                 s = strreplace (i->data, "$PACKAGES", string->str);
 
-                add_log (LOGTYPE_NORMAL, "Starting: '%s' ..", s);
+                add_log (LOGTYPE_NORMAL, _("Starting: '%s' .."), s);
                 if (!g_spawn_command_line_async (s, &error))
                 {
-                    add_log (LOGTYPE_NORMAL, " failed\n");
-                    _show_error ("Unable to start post-sysupgrade process.",
-                            "Command-line: %s\nError: %s",
+                    add_log (LOGTYPE_NORMAL, _(" failed\n"));
+                    _show_error (_("Unable to start post-sysupgrade process."),
+                            _("Command-line: %s\nError: %s"),
                             s, error->message);
                     g_clear_error (&error);
                 }
                 else
                 {
-                    add_log (LOGTYPE_NORMAL, " ok\n");
+                    add_log (LOGTYPE_NORMAL, _(" ok\n"));
                 }
                 free (s);
             }
@@ -1511,15 +1525,15 @@ btn_sysupgrade_cb (GtkButton *button _UNUSED_, gpointer data _UNUSED_)
 
     if (updater->step != STEP_WAITING_USER_CONFIRMATION)
     {
-        _show_error ("Unable to start system upgrade",
-                "Invalid internal state");
+        _show_error (_("Unable to start system upgrade"),
+                _("Invalid internal state"));
         return;
     }
     gtk_widget_set_sensitive (updater->btn_close, FALSE);
     gtk_widget_set_sensitive (updater->btn_sysupgrade, FALSE);
     updater->step = STEP_USER_CONFIRMED;
     gtk_label_set_text (GTK_LABEL (updater->lbl_main),
-            "Performing system upgrade...");
+            _("Performing system upgrade..."));
     gtk_progress_bar_set_fraction (GTK_PROGRESS_BAR (updater->pbar_main), 0.0);
     gtk_widget_show (updater->lbl_main);
     gtk_widget_show (updater->pbar_main);
@@ -1529,7 +1543,7 @@ btn_sysupgrade_cb (GtkButton *button _UNUSED_, gpointer data _UNUSED_)
     if (!kalu_updater_sysupgrade (updater->kupdater, NULL,
                 (KaluMethodCallback) updater_sysupgrade_cb, NULL, &error))
     {
-        _show_error ("Unable to start system upgrade", error->message);
+        _show_error (_("Unable to start system upgrade"), error->message);
         g_clear_error (&error);
         return;
     }
@@ -1545,13 +1559,13 @@ updater_get_packages_cb (KaluUpdater *kupdater _UNUSED_, const gchar *errmsg,
 
     if (errmsg != NULL)
     {
-        _show_error ("Failed to get packages list", "%s", errmsg);
+        _show_error (_("Failed to get packages list"), "%s", errmsg);
         return;
     }
     else if (pkgs == NULL)
     {
-        _show_error ("No packages to upgrade",
-                "Your system is already up-to-date.");
+        _show_error (_("No packages to upgrade"),
+                _("Your system is already up-to-date."));
         return;
     }
 
@@ -1602,7 +1616,7 @@ updater_get_packages_cb (KaluUpdater *kupdater _UNUSED_, const gchar *errmsg,
     gtk_progress_bar_set_fraction (GTK_PROGRESS_BAR (updater->pbar_main), 0);
 
     gtk_label_set_markup (GTK_LABEL (updater->lbl_main),
-            "<big><b>Do you want to upgrade your system ?</b></big>");
+            _("<big><b>Do you want to upgrade your system ?</b></big>"));
     if (dl_size > 0)
     {
         updater->pctg_download          = PCTG_DOWNLOAD;
@@ -1614,7 +1628,8 @@ updater_get_packages_cb (KaluUpdater *kupdater _UNUSED_, const gchar *errmsg,
 
         size = humanize_size (dl_size, '\0', &unit);
         snprint_size (dl_buf, 255, size, unit);
-        snprintf (buffer, 255, "Download:\t%s\nInstall:\t\t%s\nNet:\t\t\t%s",
+        snprintf (buffer, 255,
+                _("Download:\t%s\nInstall:\t\t%s\nNet:\t\t\t%s"),
                 dl_buf, inst_buf, net_buf);
     }
     else
@@ -1626,7 +1641,9 @@ updater_get_packages_cb (KaluUpdater *kupdater _UNUSED_, const gchar *errmsg,
         updater->pctg_check_diskspace   = PCTG_NO_DL_CHECK_DISKSPACE;
         updater->pctg_sysupgrade        = PCTG_NO_DL_SYSUPGRADE;
 
-        snprintf (buffer, 255, "Install:\t\t%s\nNet:\t\t\t%s", inst_buf, net_buf);
+        snprintf (buffer, 255,
+                _("Install:\t\t%s\nNet:\t\t\t%s"),
+                inst_buf, net_buf);
     }
     gtk_label_set_markup (GTK_LABEL (updater->lbl_action), buffer);
     gtk_widget_show (updater->lbl_action);
@@ -1634,7 +1651,7 @@ updater_get_packages_cb (KaluUpdater *kupdater _UNUSED_, const gchar *errmsg,
     gtk_widget_set_sensitive (updater->btn_close, TRUE);
     updater->step = STEP_WAITING_USER_CONFIRMATION;
     add_log (LOGTYPE_UNIMPORTANT,
-            "Got package list; waiting for user confirmation.\n");
+            _("Got package list; waiting for user confirmation.\n"));
 }
 
 static void
@@ -1644,7 +1661,7 @@ updater_sync_dbs_cb (KaluUpdater *kupdater, const gchar *errmsg, gpointer data _
 
     if (errmsg != NULL)
     {
-        _show_error ("Failed to synchronize databases", "%s", errmsg);
+        _show_error (_("Failed to synchronize databases"), "%s", errmsg);
         free (updater->step_data);
         updater->step_data = NULL;
         updater->step = STEP_NONE;
@@ -1652,12 +1669,12 @@ updater_sync_dbs_cb (KaluUpdater *kupdater, const gchar *errmsg, gpointer data _
     }
 
     gtk_progress_bar_set_fraction (GTK_PROGRESS_BAR (updater->pbar_main), 1);
-    add_log (LOGTYPE_NORMAL, "Databases synchronized\n");
+    add_log (LOGTYPE_NORMAL, _("Databases synchronized\n"));
     set_kalpm_nb_syncdbs (0);
 
-    add_log (LOGTYPE_UNIMPORTANT, "Getting packages list\n");
+    add_log (LOGTYPE_UNIMPORTANT, _("Getting packages list\n"));
     gtk_label_set_text (GTK_LABEL (updater->lbl_main),
-            "Getting packages list...");
+            _("Getting packages list..."));
     gtk_progress_bar_set_fraction (GTK_PROGRESS_BAR (updater->pbar_main), 0.0);
     if (!kalu_updater_get_packages (kupdater,
                 NULL,
@@ -1665,7 +1682,7 @@ updater_sync_dbs_cb (KaluUpdater *kupdater, const gchar *errmsg, gpointer data _
                 NULL,
                 &error))
     {
-        _show_error ("Failed to get packages list", "%s", error->message);
+        _show_error (_("Failed to get packages list"), "%s", error->message);
         g_clear_error (&error);
         return;
     }
@@ -1681,13 +1698,13 @@ updater_add_db_cb (KaluUpdater *kupdater, const gchar *errmsg, add_db_t *add_db)
     {
         if (errmsg != NULL)
         {
-            add_log (LOGTYPE_ERROR, " failed\n");
-            _show_error ("Failed to register databases", "%s", errmsg);
+            add_log (LOGTYPE_ERROR, _(" failed\n"));
+            _show_error (_("Failed to register databases"), "%s", errmsg);
             free_pacman_config (add_db->pac_conf);
             free (add_db);
             return;
         }
-        add_log (LOGTYPE_NORMAL, " ok\n");
+        add_log (LOGTYPE_NORMAL, _(" ok\n"));
         add_db->pctg += add_db->inc;
         gtk_progress_bar_set_fraction (
                 GTK_PROGRESS_BAR (updater->pbar_main), add_db->pctg);
@@ -1703,7 +1720,7 @@ updater_add_db_cb (KaluUpdater *kupdater, const gchar *errmsg, add_db_t *add_db)
     if (add_db->i)
     {
         database_t *db_conf = add_db->i->data;
-        add_log (LOGTYPE_NORMAL, "Register database %s... ", db_conf->name);
+        add_log (LOGTYPE_NORMAL, _("Register database %s... "), db_conf->name);
         if (!kalu_updater_add_db (kupdater,
                     db_conf->name,
                     db_conf->siglevel,
@@ -1713,8 +1730,9 @@ updater_add_db_cb (KaluUpdater *kupdater, const gchar *errmsg, add_db_t *add_db)
                     (gpointer) add_db,
                     &error))
         {
-            add_log (LOGTYPE_ERROR, " failed\n");
-            _show_error ("Failed to register databases", "%s", error->message);
+            add_log (LOGTYPE_ERROR, _(" failed\n"));
+            _show_error (_("Failed to register databases"), "%s",
+                    error->message);
             g_clear_error (&error);
             free_pacman_config (add_db->pac_conf);
             free (add_db);
@@ -1736,7 +1754,7 @@ updater_add_db_cb (KaluUpdater *kupdater, const gchar *errmsg, add_db_t *add_db)
                     NULL,
                     &error))
         {
-            _show_error ("Failed to synchronize databases", "%s",
+            _show_error (_("Failed to synchronize databases"), "%s",
                     error->message);
             g_clear_error (&error);
             free (updater->step_data);
@@ -1752,15 +1770,15 @@ updater_init_alpm_cb (KaluUpdater *kupdater, const gchar *errmsg,
 {
     if (errmsg != NULL)
     {
-        add_log (LOGTYPE_UNIMPORTANT, " failed\n");
-        _show_error ("Failed to initialize ALPM library", "%s", errmsg);
+        add_log (LOGTYPE_UNIMPORTANT, _(" failed\n"));
+        _show_error (_("Failed to initialize ALPM library"), "%s", errmsg);
         free_pacman_config (pac_conf);
         return;
     }
-    add_log (LOGTYPE_UNIMPORTANT, " ok\n");
+    add_log (LOGTYPE_UNIMPORTANT, _(" ok\n"));
     gtk_progress_bar_set_fraction (GTK_PROGRESS_BAR (updater->pbar_main), 0.42);
 
-    add_log (LOGTYPE_UNIMPORTANT, "Registering databases\n");
+    add_log (LOGTYPE_UNIMPORTANT, _("Registering databases\n"));
     add_db_t *add_db;
     add_db = new0 (add_db_t, 1);
     add_db->pac_conf = pac_conf;
@@ -1779,18 +1797,18 @@ updater_method_cb (KaluUpdater *kupdater, const gchar *errmsg,
 
     if (errmsg != NULL)
     {
-        add_log (LOGTYPE_UNIMPORTANT, " failed\n");
-        _show_error ("Failed to initialize", "%s", errmsg);
+        add_log (LOGTYPE_UNIMPORTANT, _(" failed\n"));
+        _show_error (_("Failed to initialize"), "%s", errmsg);
         free_pacman_config (pac_conf);
         return;
     }
-    add_log (LOGTYPE_UNIMPORTANT, " ok\n");
+    add_log (LOGTYPE_UNIMPORTANT, _(" ok\n"));
     gtk_progress_bar_set_fraction (
             GTK_PROGRESS_BAR (updater->pbar_main), 0.23);
 
-    add_log (LOGTYPE_UNIMPORTANT, "Initializing ALPM library...");
+    add_log (LOGTYPE_UNIMPORTANT, _("Initializing ALPM library..."));
     gtk_label_set_text (GTK_LABEL (updater->lbl_main),
-            "Initializing ALPM library...");
+            _("Initializing ALPM library..."));
     if (!kalu_updater_init_alpm (kupdater,
                 pac_conf->rootdir,
                 pac_conf->dbpath,
@@ -1811,8 +1829,9 @@ updater_method_cb (KaluUpdater *kupdater, const gchar *errmsg,
                 (gpointer) pac_conf,
                 &error))
     {
-        add_log (LOGTYPE_UNIMPORTANT, " failed\n");
-        _show_error ("Failed to initialize ALPM library", "%s", error->message);
+        add_log (LOGTYPE_UNIMPORTANT, _(" failed\n"));
+        _show_error (_("Failed to initialize ALPM library"), "%s",
+                error->message);
         g_clear_error (&error);
         free_pacman_config (pac_conf);
     }
@@ -1828,14 +1847,15 @@ updater_new_cb (GObject *source _UNUSED_, GAsyncResult *res,
     kalu_updater = kalu_updater_new_finish (res, &error);
     if (kalu_updater == NULL)
     {
-        add_log (LOGTYPE_UNIMPORTANT, " failed\n");
-        _show_error ("Could not initiate kalu_updater", "%s", error->message);
+        add_log (LOGTYPE_UNIMPORTANT, _(" failed\n"));
+        _show_error (_("Could not initiate kalu_updater"), "%s",
+                error->message);
         g_clear_error (&error);
         free_pacman_config (pac_conf);
         gtk_widget_destroy (updater->window);
         return;
     }
-    add_log (LOGTYPE_UNIMPORTANT, " ok \n");
+    add_log (LOGTYPE_UNIMPORTANT, _(" ok \n"));
     updater->kupdater = kalu_updater;
     gtk_progress_bar_set_fraction (GTK_PROGRESS_BAR (updater->pbar_main), 0.15);
 
@@ -1932,14 +1952,14 @@ updater_new_cb (GObject *source _UNUSED_, GAsyncResult *res,
             G_CALLBACK (on_import_key),
             NULL);
 
-    add_log (LOGTYPE_UNIMPORTANT, "Initializing kalu_updater...");
+    add_log (LOGTYPE_UNIMPORTANT, _("Initializing kalu_updater..."));
     if (!kalu_updater_init_upd (kalu_updater, NULL,
                 (KaluMethodCallback) updater_method_cb,
                 (gpointer) pac_conf,
                 &error))
     {
-        add_log (LOGTYPE_UNIMPORTANT, " failed\n");
-        _show_error ("Could not initialize kalu_updater", "%s", error->message);
+        add_log (LOGTYPE_UNIMPORTANT, _(" failed\n"));
+        _show_error (_("Could not initialize kalu_updater"), "%s", error->message);
         g_clear_error (&error);
         free_pacman_config (pac_conf);
     }
@@ -2091,7 +2111,7 @@ updater_run (const gchar *conffile, alpm_list_t *cmdline_post)
     GtkWidget *window;
     window = gtk_window_new (GTK_WINDOW_TOPLEVEL);
     updater->window = window;
-    gtk_window_set_title (GTK_WINDOW (window), "System upgrade - kalu");
+    gtk_window_set_title (GTK_WINDOW (window), _("System upgrade - kalu"));
     gtk_container_set_border_width (GTK_CONTAINER (window), 0);
     gtk_window_set_has_resize_grip (GTK_WINDOW (window), FALSE);
     /* icon */
@@ -2118,7 +2138,7 @@ updater_run (const gchar *conffile, alpm_list_t *cmdline_post)
 
     /* label */
     GtkWidget *label;
-    label = gtk_label_new ("Initializing... Please wait...");
+    label = gtk_label_new (_("Initializing... Please wait..."));
     updater->lbl_main = label;
     gtk_box_pack_start (GTK_BOX (vbox), label, FALSE, FALSE, 0);
     gtk_widget_show (label);
@@ -2210,7 +2230,8 @@ updater_run (const gchar *conffile, alpm_list_t *cmdline_post)
     GtkTreeViewColumn *column;
     /* column: Package */
     renderer = gtk_cell_renderer_text_new ();
-    column = gtk_tree_view_column_new_with_attributes ("Package",
+    column = gtk_tree_view_column_new_with_attributes (
+            _c("column", "Package"),
             renderer,
             "text", UCOL_PACKAGE,
             NULL);
@@ -2224,7 +2245,8 @@ updater_run (const gchar *conffile, alpm_list_t *cmdline_post)
     }
     gtk_tree_view_append_column (GTK_TREE_VIEW (list), column);
     /* column: Old version */
-    column = gtk_tree_view_column_new_with_attributes ("Old/Current",
+    column = gtk_tree_view_column_new_with_attributes (
+            _c("column", "Old/Current"),
             renderer,
             "text", UCOL_OLD,
             NULL);
@@ -2238,7 +2260,8 @@ updater_run (const gchar *conffile, alpm_list_t *cmdline_post)
     }
     gtk_tree_view_append_column (GTK_TREE_VIEW (list), column);
     /* column: New version */
-    column = gtk_tree_view_column_new_with_attributes ("New",
+    column = gtk_tree_view_column_new_with_attributes (
+            _c("column", "New"),
             renderer,
             "text", UCOL_NEW,
             NULL);
@@ -2255,7 +2278,8 @@ updater_run (const gchar *conffile, alpm_list_t *cmdline_post)
     renderer_lbl = gtk_cell_renderer_text_new ();
     g_object_set (renderer_lbl, "foreground", "blue", NULL);
     renderer_pbar = gtk_cell_renderer_progress_new ();
-    column = gtk_tree_view_column_new_with_attributes ("Download",
+    column = gtk_tree_view_column_new_with_attributes (
+            _c("column", "Download"),
             renderer_lbl,
             "foreground-set",
             UCOL_DL_IS_DONE,
@@ -2279,7 +2303,8 @@ updater_run (const gchar *conffile, alpm_list_t *cmdline_post)
     renderer_lbl = gtk_cell_renderer_text_new ();
     g_object_set (renderer_lbl, "foreground", "blue", NULL);
     renderer_pbar = gtk_cell_renderer_progress_new ();
-    column = gtk_tree_view_column_new_with_attributes ("Installed",
+    column = gtk_tree_view_column_new_with_attributes (
+            _c("column", "Installed"),
             renderer_lbl,
             "foreground-set",
             UCOL_INST_IS_DONE,
@@ -2331,7 +2356,7 @@ updater_run (const gchar *conffile, alpm_list_t *cmdline_post)
 
     /* expander */
     GtkWidget *expander;
-    expander = gtk_expander_new ("Log");
+    expander = gtk_expander_new (_("Log"));
     updater->expander = expander;
     gtk_expander_set_resize_toplevel (GTK_EXPANDER (expander), TRUE);
     gtk_paned_pack2 (GTK_PANED (paned), expander, FALSE, FALSE);
@@ -2383,7 +2408,7 @@ updater_run (const gchar *conffile, alpm_list_t *cmdline_post)
 
     GtkWidget *button;
     /* Upgrade system */
-    button = gtk_button_new_with_label ("Upgrade system...");
+    button = gtk_button_new_with_label (_("Upgrade system..."));
     updater->btn_sysupgrade = button;
     image = gtk_image_new_from_stock ("kalu-logo", GTK_ICON_SIZE_BUTTON);
     gtk_button_set_image (GTK_BUTTON (button), image);
@@ -2413,31 +2438,31 @@ updater_run (const gchar *conffile, alpm_list_t *cmdline_post)
     /* parse pacman.conf */
     GError *error = NULL;
     pacman_config_t *pac_conf = NULL;
-    add_log (LOGTYPE_UNIMPORTANT, "Parsing %s ...", conffile);
+    add_log (LOGTYPE_UNIMPORTANT, _("Parsing %s ..."), conffile);
     if (!parse_pacman_conf (conffile, NULL, 0, 0, &pac_conf, &error))
     {
-        add_log (LOGTYPE_UNIMPORTANT, " failed\n");
-        _show_error ("Unable to parse pacman.conf", "%s: %s",
+        add_log (LOGTYPE_UNIMPORTANT, _(" failed\n"));
+        _show_error (_("Unable to parse pacman.conf"), "%s: %s",
                 conffile, error->message);
         g_clear_error (&error);
         free_pacman_config (pac_conf);
         gtk_widget_destroy (window);
         return;
     }
-    add_log (LOGTYPE_UNIMPORTANT, " ok\n");
+    add_log (LOGTYPE_UNIMPORTANT, _(" ok\n"));
     gtk_progress_bar_set_fraction (GTK_PROGRESS_BAR (updater->pbar_main), 0.05);
 
     /* we must have databases */
     if (alpm_list_count (pac_conf->databases) == 0)
     {
-        _show_error ("No databases defined", NULL);
+        _show_error (_("No databases defined"), NULL);
         free_pacman_config (pac_conf);
         gtk_widget_destroy (window);
         return;
     }
 
     /* create kalu_updater */
-    add_log (LOGTYPE_UNIMPORTANT, "Creating kalu_updater...");
+    add_log (LOGTYPE_UNIMPORTANT, _("Creating kalu_updater..."));
     kalu_updater_new (NULL,
             (GAsyncReadyCallback) updater_new_cb,
             (gpointer) pac_conf);

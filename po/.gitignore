@@ -1,0 +1,5 @@
+*.gmo
+POTFILES
+kalu.pot
+remove-potcdate.sed
+stamp-po

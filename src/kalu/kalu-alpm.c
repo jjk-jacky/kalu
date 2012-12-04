@@ -98,7 +98,7 @@ create_local_db (const gchar *_dbpath, gchar **newpath, GError **error)
     /* create folder in tmp dir */
     if (NULL == (folder = g_dir_make_tmp ("kalu-XXXXXX", NULL)))
     {
-        g_set_error (error, KALU_ERROR, 1, "Unable to create temp folder");
+        g_set_error (error, KALU_ERROR, 1, _("Unable to create temp folder"));
         return FALSE;
     }
     debug ("created tmp folder %s", folder);
@@ -116,7 +116,9 @@ create_local_db (const gchar *_dbpath, gchar **newpath, GError **error)
     snprintf (buf2, MAX_PATH - 1, "%s/local", folder);
     if (0 != symlink (buf, buf2))
     {
-        g_set_error (error, KALU_ERROR, 1, "Unable to create symlink %s", buf2);
+        g_set_error (error, KALU_ERROR, 1,
+                _("Unable to create symlink %s"),
+                buf2);
         goto error;
     }
     debug ("created symlink %s", buf2);
@@ -125,7 +127,9 @@ create_local_db (const gchar *_dbpath, gchar **newpath, GError **error)
     snprintf (buf, MAX_PATH - 1, "%s/sync", folder);
     if (0 != mkdir (buf, 0700))
     {
-        g_set_error (error, KALU_ERROR, 1, "Unable to create folder %s", buf);
+        g_set_error (error, KALU_ERROR, 1,
+                _("Unable to create folder %s"),
+                buf);
         goto error;
     }
     debug ("created folder %s", buf);
@@ -133,7 +137,9 @@ create_local_db (const gchar *_dbpath, gchar **newpath, GError **error)
     snprintf (buf, MAX_PATH - 1, "%s/sync", dbpath);
     if (NULL == (dir = g_dir_open (buf, 0, NULL)))
     {
-        g_set_error (error, KALU_ERROR, 1, "Unable to open folder %s", buf);
+        g_set_error (error, KALU_ERROR, 1,
+                _("Unable to open folder %s"),
+                buf);
         goto error;
     }
 
@@ -153,7 +159,8 @@ create_local_db (const gchar *_dbpath, gchar **newpath, GError **error)
                 snprintf (buf2, MAX_PATH - 1, "%s/sync/%s", folder, file);
                 if (!copy_file (buf, buf2))
                 {
-                    g_set_error (error, KALU_ERROR, 1, "Copy failed for %s",
+                    g_set_error (error, KALU_ERROR, 1,
+                            _("Copy failed for %s"),
                             buf);
                     g_dir_close (dir);
                     goto error;
@@ -178,7 +185,7 @@ create_local_db (const gchar *_dbpath, gchar **newpath, GError **error)
         }
         else
         {
-            g_set_error (error, KALU_ERROR, 1, "Unable to stat %s\n", buf);
+            g_set_error (error, KALU_ERROR, 1, _("Unable to stat %s\n"), buf);
             g_dir_close (dir);
             goto error;
         }
@@ -219,7 +226,7 @@ kalu_alpm_load (const gchar *conffile, GError **error)
     if (!create_local_db (pac_conf->dbpath, &newpath, &local_err))
     {
         g_set_error (error, KALU_ERROR, 1,
-                "Unable to create local copy of database: %s",
+                _("Unable to create local copy of database: %s"),
                 local_err->message);
         g_clear_error (&local_err);
         free_pacman_config (pac_conf);
@@ -233,7 +240,7 @@ kalu_alpm_load (const gchar *conffile, GError **error)
     if (alpm->handle == NULL)
     {
         g_set_error (error, KALU_ERROR, 1,
-                "Failed to initialize alpm library: %s",
+                _("Failed to initialize alpm library: %s"),
                 alpm_strerror (err));
         free_pacman_config (pac_conf);
         kalu_alpm_free ();
@@ -261,7 +268,7 @@ kalu_alpm_load (const gchar *conffile, GError **error)
         if (db == NULL)
         {
             g_set_error (error, KALU_ERROR, 1,
-                    "Could not register database %s: %s",
+                    _("Could not register database %s: %s"),
                     db_conf->name, alpm_strerror (alpm_errno (alpm->handle)));
             free_pacman_config (pac_conf);
             kalu_alpm_free ();
@@ -290,8 +297,8 @@ kalu_alpm_load (const gchar *conffile, GError **error)
                 if (strstr (temp, "$arch"))
                 {
                     g_set_error (error, KALU_ERROR, 1,
-                            "Server %s contains the $arch variable, "
-                            "but no Architecture was defined",
+                            _("Server %s contains the $arch variable, "
+                                "but no Architecture was defined"),
                             value);
                     free (temp);
                     free (value);
@@ -307,7 +314,7 @@ kalu_alpm_load (const gchar *conffile, GError **error)
             {
                 /* pm_errno is set by alpm_db_setserver */
                 g_set_error (error, KALU_ERROR, 1,
-                        "Could not add server %s to database %s: %s",
+                        _("Could not add server %s to database %s: %s"),
                         server,
                         dbname,
                         alpm_strerror (alpm_errno (alpm->handle)));
@@ -353,7 +360,7 @@ kalu_alpm_syncdbs (gint *nb_dbs_synced, GError **error)
         if (ret < 0)
         {
             g_set_error (error, KALU_ERROR, 1,
-                    "Failed to update %s: %s",
+                    _("Failed to update %s: %s"),
                     alpm_db_get_name (db),
                     alpm_strerror (alpm_errno (alpm->handle)));
             return FALSE;
@@ -410,7 +417,7 @@ kalu_alpm_has_updates (alpm_list_t **packages, GError **error)
                 {
                     const char *pkg = i->data;
                     len -= snprintf (buf, 255,
-                            "- Package %s does not have a valid architecture\n",
+                            _("- Package %s does not have a valid architecture\n"),
                             pkg);
                     if (len >= 0)
                     {
@@ -424,7 +431,7 @@ kalu_alpm_has_updates (alpm_list_t **packages, GError **error)
                     alpm_depmissing_t *miss = i->data;
                     char *depstring = alpm_dep_compute_string (miss->depend);
                     len -= snprintf (buf, 255,
-                            "- %s requires %s\n",
+                            _("- %s requires %s\n"),
                             miss->target,
                             depstring);
                     if (len >= 0)
@@ -442,7 +449,7 @@ kalu_alpm_has_updates (alpm_list_t **packages, GError **error)
                     if (conflict->reason->mod == ALPM_DEP_MOD_ANY)
                     {
                         len -= snprintf (buf, 255,
-                                "- %s and %s are in conflict\n",
+                                _("- %s and %s are in conflict\n"),
                                 conflict->package1,
                                 conflict->package2);
                         if (len >= 0)
@@ -455,7 +462,7 @@ kalu_alpm_has_updates (alpm_list_t **packages, GError **error)
                         char *reason;
                         reason = alpm_dep_compute_string (conflict->reason);
                         len -= snprintf (buf, 255,
-                                "- %s and %s are in conflict (%s)\n",
+                                _("- %s and %s are in conflict (%s)\n"),
                                 conflict->package1,
                                 conflict->package2,
                                 reason);
@@ -471,7 +478,7 @@ kalu_alpm_has_updates (alpm_list_t **packages, GError **error)
                 break;
         }
         g_set_error (error, KALU_ERROR, 2,
-                "Failed to prepare transaction: %s\n%s",
+                _("Failed to prepare transaction: %s\n%s"),
                 alpm_strerror (alpm_errno (alpm->handle)),
                 err);
         goto cleanup;
@@ -499,7 +506,8 @@ kalu_alpm_has_updates (alpm_list_t **packages, GError **error)
         }
         else
         {
-            package->old_version = strdup ("none");
+            /* TRANSLATORS: no previous version */
+            package->old_version = strdup (_("none"));
             package->old_size = 0;
         }
 

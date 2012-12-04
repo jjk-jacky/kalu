@@ -446,7 +446,7 @@ kalu_check_work (gboolean is_auto)
         }
         else if (error != NULL)
         {
-            do_notify_error ("Unable to check the news", error->message);
+            do_notify_error (_("Unable to check the news"), error->message);
             g_clear_error (&error);
         }
 #ifndef DISABLE_GUI
@@ -468,7 +468,7 @@ kalu_check_work (gboolean is_auto)
         if (!kalu_alpm_load (config->pacmanconf, &error))
         {
             do_notify_error (
-                    "Unable to check for updates -- loading alpm library failed",
+                    _("Unable to check for updates -- loading alpm library failed"),
                     error->message);
             g_clear_error (&error);
 #ifndef DISABLE_GUI
@@ -485,7 +485,7 @@ kalu_check_work (gboolean is_auto)
                 && !kalu_alpm_syncdbs (&nb_syncdbs, &error))
         {
             do_notify_error (
-                    "Unable to check for updates -- could not synchronize databases",
+                    _("Unable to check for updates -- could not synchronize databases"),
                     error->message);
             g_clear_error (&error);
             kalu_alpm_free ();
@@ -540,7 +540,7 @@ kalu_check_work (gboolean is_auto)
 
                             notif = new (notif_t, 1);
                             notif->type = CHECK_UPGRADES;
-                            notif->summary = strdup ("Unable to compile list of packages");
+                            notif->summary = strdup (_("Unable to compile list of packages"));
                             notif->text = strdup (error->message);
                             notif->data = NULL;
 
@@ -550,7 +550,7 @@ kalu_check_work (gboolean is_auto)
                             {
                                 notify_notification_add_action (notification,
                                         "do_updates",
-                                        "Update system...",
+                                        _c("notif-button", "Update system..."),
                                         (NotifyActionCallback) action_upgrade,
                                         NULL,
                                         NULL);
@@ -578,7 +578,8 @@ kalu_check_work (gboolean is_auto)
                         else
                         {
 #endif
-                            do_notify_error ("Unable to compile list of packages",
+                            do_notify_error (
+                                    _("Unable to compile list of packages"),
                                     error->message);
 #ifndef DISABLE_GUI
                         }
@@ -586,7 +587,8 @@ kalu_check_work (gboolean is_auto)
                     }
                     else
                     {
-                        do_notify_error ("Unable to check for updates",
+                        do_notify_error (
+                                _("Unable to check for updates"),
                                 error->message);
                     }
                     g_clear_error (&error);
@@ -624,7 +626,7 @@ kalu_check_work (gboolean is_auto)
                 {
                     got_something = TRUE;
                     do_notify_error (
-                            "Unable to check for updates of watched packages",
+                            _("Unable to check for updates of watched packages"),
                             error->message);
                     g_clear_error (&error);
                 }
@@ -662,7 +664,8 @@ kalu_check_work (gboolean is_auto)
 #endif
                     {
                         got_something = TRUE;
-                        do_notify_error ("Unable to check for AUR packages",
+                        do_notify_error (
+                                _("Unable to check for AUR packages"),
                                 error->message);
                         g_clear_error (&error);
                     }
@@ -679,7 +682,8 @@ kalu_check_work (gboolean is_auto)
 #endif
                 {
                     got_something = TRUE;
-                    do_notify_error ("Unable to check for AUR packages",
+                    do_notify_error (
+                            _("Unable to check for AUR packages"),
                             error->message);
                     g_clear_error (&error);
                 }
@@ -717,7 +721,7 @@ kalu_check_work (gboolean is_auto)
             {
                 got_something = TRUE;
                 do_notify_error (
-                        "Unable to check for updates of watched AUR packages",
+                        _("Unable to check for updates of watched AUR packages"),
                         error->message);
                 g_clear_error (&error);
             }
@@ -731,7 +735,7 @@ kalu_check_work (gboolean is_auto)
 
     if (!is_auto && !got_something)
     {
-        do_notify_error ("No upgrades available.", NULL);
+        do_notify_error (_("No upgrades available."), NULL);
     }
 
 #ifndef DISABLE_GUI
@@ -941,19 +945,25 @@ main (int argc, char *argv[])
     zero (kalpm_state);
 #endif
 
+#ifdef ENABLE_NLS
+    setlocale (LC_ALL, "");
+    bindtextdomain (PACKAGE, LOCALEDIR);
+    textdomain (PACKAGE);
+#endif
+
     /* parse command line */
     gboolean         show_version       = FALSE;
     gboolean         run_manual_checks  = FALSE;
     gboolean         run_auto_checks    = FALSE;
     GOptionEntry     options[] = {
         { "auto-checks",    'a', 0, G_OPTION_ARG_NONE, &run_auto_checks,
-            "Run automatic checks", NULL },
+            N_("Run automatic checks"), NULL },
         { "manual-checks",  'm', 0, G_OPTION_ARG_NONE, &run_manual_checks,
-            "Run manual checks", NULL },
+            N_("Run manual checks"), NULL },
         { "debug",          'd', 0, G_OPTION_ARG_NONE, &config->is_debug,
-            "Enable debug mode", NULL },
+            N_("Enable debug mode"), NULL },
         { "version",        'V', 0, G_OPTION_ARG_NONE, &show_version,
-            "Show version information", NULL },
+            N_("Show version information"), NULL },
         { NULL }
     };
 
@@ -963,10 +973,13 @@ main (int argc, char *argv[])
 
         context = g_option_context_new (NULL);
         g_option_context_add_main_entries (context, options, NULL);
+#ifdef ENABLE_NLS
+        g_option_context_set_translation_domain (context, PACKAGE);
+#endif
 
         if (!g_option_context_parse (context, &argc, &argv, &error))
         {
-            fprintf (stderr, "option parsing failed: %s\n", error->message);
+            fprintf (stderr, _("option parsing failed: %s\n"), error->message);
             g_option_context_free (context);
             return 1;
         }
@@ -1021,22 +1034,22 @@ main (int argc, char *argv[])
 #endif
 
     config->tpl_upgrades = new0 (templates_t, 1);
-    config->tpl_upgrades->title = strdup ("$NB updates available (D: $DL; N: $NET)");
-    config->tpl_upgrades->package = strdup ("- <b>$PKG</b> $OLD > <b>$NEW</b> (D: $DL; N: $NET)");
+    config->tpl_upgrades->title = strdup (_("$NB updates available (D: $DL; N: $NET)"));
+    config->tpl_upgrades->package = strdup (_("- <b>$PKG</b> $OLD > <b>$NEW</b> (D: $DL; N: $NET)"));
     config->tpl_upgrades->sep = strdup ("\n");
 
     config->tpl_watched = new0 (templates_t, 1);
-    config->tpl_watched->title = strdup ("$NB watched packages updated (D: $DL; N: $NET)");
+    config->tpl_watched->title = strdup (_("$NB watched packages updated (D: $DL; N: $NET)"));
 
     config->tpl_aur = new0 (templates_t, 1);
-    config->tpl_aur->title = strdup ("AUR: $NB packages updated");
+    config->tpl_aur->title = strdup (_("AUR: $NB packages updated"));
     config->tpl_aur->package = strdup ("- <b>$PKG</b> $OLD > <b>$NEW</b>");
 
     config->tpl_watched_aur = new0 (templates_t, 1);
-    config->tpl_watched_aur->title = strdup ("AUR: $NB watched packages updated");
+    config->tpl_watched_aur->title = strdup (_("AUR: $NB watched packages updated"));
 
     config->tpl_news = new0 (templates_t, 1);
-    config->tpl_news->title = strdup ("$NB unread news");
+    config->tpl_news->title = strdup (_("$NB unread news"));
     config->tpl_news->package = strdup ("- $NEWS");
 
 #ifndef DISABLE_GUI
@@ -1044,8 +1057,8 @@ main (int argc, char *argv[])
     {
         if (!gtk_init_check (&argc, &argv))
         {
-            fputs ("GTK+ initialization failed\n", stderr);
-            puts ("To run kalu on CLI only mode, use --auto-checks or --manual-checks");
+            fputs (_("GTK+ initialization failed\n"), stderr);
+            puts (_("To run kalu on CLI only mode, use --auto-checks or --manual-checks"));
             free_config ();
             return 1;
         }
@@ -1057,7 +1070,7 @@ main (int argc, char *argv[])
             g_get_home_dir ());
     if (!parse_config_file (conffile, CONF_FILE_KALU, &error))
     {
-        do_show_error ("Errors while parsing configuration",
+        do_show_error (_("Errors while parsing configuration"),
                 error->message, NULL);
         g_clear_error (&error);
     }
@@ -1066,7 +1079,7 @@ main (int argc, char *argv[])
             g_get_home_dir ());
     if (!parse_config_file (conffile, CONF_FILE_WATCHED, &error))
     {
-        do_show_error ("Unable to parse watched packages",
+        do_show_error (_("Unable to parse watched packages"),
                 error->message, NULL);
         g_clear_error (&error);
     }
@@ -1075,7 +1088,7 @@ main (int argc, char *argv[])
             g_get_home_dir ());
     if (!parse_config_file (conffile, CONF_FILE_WATCHED_AUR, &error))
     {
-        do_show_error ("Unable to parse watched AUR packages",
+        do_show_error (_("Unable to parse watched AUR packages"),
                 error->message, NULL);
         g_clear_error (&error);
     }
@@ -1084,7 +1097,7 @@ main (int argc, char *argv[])
             g_get_home_dir ());
     if (!parse_config_file (conffile, CONF_FILE_NEWS, &error))
     {
-        do_show_error ("Unable to parse last news data",
+        do_show_error (_("Unable to parse last news data"),
                 error->message, NULL);
         g_clear_error (&error);
     }
@@ -1095,8 +1108,9 @@ main (int argc, char *argv[])
     }
     else
     {
-        do_show_error ("Unable to initialize cURL",
-                "kalu will therefore not be able to check the AUR",
+        do_show_error (
+                _("Unable to initialize cURL"),
+                _("kalu will therefore not be able to check the AUR"),
                 NULL);
     }
 

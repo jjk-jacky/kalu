@@ -3,7 +3,7 @@
  *
  * gui.c
  * Copyright (C) 2012 Olivier Brunel <i.am.jack.mail@gmail.com>
- * 
+ *
  * This file is part of kalu.
  *
  * kalu is free software: you can redistribute it and/or modify it under the
@@ -91,14 +91,15 @@ show_notif (notif_t *notif)
                 && is_pacman_conflicting ((alpm_list_t *) notif->data))
         {
             notify_notification_add_action (notification, "do_conflict_warn",
-                    "Possible pacman/kalu conflict...",
+                    _c("notif-button", "Possible pacman/kalu conflict..."),
                     (NotifyActionCallback) show_pacman_conflict,
                     NULL, NULL);
         }
         if (config->action != UPGRADE_NO_ACTION)
         {
             notify_notification_add_action (notification, "do_updates",
-                    "Update system...", (NotifyActionCallback) action_upgrade,
+                    _c("notif-button", "Update system..."),
+                    (NotifyActionCallback) action_upgrade,
                     NULL, NULL);
         }
     }
@@ -111,7 +112,7 @@ show_notif (notif_t *notif)
     else if (notif->type & CHECK_AUR)
     {
         notify_notification_add_action (notification, "do_updates_aur",
-                "Update AUR packages...",
+                _c("notif-button", "Update AUR packages..."),
                 (NotifyActionCallback) action_upgrade,
                 notif->data,
                 NULL);
@@ -119,7 +120,7 @@ show_notif (notif_t *notif)
     else if (notif->type & CHECK_WATCHED)
     {
         notify_notification_add_action (notification, "mark_watched",
-                "Mark packages...",
+                _c("notif-button", "Mark packages..."),
                 (NotifyActionCallback) action_watched,
                 notif,
                 NULL);
@@ -127,7 +128,7 @@ show_notif (notif_t *notif)
     else if (notif->type & CHECK_WATCHED_AUR)
     {
         notify_notification_add_action (notification, "mark_watched_aur",
-                "Mark packages...",
+                _c("notif-button", "Mark packages..."),
                 (NotifyActionCallback) action_watched_aur,
                 notif,
                 NULL);
@@ -135,7 +136,7 @@ show_notif (notif_t *notif)
     else if (notif->type & CHECK_NEWS)
     {
         notify_notification_add_action (notification, "mark_news",
-                "Show news...",
+                _c("notif-button", "Show news..."),
                 (NotifyActionCallback) action_news,
                 notif,
                 NULL);
@@ -157,12 +158,12 @@ show_error_cmdline (gchar *arg[])
             GTK_MESSAGE_ERROR,
             GTK_BUTTONS_OK,
             "%s",
-            "Unable to start process");
+            _("Unable to start process"));
     gtk_message_dialog_format_secondary_markup (GTK_MESSAGE_DIALOG (dialog),
-            "Error while trying to run command line: %s\n\nThe error was: <b>%s</b>",
+            _("Error while trying to run command line: %s\n\nThe error was: <b>%s</b>"),
             arg[0],
             arg[1]);
-    gtk_window_set_title (GTK_WINDOW (dialog), "kalu: Unable to start process");
+    gtk_window_set_title (GTK_WINDOW (dialog), _("kalu: Unable to start process"));
     gtk_window_set_decorated (GTK_WINDOW (dialog), FALSE);
     gtk_window_set_skip_taskbar_hint (GTK_WINDOW (dialog), FALSE);
     gtk_window_set_skip_pager_hint (GTK_WINDOW (dialog), FALSE);
@@ -262,9 +263,9 @@ action_watched (NotifyNotification *notification, char *action _UNUSED_,
     }
     else
     {
-        show_error ("Unable to mark watched packages",
-                "Watched packages have changed, "
-                "you need to run the checks again to be up-to-date.",
+        show_error (_("Unable to mark watched packages"),
+                _("Watched packages have changed, "
+                    "you need to run the checks again to be up-to-date."),
                 NULL);
     }
 }
@@ -280,9 +281,9 @@ action_watched_aur (NotifyNotification *notification, char *action _UNUSED_,
     }
     else
     {
-        show_error ("Unable to mark watched AUR packages",
-                "Watched AUR packages have changed, "
-                "you need to run the checks again to be up-to-date.",
+        show_error (_("Unable to mark watched AUR packages"),
+                _("Watched AUR packages have changed, "
+                    "you need to run the checks again to be up-to-date."),
                 NULL);
     }
 }
@@ -299,14 +300,15 @@ action_news (NotifyNotification *notification, char *action _UNUSED_,
         set_kalpm_busy (TRUE);
         if (!news_show ((gchar *) notif->data, TRUE, &error))
         {
-            show_error ("Unable to show the news", error->message, NULL);
+            show_error (_("Unable to show the news"), error->message, NULL);
             g_clear_error (&error);
         }
     }
     else
     {
-        show_error ("Unable to show unread news",
-                "Read news have changed, you need to run the checks again to be up-to-date.",
+        show_error (_("Unable to show unread news"),
+                _("Read news have changed, "
+                    "you need to run the checks again to be up-to-date."),
                 NULL);
     }
 }
@@ -447,7 +449,7 @@ show_last_notifs (void)
         notif_t notif;
 
         notif.type = 0;
-        notif.summary = (gchar *) "No notifications to show.";
+        notif.summary = (gchar *) _("No notifications to show.");
         notif.text = NULL;
         notif.data = NULL;
 
@@ -566,7 +568,8 @@ menu_news_cb (GtkMenuItem *item _UNUSED_, gpointer data _UNUSED_)
 
     if (!news_show (NULL, FALSE, &error))
     {
-        show_error ("Unable to show the recent Arch Linux news", error->message, NULL);
+        show_error (_("Unable to show the recent Arch Linux news"),
+                error->message, NULL);
         g_clear_error (&error);
     }
 }
@@ -578,7 +581,7 @@ menu_help_cb (GtkMenuItem *item _UNUSED_, gpointer data _UNUSED_)
 
     if (!show_help (&error))
     {
-        show_error ("Unable to show help", error->message, NULL);
+        show_error (_("Unable to show help"), error->message, NULL);
         g_clear_error (&error);
     }
 }
@@ -590,7 +593,7 @@ menu_history_cb (GtkMenuItem *item _UNUSED_, gpointer data _UNUSED_)
 
     if (!show_history (&error))
     {
-        show_error ("Unable to show change log", error->message, NULL);
+        show_error (_("Unable to show change log"), error->message, NULL);
         g_clear_error (&error);
     }
 }
@@ -658,19 +661,21 @@ icon_popup_cb (GtkStatusIcon *_icon _UNUSED_, guint button, guint activate_time,
 
     menu = gtk_menu_new ();
 
-    item = gtk_image_menu_item_new_with_label ("Re-show last notifications...");
+    item = gtk_image_menu_item_new_with_label (
+            _c("systray-menu", "Re-show last notifications..."));
     gtk_widget_set_sensitive (item, !kalpm_state.is_busy && config->last_notifs);
     image = gtk_image_new_from_stock (GTK_STOCK_REDO, GTK_ICON_SIZE_MENU);
     gtk_image_menu_item_set_image (GTK_IMAGE_MENU_ITEM (item), image);
-    gtk_widget_set_tooltip_text (item, "Show notifications from last ran checks");
+    gtk_widget_set_tooltip_text (item,
+            _("Show notifications from last ran checks"));
     g_signal_connect (G_OBJECT (item), "activate",
             G_CALLBACK (show_last_notifs), NULL);
     gtk_widget_show (item);
     gtk_menu_attach (GTK_MENU (menu), item, 0, 1, pos, pos + 1); ++pos;
 
     item = gtk_image_menu_item_new_with_label ((kalpm_state.is_paused)
-            ? "Resume automatic checks"
-            : "Pause automatic checks");
+            ? _c("systray-menu", "Resume automatic checks")
+            : _c("systray-menu", "Pause automatic checks"));
     gtk_widget_set_sensitive (item, !kalpm_state.is_busy);
     image = gtk_image_new_from_stock ((kalpm_state.is_paused)
             ? GTK_STOCK_MEDIA_PLAY
@@ -678,8 +683,8 @@ icon_popup_cb (GtkStatusIcon *_icon _UNUSED_, guint button, guint activate_time,
             GTK_ICON_SIZE_MENU);
     gtk_image_menu_item_set_image (GTK_IMAGE_MENU_ITEM (item), image);
     gtk_widget_set_tooltip_text (item, (kalpm_state.is_paused)
-            ? "Resume automatic checks (starting now)"
-            : "Pause automatic checks (until resumed)");
+            ? _("Resume automatic checks (starting now)")
+            : _("Pause automatic checks (until resumed)"));
     g_signal_connect (G_OBJECT (item), "activate",
             G_CALLBACK (menu_pause_cb), NULL);
     gtk_widget_show (item);
@@ -689,12 +694,13 @@ icon_popup_cb (GtkStatusIcon *_icon _UNUSED_, guint button, guint activate_time,
     gtk_widget_show (item);
     gtk_menu_attach (GTK_MENU (menu), item, 0, 1, pos, pos + 1); ++pos;
 
-    item = gtk_image_menu_item_new_with_label ("Check for Upgrades...");
+    item = gtk_image_menu_item_new_with_label (
+            _c("systray-menu", "Check for Upgrades..."));
     gtk_widget_set_sensitive (item, !kalpm_state.is_busy);
     image = gtk_image_new_from_stock ("kalu-logo", GTK_ICON_SIZE_MENU);
     gtk_image_menu_item_set_image (GTK_IMAGE_MENU_ITEM (item), image);
     gtk_widget_set_tooltip_text (item,
-            "Check if there are any upgrades available");
+            _("Check if there are any upgrades available"));
     g_signal_connect (G_OBJECT (item), "activate",
             G_CALLBACK (menu_check_cb), NULL);
     gtk_widget_show (item);
@@ -702,22 +708,24 @@ icon_popup_cb (GtkStatusIcon *_icon _UNUSED_, guint button, guint activate_time,
 
     if (config->action != UPGRADE_NO_ACTION)
     {
-        item = gtk_image_menu_item_new_with_label ("System upgrade...");
+        item = gtk_image_menu_item_new_with_label (
+                _c("systray-menu", "System upgrade..."));
         gtk_widget_set_sensitive (item, !kalpm_state.is_busy);
         image = gtk_image_new_from_stock ("kalu-logo", GTK_ICON_SIZE_MENU);
         gtk_image_menu_item_set_image (GTK_IMAGE_MENU_ITEM (item), image);
-        gtk_widget_set_tooltip_text (item, "Perform a system upgrade");
+        gtk_widget_set_tooltip_text (item, _("Perform a system upgrade"));
         g_signal_connect (G_OBJECT (item), "activate",
                 G_CALLBACK (kalu_sysupgrade), NULL);
         gtk_widget_show (item);
         gtk_menu_attach (GTK_MENU (menu), item, 0, 1, pos, pos + 1); ++pos;
     }
 
-    item = gtk_image_menu_item_new_with_label ("Show recent Arch Linux news...");
+    item = gtk_image_menu_item_new_with_label (
+            _c("systray-menu", "Show recent Arch Linux news..."));
     gtk_widget_set_sensitive (item, !kalpm_state.is_busy);
     image = gtk_image_new_from_stock ("kalu-logo", GTK_ICON_SIZE_MENU);
     gtk_image_menu_item_set_image (GTK_IMAGE_MENU_ITEM (item), image);
-    gtk_widget_set_tooltip_text (item, "Show 10 most recent Arch Linux news");
+    gtk_widget_set_tooltip_text (item, _("Show most recent Arch Linux news"));
     g_signal_connect (G_OBJECT (item), "activate",
             G_CALLBACK (menu_news_cb), NULL);
     gtk_widget_show (item);
@@ -727,13 +735,15 @@ icon_popup_cb (GtkStatusIcon *_icon _UNUSED_, guint button, guint activate_time,
     gtk_widget_show (item);
     gtk_menu_attach (GTK_MENU (menu), item, 0, 1, pos, pos + 1); ++pos;
 
-    item = gtk_image_menu_item_new_with_label ("Manage watched packages...");
+    item = gtk_image_menu_item_new_with_label (
+            _c("systray-menu", "Manage watched packages..."));
     g_signal_connect (G_OBJECT (item), "activate",
             G_CALLBACK (menu_manage_cb), (gpointer) FALSE);
     gtk_widget_show (item);
     gtk_menu_attach (GTK_MENU (menu), item, 0, 1, pos, pos + 1); ++pos;
 
-    item = gtk_image_menu_item_new_with_label ("Manage watched AUR packages...");
+    item = gtk_image_menu_item_new_with_label (
+            _c("systray-menu", "Manage watched AUR packages..."));
     g_signal_connect (G_OBJECT (item), "activate",
             G_CALLBACK (menu_manage_cb), (gpointer) TRUE);
     gtk_widget_show (item);
@@ -744,7 +754,7 @@ icon_popup_cb (GtkStatusIcon *_icon _UNUSED_, guint button, guint activate_time,
     gtk_menu_attach (GTK_MENU (menu), item, 0, 1, pos, pos + 1); ++pos;
 
     item = gtk_image_menu_item_new_from_stock (GTK_STOCK_PREFERENCES, NULL);
-    gtk_widget_set_tooltip_text (item, "Edit preferences");
+    gtk_widget_set_tooltip_text (item, _("Edit preferences"));
     g_signal_connect (G_OBJECT (item), "activate",
             G_CALLBACK (menu_prefs_cb), NULL);
     gtk_widget_show (item);
@@ -755,21 +765,23 @@ icon_popup_cb (GtkStatusIcon *_icon _UNUSED_, guint button, guint activate_time,
     gtk_menu_attach (GTK_MENU (menu), item, 0, 1, pos, pos + 1); ++pos;
 
     item = gtk_image_menu_item_new_from_stock (GTK_STOCK_HELP, NULL);
-    gtk_widget_set_tooltip_text (item, "Show help (man page)");
+    gtk_widget_set_tooltip_text (item, _("Show help (man page)"));
     g_signal_connect (G_OBJECT (item), "activate",
             G_CALLBACK (menu_help_cb), NULL);
     gtk_widget_show (item);
     gtk_menu_attach (GTK_MENU (menu), item, 0, 1, pos, pos + 1); ++pos;
 
-    item = gtk_image_menu_item_new_with_label ("Change log");
-    gtk_widget_set_tooltip_text (item, "Show change log");
+    item = gtk_image_menu_item_new_with_label (
+            _c("systray-menu", "Change log"));
+    gtk_widget_set_tooltip_text (item, _("Show change log"));
     g_signal_connect (G_OBJECT (item), "activate",
             G_CALLBACK (menu_history_cb), (gpointer) TRUE);
     gtk_widget_show (item);
     gtk_menu_attach (GTK_MENU (menu), item, 0, 1, pos, pos + 1); ++pos;
 
     item = gtk_image_menu_item_new_from_stock (GTK_STOCK_ABOUT, NULL);
-    gtk_widget_set_tooltip_text (item, "Show Copyright & version information");
+    gtk_widget_set_tooltip_text (item,
+            _("Show Copyright & version information"));
     g_signal_connect (G_OBJECT (item), "activate",
             G_CALLBACK (menu_about_cb), NULL);
     gtk_widget_show (item);
@@ -781,7 +793,7 @@ icon_popup_cb (GtkStatusIcon *_icon _UNUSED_, guint button, guint activate_time,
 
     item = gtk_image_menu_item_new_from_stock (GTK_STOCK_QUIT, NULL);
     gtk_widget_set_sensitive (item, !kalpm_state.is_busy);
-    gtk_widget_set_tooltip_text (item, "Exit kalu");
+    gtk_widget_set_tooltip_text (item, _("Exit kalu"));
     g_signal_connect (G_OBJECT (item), "activate",
             G_CALLBACK (menu_quit_cb), NULL);
     gtk_widget_show (item);
@@ -925,17 +937,19 @@ icon_query_tooltip_cb (GtkWidget *icon _UNUSED_, gint x _UNUSED_, gint y _UNUSED
 {
     GDateTime *current;
     GTimeSpan timespan;
-    gint nb;
     gchar buf[420], *s = buf;
     gint max = 420, len;
 
-    addstr ("[%skalu%s]",
-            (kalpm_state.is_paused) ? "paused " : "",
-            (has_hidden_windows) ? " +" : "");
+    addstr ("[%s%s]",
+            /* TRANSLATORS: This goes in kalu's systray tooltip. It usually
+             * just says "kalu" but will show this when paused, indicating that
+             * kalu is indeed in paused mode. */
+            (kalpm_state.is_paused) ? _("paused kalu") : "kalu",
+            (has_hidden_windows) ? " + " : " ");
 
     if (kalpm_state.is_busy)
     {
-        addstr (" Checking/updating in progress...");
+        addstr (_("Checking/updating in progress..."));
         gtk_tooltip_set_text (tooltip, buf);
         return TRUE;
     }
@@ -945,94 +959,100 @@ icon_query_tooltip_cb (GtkWidget *icon _UNUSED_, gint x _UNUSED_, gint y _UNUSED
         return TRUE;
     }
 
-    addstr (" Last checked ");
-
     current = g_date_time_new_now_local ();
     timespan = g_date_time_difference (current, kalpm_state.last_check);
     g_date_time_unref (current);
 
     if (timespan < G_TIME_SPAN_MINUTE)
     {
-        addstr ("just now");
+        addstr (_("Last checked just now"));
     }
     else
     {
+        gint days = 0, hours = 0, minutes = 0;
+
         if (timespan >= G_TIME_SPAN_DAY)
         {
-            nb = (gint) (timespan / G_TIME_SPAN_DAY);
-            timespan -= (nb * G_TIME_SPAN_DAY);
-            if (nb > 1)
-            {
-                addstr ("%d days ", nb);
-            }
-            else
-            {
-                addstr ("1 day ");
-            }
+            days = (gint) (timespan / G_TIME_SPAN_DAY);
+            timespan -= (days * G_TIME_SPAN_DAY);
         }
         if (timespan >= G_TIME_SPAN_HOUR)
         {
-            nb = (gint) (timespan / G_TIME_SPAN_HOUR);
-            timespan -= (nb * G_TIME_SPAN_HOUR);
-            if (nb > 1)
-            {
-                addstr ("%d hours ", nb);
-            }
-            else
-            {
-                addstr ("1 hour ");
-            }
+            hours = (gint) (timespan / G_TIME_SPAN_HOUR);
+            timespan -= (hours * G_TIME_SPAN_HOUR);
         }
         if (timespan >= G_TIME_SPAN_MINUTE)
         {
-            nb = (gint) (timespan / G_TIME_SPAN_MINUTE);
-            timespan -= (nb * G_TIME_SPAN_MINUTE);
-            if (nb > 1)
-            {
-                addstr ("%d minutes ", nb);
-            }
-            else
-            {
-                addstr ("1 minute ");
-            }
+            minutes = (gint) (timespan / G_TIME_SPAN_MINUTE);
+            timespan -= (minutes * G_TIME_SPAN_MINUTE);
         }
 
-        addstr ("ago");
+        /* TRANSLATORS: the %s%s%s will be (if apply) the string for the numbers
+         * of days, hours and minutes. No space before "ago" as it will come
+         * from said strings */
+        addstr (_("Last checked %s%s%sago"),
+                (days > 0)
+                ? _n("1 day ", "%d days ", (long unsigned int) days)
+                : "",
+                (hours > 0)
+                ? _n("1 hour ", "%d hours ", (long unsigned int) hours)
+                : "",
+                (minutes > 0)
+                ? _n("1 minute ", "%d minutes ", (long unsigned int) minutes)
+                : "");
     }
 
     if (config->syncdbs_in_tooltip && kalpm_state.nb_syncdbs > 0)
     {
-        addstr ("\nsync possible for %d dbs", kalpm_state.nb_syncdbs);
+        addstr (_n( "\nsync possible for 1 db",
+                    "\nsync possible for %d dbs",
+                    (long unsigned int) kalpm_state.nb_syncdbs),
+                kalpm_state.nb_syncdbs);
     }
 
     if (kalpm_state.nb_news > 0)
     {
-        addstr ("\n%d unread news", kalpm_state.nb_news);
+        addstr (_n( "\n1 unread news",
+                    "\n%d unread news",
+                    (long unsigned int) kalpm_state.nb_news),
+                kalpm_state.nb_news);
     }
     if (kalpm_state.nb_upgrades > 0)
     {
-        addstr ("\n%d upgrades available", kalpm_state.nb_upgrades);
+        addstr (_n( "\n1 upgrade available",
+                    "\n%d upgrades available",
+                    (long unsigned int) kalpm_state.nb_upgrades),
+                kalpm_state.nb_upgrades);
     }
     else if (kalpm_state.nb_upgrades == UPGRADES_NB_CONFLICT)
     {
-        addstr ("\nupgrades available (unknown number due to conflict)");
+        addstr (_("\nupgrades available (unknown number due to conflict)"));
     }
     if (kalpm_state.nb_watched > 0)
     {
-        addstr ("\n%d watched packages updated", kalpm_state.nb_watched);
+        addstr (_n( "\n1 watched package updated",
+                    "\n%d watched packages updated",
+                    (long unsigned int) kalpm_state.nb_watched),
+                kalpm_state.nb_watched);
     }
     if (kalpm_state.nb_aur > 0)
     {
-        addstr ("\n%d AUR packages updated", kalpm_state.nb_aur);
+        addstr (_n( "\n1 AUR package updated",
+                    "\n%d AUR packages updated",
+                    (long unsigned int) kalpm_state.nb_aur),
+                kalpm_state.nb_aur);
     }
     if (kalpm_state.nb_watched_aur > 0)
     {
-        addstr ("\n%d watched AUR packages updated", kalpm_state.nb_watched_aur);
+        addstr (_n( "\n1 watched AUR package updated",
+                    "\n%d watched AUR packages updated",
+                    (long unsigned int) kalpm_state.nb_watched_aur),
+                kalpm_state.nb_watched_aur);
     }
 
     if (max <= 0)
     {
-        sprintf (buf, "kalu: error setting tooltip");
+        sprintf (buf, _("kalu: error setting tooltip"));
     }
     gtk_tooltip_set_text (tooltip, buf);
     return TRUE;

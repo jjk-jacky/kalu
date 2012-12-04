@@ -1,0 +1,45 @@
+TRANSLATIONS
+
+Starting with 1.4.0 kalu supports internationalization. One can create a new
+translation following these steps :
+
+1. Either get the latest tarball of kalu's source code and extract it, or clone
+the git repo :
+    git clone https://github.com/jjk-jacky/kalu.git
+
+1b. If you cloned the repo, you'll have to prepare things :
+    ./autogen.sh
+    ./configure
+
+2. Go inside subfolder "po"
+
+2b. If you cloned the repo, you'll have to generate kalu.pot :
+    make kalu.pot
+
+3. Create a new PO file for your locale using msginit :
+    msginit
+If you want to create a translation for another locale than your current one,
+you'll simply have to use option -l, e.g. for French (fr) :
+    msginit -l fr
+
+4. Edit the generated .po file, translating each msgid in the corresponding
+msgstr. (Also make sure to check the comments on top, including your name,
+email, etc. It's also recommended to use UTF-8 as charset.)
+
+5. Edit LINGUAS and add the language code (name of the .po file, without .po)
+on a new line.
+
+6. To test your translation, first make the .gmo file for your translation, e.g:
+    make fr.gmo
+
+Then you'll have to build & install kalu, as usual, just start it, and it
+should speak your language. Note that if writing a translation for a locale
+other than your current one, you'll have to specify it on launch, e.g:
+    LANG=fr_FR.utf8 kalu
+(Also note that you might have to re-generate your locales to include it.)
+
+7. When you're satisfied your the translation, simply send it over to have it
+included in the next release. You can :
+    - Fork kalu of github and send a pull request; Or
+    - Host the .po file somewhere and open an issue with a link; Or
+    - Send me the file via email

@@ -10,6 +10,12 @@ CLEANFILES = \
 
 ACLOCAL_AMFLAGS = -I m4
 
+SUBDIRS = po
+
+DEFS = \
+	-DLOCALEDIR=\"@localedir@\" \
+	@DEFS@
+
 if USE_GIT_VERSION
 _VERSION = `git describe --abbrev=4 --dirty`
 DEFS += -DGIT_VERSION=\"$(_VERSION)\"

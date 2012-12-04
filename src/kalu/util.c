@@ -223,7 +223,8 @@ trans_init (kalu_alpm_t *alpm, alpm_transflag_t flags, int check_valid, GError *
 
     if (alpm_trans_init (alpm->handle, flags) == -1)
     {
-        g_set_error (error, KALU_ERROR, 1, "Failed to initiate transaction: %s",
+        g_set_error (error, KALU_ERROR, 1,
+                _("Failed to initiate transaction: %s"),
                 alpm_strerror (alpm_errno (alpm->handle)));
         return FALSE;
     }
@@ -236,7 +237,8 @@ trans_release (kalu_alpm_t *alpm, GError **error)
 {
     if (alpm_trans_release (alpm->handle) == -1)
     {
-        g_set_error (error, KALU_ERROR, 2, "Failed to release transaction: %s",
+        g_set_error (error, KALU_ERROR, 2,
+                _("Failed to release transaction: %s"),
                 alpm_strerror (alpm_errno (alpm->handle)));
         return FALSE;
     }
@@ -368,7 +370,7 @@ check_syncdbs (kalu_alpm_t *alpm, size_t need_repos, int check_valid, GError **e
     if (need_repos && sync_dbs == NULL)
     {
         g_set_error (error, KALU_ERROR, 1,
-                "No usable package repositories configured");
+                _("No usable package repositories configured"));
         return FALSE;
     }
 
@@ -381,7 +383,7 @@ check_syncdbs (kalu_alpm_t *alpm, size_t need_repos, int check_valid, GError **e
             if (alpm_db_get_valid (db))
             {
                 g_set_error (error, KALU_ERROR, 1,
-                        "Database %s is not valid: %s",
+                        _("Database %s is not valid: %s"),
                         alpm_db_get_name (db),
                         alpm_strerror (alpm_errno (alpm->handle)));
                 return FALSE;

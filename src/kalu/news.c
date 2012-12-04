@@ -608,6 +608,7 @@ parse_to_buffer (GtkTextBuffer *buffer, const gchar *text, gsize text_len)
                 if (link[0] == '/')
                 {
                     ss = new (gchar, strlen (link) + 25);
+                    /* TODO: get domain from NEWS_RSS_URL */
                     sprintf (ss, "http://www.archlinux.org%s", link);
                     link = ss;
                 }
@@ -912,8 +913,8 @@ btn_mark_cb (GtkWidget *button _UNUSED_, GtkWidget *window)
                         free (notif->data);
                         notif->data = NULL;
                         free (notif->text);
-                        notif->text = strdup ("Read news have changed, "
-                                "you need to run the checks again to be up-to-date.");
+                        notif->text = strdup (_("Read news have changed, "
+                                    "you need to run the checks again to be up-to-date."));
                     }
                     break;
                 }
@@ -930,7 +931,8 @@ btn_mark_cb (GtkWidget *button _UNUSED_, GtkWidget *window)
     else
     {
         gtk_widget_show (window);
-        show_error ("Unable to save changes to disk", file, GTK_WINDOW (window));
+        show_error (_("Unable to save changes to disk"), file,
+                GTK_WINDOW (window));
     }
 }
 
@@ -1093,7 +1095,7 @@ event_after_cb (GtkTextView *textview, GdkEvent *ev, GtkWidget *window)
 
             if (!g_spawn_command_line_async (buf, &error))
             {
-                show_error ("Unable to open link", error->message,
+                show_error (_("Unable to open link"), error->message,
                         GTK_WINDOW (window));
                 g_clear_error (&error);
             }
@@ -1155,8 +1157,8 @@ new_window (gboolean only_updates, GtkWidget **window, GtkWidget **textview)
     /* window */
     *window = gtk_window_new (GTK_WINDOW_TOPLEVEL);
     gtk_window_set_title (GTK_WINDOW (*window), (only_updates)
-            ? "Arch Linux Unread News - kalu"
-            : "Arch Linux News - kalu");
+            ? _("Arch Linux Unread News - kalu")
+            : _("Arch Linux News - kalu"));
     gtk_window_set_default_size (GTK_WINDOW (*window), 600, 230);
     gtk_container_set_border_width (GTK_CONTAINER (*window), 0);
     gtk_window_set_has_resize_grip (GTK_WINDOW (*window), FALSE);
@@ -1226,11 +1228,11 @@ new_window (gboolean only_updates, GtkWidget **window, GtkWidget **textview)
         g_object_set_data (G_OBJECT (*window), "lists", lists);
 
         /* Mark read */
-        button = gtk_button_new_with_label ("Mark as read");
+        button = gtk_button_new_with_label (_("Mark as read"));
         image = gtk_image_new_from_stock (GTK_STOCK_APPLY, GTK_ICON_SIZE_MENU);
         gtk_button_set_image (GTK_BUTTON (button), image);
         gtk_box_pack_end (GTK_BOX (hbox), button, FALSE, FALSE, 4);
-        gtk_widget_set_tooltip_text (button, "Mark checked news as read");
+        gtk_widget_set_tooltip_text (button, _("Mark checked news as read"));
         g_signal_connect (G_OBJECT (button), "clicked",
                 G_CALLBACK (btn_mark_cb), (gpointer) *window);
         gtk_widget_show (button);
@@ -1305,7 +1307,7 @@ show_help (GError **error)
     gchar         *text, *t, *s;
 
     new_window (FALSE, &window, &textview);
-    gtk_window_set_title (GTK_WINDOW (window), "Help - kalu");
+    gtk_window_set_title (GTK_WINDOW (window), _("Help - kalu"));
     gtk_window_set_default_size (GTK_WINDOW (window), 600, 420);
     buffer = gtk_text_view_get_buffer (GTK_TEXT_VIEW (textview));
 
@@ -1340,7 +1342,7 @@ show_history (GError **error)
     gchar         *text, *s;
 
     new_window (FALSE, &window, &textview);
-    gtk_window_set_title (GTK_WINDOW (window), "History - kalu");
+    gtk_window_set_title (GTK_WINDOW (window), _("History - kalu"));
     gtk_window_set_default_size (GTK_WINDOW (window), 600, 420);
     buffer = gtk_text_view_get_buffer (GTK_TEXT_VIEW (textview));
 
@@ -1401,7 +1403,7 @@ show_pacman_conflict ()
     GtkWidget     *window;
     GtkWidget     *textview;
     GtkTextBuffer *buffer;
-    const gchar   *text = "<h2>Possible pacman/kalu conflict</h2>"
+    const gchar   *text = _("<h2>Possible pacman/kalu conflict</h2>"
         "<p>The pending system upgrade is likely to fail due to kalu's dependency "
         "on the current version of pacman. This is because the new pacman introduces "
         "API changes in libalpm (on which kalu relies).</p>"
@@ -1413,12 +1415,12 @@ show_pacman_conflict ()
         "<br> <b>3.</b> Install a new version of kalu, compatible with the new "
         "version of pacman.</p>"
         "<p>If a new version of kalu for the new pacman isn't available on the "
-        "AUR yet, make sure to flag it as out-of-date.</p>"
+        "AUR yet, make sure to flag it as out-of-date.</p>")
         ;
 
     new_window (FALSE, &window, &textview);
     gtk_window_set_title (GTK_WINDOW (window),
-            "Possible pacman/kalu conflict - kalu");
+            _("Possible pacman/kalu conflict - kalu"));
     gtk_window_set_default_size (GTK_WINDOW (window), 600, 230);
     buffer = gtk_text_view_get_buffer (GTK_TEXT_VIEW (textview));
     create_tags (buffer);
