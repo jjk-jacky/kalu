@@ -1,4 +1,82 @@
 
+# 01/22/2013, v1.4.0
+
+- Add feature pause: when paused kalu will not perform its automatic checks
+
+The "skip period" (or "paused period") defined in Preferences now simply
+switches kalu's paused state. This means there is now a visual feedback, and
+one can "overwrite" this period on demand (e.g. resume during the skip period
+and it's back on.)
+
+Upon start, kalu checks whether we're during the skip period or not, and simply
+either auto-pauses or auto-resumes (i.e. triggers auto-checks).
+
+- A new action "toggle pause" is available on (double-)click
+
+- A new set of actions for (double-)click when paused is available, including
+an extra "Same as non-paused".
+
+- Preferences: Fix double click action empty on re-show last notifications
+
+When action show last notifs was used on dbl-click, showing preferences would
+not select it in the list, and could therefore have it lost upon saving.
+
+- Add config tweak to not show notifications on auto-checks
+
+Adding "AutoNotifs = 0" to kalu.conf will disable showing notifications during
+automatic checks. They can be shown using "re-show last notifications" as
+usual. (Notifications will still be shown for manual checks.)
+
+- Add support for internationalization; and thanks to kolibry kalu can now speak
+French
+
+- AUR: Fix package names not being urlencoded
+
+Package names were used as-is in the URLs for the AUR, which could lead to
+unexpected results (likely segfault) when said names contained "special"
+characters, e.g. the plus sign.
+
+- AUR: Avoid segfault in case of unexpected results
+
+If a package returned by the AUR wasn't on the list asked for (which could
+happen when names weren't urlencoded, and both foo and foo+ were packages
+existing in the AUR) kalu would segfault.
+
+We now ensure the package was found, and if not trigger an error.
+
+- AUR: Fix possible memory leak on invalid JSON
+
+- kalu-updater: Fix question to skip package not being asked
+
+Question to skip upgrading a package when dependencies cannot be resolved was
+not asked, leading to kalu (and kalu-dbus) hanging, needing to be killed.
+
+- Fix empty notifications when '&' was used in text
+
+Seems that because it uses a subset of HTML, the text in notifications should
+not use '&' directly, but encode it as &amp; (else, the text of notification
+is just empty, at least with notification-daemon and xfce4-notifyd)
+
+So, when creating new notifications, we make sure to "convert" those '&' since
+there can be some in e.g. a package description, which could be used as part
+of the template (text is untouched on CLI output).
+
+- Fix hanging on error parsing config
+
+When error occured parsing configuration, since 13c4ffb4 GTK init wasn't yet
+done, error messages couldn't be shown and kalu would just hang.
+
+- Fix Makefile.am to handle spaces (in {dist,install-data}-hook)
+
+- Help: Add info about conf files structure, and a section about config tweaks
+
+Describe the format of the different conf files used by kalu, as well as the
+name and supported values of each settings.
+
+- kalu will now use the installed kalu.png file as its logo. It'll be used
+about everywhere (systray, windows, menus...)
+
+
 # 10/27/2012, v1.3.0
 
 - Add $DESC to all templates (but news) for package description
