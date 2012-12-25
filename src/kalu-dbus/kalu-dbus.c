@@ -859,7 +859,8 @@ sync_dbs (GVariant *parameters)
         if (ret < 0)
         {
             result = SYNC_FAILURE;
-            alpm_logaction ("kalu: Failed to synchronize database %s: %s\n",
+            alpm_logaction (handle,
+                    "kalu: Failed to synchronize database %s: %s\n",
                     alpm_db_get_name (db),
                     alpm_strerror (alpm_errno (handle)));
         }
