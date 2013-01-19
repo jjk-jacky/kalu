@@ -351,6 +351,8 @@ question_cb (alpm_question_t event, void *data1, void *data2, void *data3, int *
     GVariantBuilder *builder;
     alpm_list_t *i;
 
+    debug ("question %d (%p -- %p -- %p)\n", event, data1, data2, data3);
+
     if (choice != CHOICE_FREE)
     {
         debug ("Received question (%d) while already busy", event);
@@ -358,112 +360,118 @@ question_cb (alpm_question_t event, void *data1, void *data2, void *data3, int *
     }
     choice = CHOICE_WAITING;
 
-    if (event & ALPM_QUESTION_INSTALL_IGNOREPKG)
+    switch (event)
     {
-        emit_signal ("AskInstallIgnorePkg", "s", alpm_pkg_get_name (data1));
-    }
-    else if (event & ALPM_QUESTION_REPLACE_PKG)
-    {
-        repo1 = alpm_db_get_name (alpm_pkg_get_db (data1));
-        pkg1 = alpm_pkg_get_name (data1);
-        repo2 = (const char *) data3;
-        pkg2 = alpm_pkg_get_name (data2);
-        emit_signal ("AskReplacePkg", "ssss", repo1, pkg1, repo2, pkg2);
-    }
-    else if (event & ALPM_QUESTION_CONFLICT_PKG)
-    {
-        /* this time no pointers to alpm_pkt_t, it's all strings */
-        /* also, reason (data3) can be just same as data1 or data2...) */
-        const char *reason;
-        if (strcmp (data3, data1) == 0 || strcmp (data3, data2) == 0)
-        {
-            reason = "";
-        }
-        else
-        {
-            reason = (const char *) data3;
-        }
-        emit_signal ("AskConflictPkg", "sss", data1, data2, reason);
-    }
-    else if (event & ALPM_QUESTION_REMOVE_PKGS)
-    {
-        builder = g_variant_builder_new (G_VARIANT_TYPE ("as"));
-        FOR_LIST (i, data1)
-        {
-            g_variant_builder_add (builder, "s", alpm_pkg_get_name (i->data));
-        }
+        case ALPM_QUESTION_INSTALL_IGNOREPKG:
+            emit_signal ("AskInstallIgnorePkg", "s", alpm_pkg_get_name (data1));
+            break;
 
-        emit_signal ("AskRemovePkgs", "as", builder);
-        g_variant_builder_unref (builder);
-    }
-    else if (event & ALPM_QUESTION_SELECT_PROVIDER)
-    {
-        /* creates a string like "foobar>=4.2" */
-        char *pkg = alpm_dep_compute_string ((alpm_depend_t *) data2);
-        GVariantBuilder *builder2;
+        case ALPM_QUESTION_REPLACE_PKG:
+            repo1 = alpm_db_get_name (alpm_pkg_get_db (data1));
+            pkg1 = alpm_pkg_get_name (data1);
+            repo2 = (const char *) data3;
+            pkg2 = alpm_pkg_get_name (data2);
+            emit_signal ("AskReplacePkg", "ssss", repo1, pkg1, repo2, pkg2);
+            break;
 
-        builder = g_variant_builder_new (G_VARIANT_TYPE ("aas"));
-        FOR_LIST (i, data1)
-        {
-            builder2 = g_variant_builder_new (G_VARIANT_TYPE ("as"));
-            /* repo */
-            g_variant_builder_add (builder2, "s",
-                    alpm_db_get_name (alpm_pkg_get_db (i->data)));
-            /* pkg */
-            g_variant_builder_add (builder2, "s",
-                    alpm_pkg_get_name (i->data));
-            /* version */
-            g_variant_builder_add (builder2, "s",
-                    alpm_pkg_get_version (i->data));
-            /* add it to main builder */
-            g_variant_builder_add (builder, "as",
-                    builder2);
-            g_variant_builder_unref (builder2);
-        }
+        case ALPM_QUESTION_CONFLICT_PKG:
+            /* this time no pointers to alpm_pkt_t, it's all strings */
+            /* also, reason (data3) can be just same as data1 or data2...) */
+            {
+                const char *reason;
+                if (strcmp (data3, data1) == 0 || strcmp (data3, data2) == 0)
+                {
+                    reason = "";
+                }
+                else
+                {
+                    reason = (const char *) data3;
+                }
+                emit_signal ("AskConflictPkg", "sss", data1, data2, reason);
+            }
+            break;
 
-        emit_signal ("AskSelectProvider", "saas", pkg, builder);
-        free (pkg);
-        g_variant_builder_unref (builder);
-    }
-    else if (event & ALPM_QUESTION_LOCAL_NEWER)
-    {
-        pkg1 = alpm_pkg_get_name (data1);
-        /* get pkg from local db */
-        alpm_pkg_t *pkg;
-        pkg = alpm_db_get_pkg (alpm_option_get_localdb (handle), pkg1);
-        emit_signal ("AskLocalNewer", "ssss",
-                /* pkg name */
-                pkg1,
-                /* local version */
-                alpm_pkg_get_version (pkg),
-                /* repo */
-                alpm_db_get_name (alpm_pkg_get_db (data1)),
-                /* repo version */
-                alpm_pkg_get_version (data1));
-    }
-    else if (event & ALPM_QUESTION_CORRUPTED_PKG)
-    {
-        emit_signal ("AskCorruptedPkg", "ss", data1,
-                alpm_strerror (*(enum _alpm_errno_t *) data2));
-    }
-    else if (event & ALPM_QUESTION_IMPORT_KEY)
-    {
-        alpm_pgpkey_t *key = data1;
-        gchar created[12];
-        strftime (created, 12, "%Y-%m-%d", localtime (&key->created));
+        case ALPM_QUESTION_REMOVE_PKGS:
+            builder = g_variant_builder_new (G_VARIANT_TYPE ("as"));
+            FOR_LIST (i, data1)
+            {
+                g_variant_builder_add (builder, "s", alpm_pkg_get_name (i->data));
+            }
 
-        emit_signal ("AskImportKey", "sss",
-                key->fingerprint,
-                key->uid,
-                created);
-    }
-    else
-    {
-        choice = CHOICE_FREE;
-        debug ("Received unknown question-event: %d", event);
-        return;
-    }
+            emit_signal ("AskRemovePkgs", "as", builder);
+            g_variant_builder_unref (builder);
+            break;
 
+        case ALPM_QUESTION_SELECT_PROVIDER:
+            {
+                /* creates a string like "foobar>=4.2" */
+                char *pkg = alpm_dep_compute_string ((alpm_depend_t *) data2);
+                GVariantBuilder *builder2;
+
+                builder = g_variant_builder_new (G_VARIANT_TYPE ("aas"));
+                FOR_LIST (i, data1)
+                {
+                    builder2 = g_variant_builder_new (G_VARIANT_TYPE ("as"));
+                    /* repo */
+                    g_variant_builder_add (builder2, "s",
+                            alpm_db_get_name (alpm_pkg_get_db (i->data)));
+                    /* pkg */
+                    g_variant_builder_add (builder2, "s",
+                            alpm_pkg_get_name (i->data));
+                    /* version */
+                    g_variant_builder_add (builder2, "s",
+                            alpm_pkg_get_version (i->data));
+                    /* add it to main builder */
+                    g_variant_builder_add (builder, "as",
+                            builder2);
+                    g_variant_builder_unref (builder2);
+                }
+
+                emit_signal ("AskSelectProvider", "saas", pkg, builder);
+                free (pkg);
+                g_variant_builder_unref (builder);
+            }
+            break;
+
+        case ALPM_QUESTION_LOCAL_NEWER:
+            pkg1 = alpm_pkg_get_name (data1);
+            /* get pkg from local db */
+            alpm_pkg_t *pkg;
+            pkg = alpm_db_get_pkg (alpm_option_get_localdb (handle), pkg1);
+            emit_signal ("AskLocalNewer", "ssss",
+                    /* pkg name */
+                    pkg1,
+                    /* local version */
+                    alpm_pkg_get_version (pkg),
+                    /* repo */
+                    alpm_db_get_name (alpm_pkg_get_db (data1)),
+                    /* repo version */
+                    alpm_pkg_get_version (data1));
+            break;
+
+        case ALPM_QUESTION_CORRUPTED_PKG:
+            emit_signal ("AskCorruptedPkg", "ss", data1,
+                    alpm_strerror (*(enum _alpm_errno_t *) data2));
+            break;
+
+        case ALPM_QUESTION_IMPORT_KEY:
+            {
+                alpm_pgpkey_t *key = data1;
+                gchar created[12];
+                strftime (created, 12, "%Y-%m-%d", localtime (&key->created));
+
+                emit_signal ("AskImportKey", "sss",
+                        key->fingerprint,
+                        key->uid,
+                        created);
+            }
+            break;
+
+        default:
+            choice = CHOICE_FREE;
+            debug ("Received unknown question-event: %d", event);
+            return;
+    }
     /* wait for a choice -- happens when method Answer is called */
     while (choice == CHOICE_WAITING)
     {
@@ -1205,7 +1213,7 @@ handle_method_call (GDBusConnection       *conn _UNUSED_,
                     GDBusMethodInvocation *invocation,
                     gpointer               data _UNUSED_)
 {
-    debug ("sender is %s -- client is %s", sender, client);
+    debug ("sender=%s -- client=%s -- method=%s", sender, client, method_name);
     /* Init: check auth from PolicyKit, and "lock" to client/sender */
     if (g_strcmp0 (method_name, "Init") == 0)
     {
