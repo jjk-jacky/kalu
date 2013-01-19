@@ -987,19 +987,21 @@ icon_query_tooltip_cb (GtkWidget *icon _UNUSED_, gint x _UNUSED_, gint y _UNUSED
             timespan -= (minutes * G_TIME_SPAN_MINUTE);
         }
 
-        /* TRANSLATORS: the %s%s%s will be (if apply) the string for the numbers
-         * of days, hours and minutes. No space before "ago" as it will come
-         * from said strings */
-        addstr (_("Last checked %s%s%sago"),
-                (days > 0)
-                ? _n("1 day ", "%d days ", (long unsigned int) days)
-                : "",
-                (hours > 0)
-                ? _n("1 hour ", "%d hours ", (long unsigned int) hours)
-                : "",
-                (minutes > 0)
-                ? _n("1 minute ", "%d minutes ", (long unsigned int) minutes)
-                : "");
+        /* TRANSLATORS: Constructing e.g. "Last checked 1 hour 23 minutes ago"
+         * by adding a string, the days/hours/minutes if apply, and a last
+         * string. If the last doesn't apply, just use "" */
+        addstr (_("Last checked "));
+        if (days > 0)
+            addstr (_n("1 day ", "%d days ", (long unsigned int) days),
+                    days);
+        if (hours > 0)
+            addstr (_n("1 hour ", "%d hours ", (long unsigned int) hours),
+                    hours);
+        if (minutes > 0)
+            addstr (_n("1 minute ", "%d minutes ", (long unsigned int) minutes),
+                    minutes);
+        /* TRANSLATORS: Ending the "Last checked 42 days ago" sentence */
+        addstr (_("ago"));
     }
 
     if (config->syncdbs_in_tooltip && kalpm_state.nb_syncdbs > 0)
