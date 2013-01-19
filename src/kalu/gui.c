@@ -940,12 +940,12 @@ icon_query_tooltip_cb (GtkWidget *icon _UNUSED_, gint x _UNUSED_, gint y _UNUSED
     gchar buf[420], *s = buf;
     gint max = 420, len;
 
-    addstr ("[%s%s]",
+    addstr ("[%s%s] ",
             /* TRANSLATORS: This goes in kalu's systray tooltip. It usually
              * just says "kalu" but will show this when paused, indicating that
              * kalu is indeed in paused mode. */
             (kalpm_state.is_paused) ? _("paused kalu") : "kalu",
-            (has_hidden_windows) ? " + " : " ");
+            (has_hidden_windows) ? " +" : "");
 
     if (kalpm_state.is_busy)
     {
