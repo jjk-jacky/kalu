@@ -644,7 +644,7 @@ kalu_updater_g_signal (GDBusProxy   *proxy,
         free (pkg2);
         free (reason);
     }
-    else if (g_strcmp0 (signal_name, "AskRemovePkg") == 0)
+    else if (g_strcmp0 (signal_name, "AskRemovePkgs") == 0)
     {
         GVariantIter *iter;
         gchar *pkg;
@@ -729,6 +729,10 @@ kalu_updater_g_signal (GDBusProxy   *proxy,
         free (key_fingerprint);
         free (key_uid);
         free (key_created);
+    }
+    else
+    {
+        g_warning ("Unknown signal received from kalu-updater: %s", signal_name);
     }
 }
 #undef emit_signal_answer
