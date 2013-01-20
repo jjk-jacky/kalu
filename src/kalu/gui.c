@@ -637,6 +637,8 @@ menu_about_cb (GtkMenuItem *item _UNUSED_, gpointer data _UNUSED_)
     gtk_about_dialog_set_license_type (about, GTK_LICENSE_GPL_3_0);
     gtk_about_dialog_set_authors (about, authors);
     gtk_about_dialog_set_artists (about, artists);
+    /* TRANSLATORS: Put your name here to get credit on the About window */
+    gtk_about_dialog_set_translator_credits (about, _("translator-credits"));
 
     gtk_dialog_run (GTK_DIALOG (about));
     gtk_widget_destroy (GTK_WIDGET (about));
