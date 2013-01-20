@@ -1,5 +1,6 @@
 #!/bin/bash
-# we need to source /etc/profile to restore environment variables, most notably the PATH might be
-# required for some scripts ran during a sysupgrade (e.g. mkinitcpio on new kernel)
+# we need to source /etc/profile to restore environment variables, most notably
+# the PATH might be required for some scripts ran during a sysupgrade (e.g.
+# mkinitcpio on new kernel)
 . /etc/profile
 kalu-dbus

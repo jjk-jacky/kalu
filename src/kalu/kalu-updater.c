@@ -1,8 +1,8 @@
 /**
- * kalu - Copyright (C) 2012 Olivier Brunel
+ * kalu - Copyright (C) 2012-2013 Olivier Brunel
  *
  * kalu-updater.c
- * Copyright (C) 2012 Olivier Brunel <i.am.jack.mail@gmail.com>
+ * Copyright (C) 2012-2013 Olivier Brunel <i.am.jack.mail@gmail.com>
  * 
  * This file is part of kalu.
  *
