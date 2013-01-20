@@ -779,7 +779,7 @@ on_install_ignorepkg (KaluUpdater *kupdater _UNUSED_, const gchar *pkg)
     gboolean answer;
 
     snprintf (question, 255,
-            _("%s is in IngorePkg/IgnoreGroup. Install anyway ?"),
+            _("%s is in IgnorePkg/IgnoreGroup. Install anyway ?"),
             pkg);
     snprintf (lbl_yes, 42,   _("Install %s anyway"), pkg);
     snprintf (lbl_no,  42,   _("Do not install %s"), pkg);
