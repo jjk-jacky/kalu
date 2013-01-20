@@ -2,7 +2,7 @@
  * kalu - Copyright (C) 2012-2013 Olivier Brunel
  *
  * main.c
- * Copyright (C) 2012 Olivier Brunel <i.am.jack.mail@gmail.com>
+ * Copyright (C) 2012-2013 Olivier Brunel <i.am.jack.mail@gmail.com>
  *
  * This file is part of kalu.
  *
@@ -996,7 +996,7 @@ main (int argc, char *argv[])
         }
         if (config->is_debug)
         {
-            debug ("debug mode enabled");
+            debug ("kalu v" PACKAGE_VERSION " -- debug mode enabled");
         }
 #ifndef DISABLE_GUI
         if (run_manual_checks || run_auto_checks)
