@@ -991,7 +991,8 @@ icon_query_tooltip_cb (GtkWidget *icon _UNUSED_, gint x _UNUSED_, gint y _UNUSED
 
         /* TRANSLATORS: Constructing e.g. "Last checked 1 hour 23 minutes ago"
          * by adding a string, the days/hours/minutes if apply, and a last
-         * string. If the last doesn't apply, just use "" */
+         * string. (Make sure to end this first, and the days/hours/minutes
+         * strings with a space) */
         addstr (_("Last checked "));
         if (days > 0)
             addstr (_n("1 day ", "%d days ", (long unsigned int) days),
@@ -1002,7 +1003,8 @@ icon_query_tooltip_cb (GtkWidget *icon _UNUSED_, gint x _UNUSED_, gint y _UNUSED
         if (minutes > 0)
             addstr (_n("1 minute ", "%d minutes ", (long unsigned int) minutes),
                     minutes);
-        /* TRANSLATORS: Ending the "Last checked 42 days ago" sentence */
+        /* TRANSLATORS: Ending the "Last checked 42 days ago" sentence. Use " "
+         * if it doesn't apply. */
         addstr (_("ago"));
     }
 
