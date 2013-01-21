@@ -120,7 +120,12 @@ dist_dbusconf_DATA = misc/org.jjk.kalu.conf
 endif
 
 dist_man_MANS = doc/kalu.1
-dist_doc_DATA = doc/index.html
+dist_doc_DATA = doc/index.html \
+				HISTORY \
+				AUTHORS \
+				COPYING \
+				LICENSE \
+				README.md
 
 EXTRA_DIST = \
 	src/kalu-dbus/gen-interface \
