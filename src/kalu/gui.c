@@ -30,6 +30,7 @@
 #include "preferences.h"
 #include "conf.h"
 #include "news.h"
+#include "rt_timeout.h"
 #ifndef DISABLE_UPDATER
 #include "kalu-updater.h"
 #include "updater.h"
@@ -1206,7 +1207,7 @@ set_kalpm_busy (gboolean busy)
             guint seconds;
 
             seconds = (guint) config->interval;
-            kalpm_state.timeout = g_timeout_add_seconds (seconds,
+            kalpm_state.timeout = rt_timeout_add_seconds (seconds,
                     (GSourceFunc) kalu_auto_check, NULL);
             debug ("state non-busy: next auto-checks in %d seconds", seconds);
         }
@@ -1338,7 +1339,7 @@ skip_next_timeout (void)
 
     timespan = g_date_time_difference (next, now);
     seconds = (guint) (timespan / G_TIME_SPAN_SECOND);
-    kalpm_state.timeout_skip = g_timeout_add_seconds (seconds,
+    kalpm_state.timeout_skip = rt_timeout_add_seconds (seconds,
             (GSourceFunc) skip_next_timeout, NULL);
     debug ("next skip period in %d seconds", seconds);
 

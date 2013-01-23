@@ -58,7 +58,9 @@ kalu_SOURCES = \
 	src/kalu/aur.h \
 	src/kalu/aur.c \
 	src/kalu/news.h \
-	src/kalu/news.c
+	src/kalu/news.c \
+	src/kalu/rt_timeout.h \
+	src/kalu/rt_timeout.c
 
 if ! DISABLE_GUI
 kalu_CFLAGS += @GTK_CFLAGS@ @NOTIFY_CFLAGS@
