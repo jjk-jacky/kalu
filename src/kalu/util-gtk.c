@@ -2,8 +2,8 @@
  * kalu - Copyright (C) 2012-2013 Olivier Brunel
  *
  * util-gtk.c
- * Copyright (C) 2012 Olivier Brunel <i.am.jack.mail@gmail.com>
- * 
+ * Copyright (C) 2012-2013 Olivier Brunel <i.am.jack.mail@gmail.com>
+ *
  * This file is part of kalu.
  *
  * kalu is free software: you can redistribute it and/or modify it under the
@@ -189,62 +189,8 @@ NotifyNotification *
 new_notification (const gchar *summary, const gchar *text)
 {
     NotifyNotification *notification;
-    gchar *t = NULL;
 
-    /* seems that because notifications use a subset of HTML, we need to use
-     * &amp; to put the character '&' -- so let's deal with this, here because
-     * the text could have gone to CLI, where this replacement need not be
-     * done */
-    if (text)
-    {
-        gchar *s, *ss = (gchar *) text;
-        int diff = 0, alloc = 0;
-        while ((s = strchr (ss, '&')))
-        {
-            /* is this already &amp; ? -- we assume here that there's never
-             * something like &#42; or whatever, which should always be the case */
-            if (s[1] != 'a' && s[2] != 'm' && s[3] != 'p' && s[4] != ';')
-            {
-                /* do we need to (re)alloc some memory? */
-                if (diff + 5 - alloc > 0)
-                {
-                    if (alloc == 0)
-                    {
-                        alloc = (int) strlen (text);
-                    }
-                    alloc += 24; /* should be more than enough, as that's 6 '&' */
-                    t = renew (gchar, alloc + 1, t);
-
-                    /* first time? let's copy the text over */
-                    if (diff == 0)
-                    {
-                        memcpy (t, text, strlen (text) + 1);
-                    }
-                }
-                /* position of s in t */
-                int pos = (int) ((s - text) + diff);
-                /* move the text after the &, making room for amp; */
-                memcpy (t + pos + 4 + 1, s + 1, strlen (s + 1) + 1);
-                t[++pos] = 'a';
-                t[++pos] = 'm';
-                t[++pos] = 'p';
-                t[++pos] = ';';
-                /* t is now 4 bytes bigger than it was from text */
-                diff += 4;
-                ss = s + 1;
-            }
-            else
-            {
-                ss = s + 5;
-            }
-        }
-    }
-
-    notification = notify_notification_new (summary, (t) ? t : text, NULL);
-    if (t)
-    {
-        free (t);
-    }
+    notification = notify_notification_new (summary, text, NULL);
     if (config->notif_icon != ICON_NONE)
     {
         GtkWidget *w = NULL;

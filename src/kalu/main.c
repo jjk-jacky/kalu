@@ -149,11 +149,14 @@ notify_updates (
     const char      *unit;
     double           size_h;
     replacement_t   *replacements[8];
+    gboolean         escaping = FALSE;
     GString         *string_pkgs = NULL;     /* list of AUR packages */
 
 #ifdef DISABLE_GUI
     (void) xml_news;
     (void) show_it;
+#else
+    escaping = !is_cli;
 #endif
 
     templates_t *t, *tt;
@@ -209,9 +212,10 @@ notify_updates (
         ++nb;
         if (type & CHECK_NEWS)
         {
-            replacements[0] = new (replacement_t, 1);
+            replacements[0] = new0 (replacement_t, 1);
             replacements[0]->name = "NEWS";
             replacements[0]->value = i->data;
+            replacements[0]->need_escaping = TRUE;
             replacements[1] = NULL;
 
             /* add separator? */
@@ -224,7 +228,8 @@ notify_updates (
                 }
             }
 
-            parse_tpl (template.package, &text, &len, &alloc, replacements);
+            parse_tpl (template.package, &text, &len, &alloc,
+                    replacements, escaping);
 
             free (replacements[0]);
 
@@ -239,33 +244,35 @@ notify_updates (
             isize += pkg->new_size;
             nsize += net_size;
 
-            replacements[0] = new (replacement_t, 1);
+            replacements[0] = new0 (replacement_t, 1);
             replacements[0]->name = "PKG";
             replacements[0]->value = pkg->name;
-            replacements[1] = new (replacement_t, 1);
+            replacements[0]->need_escaping = TRUE;
+            replacements[1] = new0 (replacement_t, 1);
             replacements[1]->name = "OLD";
             replacements[1]->value = pkg->old_version;
-            replacements[2] = new (replacement_t, 1);
+            replacements[2] = new0 (replacement_t, 1);
             replacements[2]->name = "NEW";
             replacements[2]->value = pkg->new_version;
-            replacements[3] = new (replacement_t, 1);
+            replacements[3] = new0 (replacement_t, 1);
             replacements[3]->name = "DL";
             size_h = humanize_size (pkg->dl_size, '\0', &unit);
             snprint_size (buf, 255, size_h, unit);
             replacements[3]->value = strdup (buf);
-            replacements[4] = new (replacement_t, 1);
+            replacements[4] = new0 (replacement_t, 1);
             replacements[4]->name = "INS";
             size_h = humanize_size (pkg->new_size, '\0', &unit);
             snprint_size (buf, 255, size_h, unit);
             replacements[4]->value = strdup (buf);
-            replacements[5] = new (replacement_t, 1);
+            replacements[5] = new0 (replacement_t, 1);
             replacements[5]->name = "NET";
             size_h = humanize_size (net_size, '\0', &unit);
             snprint_size (buf, 255, size_h, unit);
             replacements[5]->value = strdup (buf);
-            replacements[6] = new (replacement_t, 1);
+            replacements[6] = new0 (replacement_t, 1);
             replacements[6]->name = "DESC";
             replacements[6]->value = pkg->desc;
+            replacements[6]->need_escaping = TRUE;
             replacements[7] = NULL;
 
             /* add separator? */
@@ -278,7 +285,8 @@ notify_updates (
                 }
             }
 
-            parse_tpl (template.package, &text, &len, &alloc, replacements);
+            parse_tpl (template.package, &text, &len, &alloc,
+                    replacements, escaping);
 
             free (replacements[3]->value);
             free (replacements[4]->value);
@@ -302,11 +310,11 @@ notify_updates (
         }
     }
 
-    alloc = 128;
+    alloc = 255;
     summary = new (gchar, alloc + 1);
     len = 0;
 
-    replacements[0] = new (replacement_t, 1);
+    replacements[0] = new0 (replacement_t, 1);
     replacements[0]->name = "NB";
     snprintf (buf, 255, "%d", nb);
     replacements[0]->value = strdup (buf);
@@ -316,17 +324,17 @@ notify_updates (
     }
     else
     {
-        replacements[1] = new (replacement_t, 1);
+        replacements[1] = new0 (replacement_t, 1);
         replacements[1]->name = "DL";
         size_h = humanize_size (dsize, '\0', &unit);
         snprint_size (buf, 255, size_h, unit);
         replacements[1]->value = strdup (buf);
-        replacements[2] = new (replacement_t, 1);
+        replacements[2] = new0 (replacement_t, 1);
         replacements[2]->name = "NET";
         size_h = humanize_size (nsize, '\0', &unit);
         snprint_size (buf, 255, size_h, unit);
         replacements[2]->value = strdup (buf);
-        replacements[3] = new (replacement_t, 1);
+        replacements[3] = new0 (replacement_t, 1);
         replacements[3]->name = "INS";
         size_h = humanize_size (isize, '\0', &unit);
         snprint_size (buf, 255, size_h, unit);
@@ -334,7 +342,8 @@ notify_updates (
         replacements[4] = NULL;
     }
 
-    parse_tpl (template.title, &summary, &len, &alloc, replacements);
+    parse_tpl (template.title, &summary, &len, &alloc,
+            replacements, escaping);
 
     free (replacements[0]->value);
     free (replacements[0]);

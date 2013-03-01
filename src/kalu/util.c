@@ -2,7 +2,7 @@
  * kalu - Copyright (C) 2012-2013 Olivier Brunel
  *
  * util.c
- * Copyright (C) 2012 Olivier Brunel <i.am.jack.mail@gmail.com>
+ * Copyright (C) 2012-2013 Olivier Brunel <i.am.jack.mail@gmail.com>
  * Copyright (c) 2006-2011 Pacman Development Team <pacman-dev@archlinux.org>
  *
  * This file is part of kalu.
@@ -416,14 +416,14 @@ parse_tpl (
         char            **text,
         unsigned int     *len,
         unsigned int     *alloc,
-        replacement_t   **_replacements
+        replacement_t   **_replacements,
+        gboolean          escaping
         )
 {
     replacement_t *r, **replacements;
     char *t;
     char *s;
     char *b;
-    unsigned int add;
     size_t l;
     char found;
 
@@ -445,18 +445,47 @@ parse_tpl (
                 l = strlen (r->name);
                 if (strncmp (t + 1, r->name, l) == 0)
                 {
-                    add = (unsigned int) strlen (r->value);
-                    /* enough memory? */
-                    if (*len + add >= *alloc)
+                    for (b = r->value; *b; ++b)
                     {
-                        *alloc += 1024;
-                        *text = renew (gchar, *alloc + 1, *text);
-                        s = *text + *len;
-                    }
-                    /* add value */
-                    for (b = r->value; *b; ++b, ++s, ++*len)
-                    {
-                        *s = *b;
+                        const gchar *esc[] =
+                        {
+                            "&",  "&amp;",
+                            "'",  "&apos;",
+                            "\"", "&quot;",
+                            "<",  "&lt;",
+                            ">",  "&gt;",
+                            NULL
+                        };
+                        gchar *_s;
+                        unsigned int _l, i;
+
+                        _s = b;
+                        _l = 1;
+                        if (escaping && r->need_escaping)
+                        {
+                            const gchar **e;
+
+                            for (e = esc; *e; e += 2)
+                            {
+                                if (*_s == *e[0])
+                                {
+                                    _s = (gchar *) e[1];
+                                    _l = (unsigned int) strlen (_s);
+                                    break;
+                                }
+                            }
+                        }
+
+                        /* enough memory? */
+                        if (*len + _l >= *alloc)
+                        {
+                            *alloc += 1024;
+                            *text = renew (gchar, *alloc + 1, *text);
+                            s = *text + *len;
+                        }
+
+                        for (i = 0; i < _l; ++i, ++*len)
+                            *s++ = *_s++;
                     }
                     t += l;
                     found = 1;

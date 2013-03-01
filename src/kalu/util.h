@@ -2,8 +2,8 @@
  * kalu - Copyright (C) 2012-2013 Olivier Brunel
  *
  * util.h
- * Copyright (C) 2012 Olivier Brunel <i.am.jack.mail@gmail.com>
- * 
+ * Copyright (C) 2012-2013 Olivier Brunel <i.am.jack.mail@gmail.com>
+ *
  * This file is part of kalu.
  *
  * kalu is free software: you can redistribute it and/or modify it under the
@@ -36,6 +36,7 @@
 typedef struct _replacement_t {
     const char *name;
     char *value;
+    gboolean need_escaping;
 } replacement_t;
 
 gboolean
@@ -67,7 +68,7 @@ snprint_size (char *buf, int buflen, double size, const char *unit);
 
 void
 parse_tpl (char *tpl, char **text, unsigned int *len, unsigned int *alloc,
-           replacement_t **replacements);
+           replacement_t **replacements, gboolean escaping);
 
 int
 watched_package_cmp (watched_package_t *w_pkg1, watched_package_t *w_pkg2);
