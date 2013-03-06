@@ -45,17 +45,19 @@
 
 /* split of pctg of each step in the global progress of the sysupgrade */
 #define PCTG_DOWNLOAD           0.42
+#define PCTG_KEYRING            0.01
 #define PCTG_PKG_INTEGRITY      0.01
 #define PCTG_FILE_CONFLICTS     0.01
 #define PCTG_LOAD_PKGFILES      0.01
 #define PCTG_CHECK_DISKSPACE    0.01
-#define PCTG_SYSUPGRADE         0.54
+#define PCTG_SYSUPGRADE         0.53
 
+#define PCTG_NO_DL_KEYRING            0.05
 #define PCTG_NO_DL_PKG_INTEGRITY      0.05
 #define PCTG_NO_DL_FILE_CONFLICTS     0.05
 #define PCTG_NO_DL_LOAD_PKGFILES      0.05
 #define PCTG_NO_DL_CHECK_DISKSPACE    0.05
-#define PCTG_NO_DL_SYSUPGRADE         0.80
+#define PCTG_NO_DL_SYSUPGRADE         0.75
 
 /* GtkListStore columns */
 enum {
@@ -122,6 +124,7 @@ typedef enum {
     STEP_LOAD_PKGFILES,
     STEP_CHECKING_DISKSPACE,
     STEP_UPGRADING,
+    STEP_KEYRING,
 } steps_t;
 
 typedef struct _updater_t {
@@ -147,6 +150,7 @@ typedef struct _updater_t {
     double pctg_load_pkgfiles;
     double pctg_check_diskspace;
     double pctg_sysupgrade;
+    double pctg_keyring;
 
     guint step_done;
     double pctg_done;
@@ -650,6 +654,11 @@ on_progress (KaluUpdater *kupdater _UNUSED_, event_t event, const gchar *pkg,
             step = STEP_CHECKING_DISKSPACE;
             msg = _("Checking disk space...");
             pctg_step = updater->pctg_check_diskspace;
+            break;
+        case EVENT_KEYRING:
+            step = STEP_KEYRING;
+            msg = _("Checking keyring...");
+            pctg_step = updater->pctg_keyring;
             break;
         case EVENT_INSTALLING:
         case EVENT_UPGRADING:
@@ -1631,6 +1640,7 @@ updater_get_packages_cb (KaluUpdater *kupdater _UNUSED_, const gchar *errmsg,
         updater->pctg_file_conflicts    = PCTG_FILE_CONFLICTS;
         updater->pctg_load_pkgfiles     = PCTG_LOAD_PKGFILES;
         updater->pctg_check_diskspace   = PCTG_CHECK_DISKSPACE;
+        updater->pctg_keyring           = PCTG_KEYRING;
         updater->pctg_sysupgrade        = PCTG_SYSUPGRADE;
 
         size = humanize_size (dl_size, '\0', &unit);
@@ -1646,6 +1656,7 @@ updater_get_packages_cb (KaluUpdater *kupdater _UNUSED_, const gchar *errmsg,
         updater->pctg_file_conflicts    = PCTG_NO_DL_FILE_CONFLICTS;
         updater->pctg_load_pkgfiles     = PCTG_NO_DL_LOAD_PKGFILES;
         updater->pctg_check_diskspace   = PCTG_NO_DL_CHECK_DISKSPACE;
+        updater->pctg_keyring           = PCTG_NO_DL_KEYRING;
         updater->pctg_sysupgrade        = PCTG_NO_DL_SYSUPGRADE;
 
         snprintf (buffer, 255,

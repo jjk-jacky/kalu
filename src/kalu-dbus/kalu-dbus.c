@@ -368,6 +368,9 @@ progress_cb (alpm_progress_t _event, const char *_pkgname, int percent,
         case ALPM_PROGRESS_LOAD_START:
             event = EVENT_LOAD_PKGFILES;
             break;
+        case ALPM_PROGRESS_KEYRING_START:
+            event = EVENT_KEYRING;
+            break;
         default:
             return;
     }
