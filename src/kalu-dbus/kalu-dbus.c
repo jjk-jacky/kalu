@@ -159,6 +159,65 @@ static char
 
 static int choice = CHOICE_FREE;
 
+/* the following 2 functions were largelly inspired from pacman's */
+
+static int
+depend_cmp (const alpm_depend_t *dep1, const alpm_depend_t *dep2)
+{
+    int ret;
+
+    ret = strcmp (dep1->name, dep2->name);
+    if (ret == 0)
+        ret = dep1->mod - dep2->mod;
+
+    if (ret == 0)
+    {
+        if (dep1->version && dep2->version)
+            ret = strcmp (dep1->version, dep2->version);
+        else if (!dep1->version && dep2->version)
+            ret = -1;
+        else if (dep1->version && !dep2->version)
+            ret = 1;
+    }
+
+    if (ret == 0)
+    {
+        if (dep1->desc && dep2->desc)
+            ret = strcmp (dep1->desc, dep2->desc);
+        else if (!dep1->desc && dep2->desc)
+            ret = -1;
+        else if (dep1->desc && !dep2->desc)
+            ret = 1;
+    }
+
+    return ret;
+}
+
+static gchar *
+make_optstring (alpm_depend_t *optdep)
+{
+    char *optstring;
+    char *status;
+
+    optstring = alpm_dep_compute_string (optdep);
+    if (alpm_db_get_pkg (alpm_get_localdb (handle), optdep->name))
+        status = _(" [installed]");
+    else if (alpm_pkg_find (alpm_trans_get_add (handle), optdep->name))
+        status = _(" [pending]");
+    else
+        status = NULL;
+
+    if (status)
+    {
+        size_t len = strlen (optstring);
+
+        optstring = renew (char, len + strlen (status) + 1, optstring);
+        strcpy (optstring + len, status);
+    }
+
+    return optstring;
+}
+
 /* callback to handle messages/notifications from libalpm transactions */
 static void
 event_cb (alpm_event_t event, void *data1, void *data2)
@@ -176,7 +235,7 @@ event_cb (alpm_event_t event, void *data1, void *data2)
         builder = g_variant_builder_new (G_VARIANT_TYPE ("as"));
         FOR_LIST (i, optdeps)
         {
-            g_variant_builder_add (builder, "s", (const char *) i->data);
+            g_variant_builder_add (builder, "s", make_optstring (i->data));
         }
 
         emit_signal ("EventInstalled", "ssas",
@@ -206,12 +265,12 @@ event_cb (alpm_event_t event, void *data1, void *data2)
         alpm_list_t *old = alpm_pkg_get_optdepends (data2);
         alpm_list_t *new = alpm_pkg_get_optdepends (data1);
         alpm_list_t *i, *optdeps;
-        optdeps = alpm_list_diff (new, old, (alpm_list_fn_cmp) strcmp);
+        optdeps = alpm_list_diff (new, old, (alpm_list_fn_cmp) depend_cmp);
 
         builder = g_variant_builder_new (G_VARIANT_TYPE ("as"));
         FOR_LIST (i, optdeps)
         {
-            g_variant_builder_add (builder, "s", (const char *) i->data);
+            g_variant_builder_add (builder, "s", make_optstring (i->data));
         }
 
         emit_signal ("EventUpgraded", "sssas",
