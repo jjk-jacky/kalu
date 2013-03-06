@@ -45,6 +45,8 @@
 #define CHOICE_FREE             -1
 #define CHOICE_WAITING          -2
 
+#define PREFIX                  "kalu"  /* caller prefix for log */
+
 static GDBusConnection *connection = NULL;
 
 static GMainLoop *loop;
@@ -163,7 +165,7 @@ event_cb (alpm_event_t event, void *data1, void *data2)
 {
     if (event == ALPM_EVENT_ADD_DONE)
     {
-        alpm_logaction (handle, "kalu: installed %s (%s)\n",
+        alpm_logaction (handle, PREFIX, "installed %s (%s)\n",
                 alpm_pkg_get_name (data1),
                 alpm_pkg_get_version (data1));
 
@@ -185,7 +187,7 @@ event_cb (alpm_event_t event, void *data1, void *data2)
     }
     else if (event == ALPM_EVENT_REMOVE_DONE)
     {
-        alpm_logaction (handle, "kalu: removed %s (%s)\n",
+        alpm_logaction (handle, PREFIX, "removed %s (%s)\n",
                 alpm_pkg_get_name (data1),
                 alpm_pkg_get_version (data1));
         emit_signal ("EventRemoved", "ss",
@@ -194,7 +196,7 @@ event_cb (alpm_event_t event, void *data1, void *data2)
     }
     else if (event == ALPM_EVENT_UPGRADE_DONE)
     {
-        alpm_logaction (handle, "kalu: upgraded %s (%s -> %s)\n",
+        alpm_logaction (handle, PREFIX, "upgraded %s (%s -> %s)\n",
                 alpm_pkg_get_name (data1),
                 alpm_pkg_get_version (data2),
                 alpm_pkg_get_version (data1));
@@ -867,8 +869,8 @@ sync_dbs (GVariant *parameters)
         if (ret < 0)
         {
             result = SYNC_FAILURE;
-            alpm_logaction (handle,
-                    "kalu: Failed to synchronize database %s: %s\n",
+            alpm_logaction (handle, PREFIX,
+                    "Failed to synchronize database %s: %s\n",
                     alpm_db_get_name (db),
                     alpm_strerror (alpm_errno (handle)));
         }
@@ -879,7 +881,7 @@ sync_dbs (GVariant *parameters)
         else
         {
             result = SYNC_SUCCESS;
-            alpm_logaction (handle, "kalu: synchronized database %s\n",
+            alpm_logaction (handle, PREFIX, "synchronized database %s\n",
                     alpm_db_get_name (db));
         }
         emit_signal ("SyncDbEnd", "i", result);
@@ -1078,7 +1080,7 @@ sysupgrade (GVariant *parameters)
 {
     g_variant_unref (parameters);
 
-    alpm_logaction (handle, "kalu: starting sysupgrade...\n");
+    alpm_logaction (handle, PREFIX, "starting sysupgrade...\n");
 
     alpm_list_t *alpm_data = NULL;
     if (alpm_trans_commit (handle, &alpm_data) == -1)
@@ -1157,8 +1159,8 @@ sysupgrade (GVariant *parameters)
         }
 
         FREELIST (alpm_data);
-        alpm_logaction (handle,
-                "kalu: Failed to commit sysupgrade transaction: %s\n",
+        alpm_logaction (handle, PREFIX,
+                "Failed to commit sysupgrade transaction: %s\n",
                 alpm_strerror (err));
         alpm_trans_release (handle);
         return FALSE;
@@ -1166,7 +1168,7 @@ sysupgrade (GVariant *parameters)
 
     FREELIST (alpm_data);
     alpm_trans_release (handle);
-    alpm_logaction (handle, "kalu: sysupgrade completed\n");
+    alpm_logaction (handle, PREFIX, "sysupgrade completed\n");
     method_finished ("SysUpgrade");
     return FALSE;
 }
