@@ -121,9 +121,6 @@
       <arg type='s'  name='new_version' />
       <arg type='as' name='newoptdeps' />
     </signal>
-    <signal name='EventRetrievingPkgs'>
-      <arg type='s' name='repo' />
-    </signal>
     <signal name='EventScriptlet'>
       <arg type='s' name='msg' />
     </signal>

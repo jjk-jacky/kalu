@@ -289,8 +289,8 @@ event_cb (alpm_event_t event, void *data1, void *data2)
     }
     else if (event == ALPM_EVENT_RETRIEVE_START)
     {
-        /* Retrieving packages (from repo) */
-        emit_signal ("EventRetrievingPkgs", "s", (const char *) data1);
+        /* Retrieving packages */
+        emit_signal ("Event", "i", EVENT_RETRIEVING_PKGS);
     }
     else if (event == ALPM_EVENT_CHECKDEPS_START)
     {

@@ -89,9 +89,6 @@ struct _KaluUpdaterClass
                                      const gchar        *new_version,
                                      alpm_list_t        *newoptdeps);
 
-    void (*event_retrieving_pkgs)   (KaluUpdater        *kupdater,
-                                     const gchar        *repo);
-
     void (*event_scriptlet)         (KaluUpdater        *kupdater,
                                      const gchar        *msg);
 
@@ -904,18 +901,6 @@ kalu_updater_class_init (KaluUpdaterClass *klass)
             G_TYPE_STRING,
             G_TYPE_STRING,
             G_TYPE_POINTER);
-
-    signals[SIGNAL_EVENT_RETRIEVING_PKGS] = g_signal_new (
-            "event-retrieving-pkgs",
-            KALU_TYPE_UPDATER,
-            G_SIGNAL_RUN_LAST,
-            G_STRUCT_OFFSET (KaluUpdaterClass, event_retrieving_pkgs),
-            NULL,
-            NULL,
-            g_cclosure_marshal_VOID__STRING,
-            G_TYPE_NONE,
-            1,
-            G_TYPE_STRING);
 
     signals[SIGNAL_EVENT_SCRIPTLET] = g_signal_new (
             "event-scriptlet",

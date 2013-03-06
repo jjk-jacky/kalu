@@ -450,6 +450,9 @@ on_event (KaluUpdater *kupdater _UNUSED_, event_t event)
     const gchar *msg;
     switch (event)
     {
+        case EVENT_RETRIEVING_PKGS:
+            msg = _("Downloading packages...");
+            break;
         case EVENT_CHECKING_DEPS:
             msg = _("Checking dependencies...");
             break;
@@ -591,19 +594,6 @@ on_event_upgraded (KaluUpdater *kupdater _UNUSED_, const gchar *pkg,
         {
             add_log (LOGTYPE_INFO, "- %s\n", (const char *) i->data);
         }
-    }
-}
-
-static void
-on_event_retrieving_pkgs (KaluUpdater *kupdater _UNUSED_, const gchar *repo)
-{
-    add_log (LOGTYPE_NORMAL, _("Downloading packages from %s\n"), repo);
-    if (updater->step == STEP_NONE)
-    {
-        gtk_label_set_text (GTK_LABEL (updater->lbl_action),
-                _("Downloading packages..."));
-        gtk_widget_show (updater->lbl_action);
-        gtk_widget_hide (updater->pbar_action);
     }
 }
 
@@ -1923,10 +1913,6 @@ updater_new_cb (GObject *source _UNUSED_, GAsyncResult *res,
     g_signal_connect (kalu_updater,
             "event-upgraded",
             G_CALLBACK (on_event_upgraded),
-            NULL);
-    g_signal_connect (kalu_updater,
-            "event-retrieving-pkgs",
-            G_CALLBACK (on_event_retrieving_pkgs),
             NULL);
     g_signal_connect (kalu_updater,
             "event-scriptlet",
