@@ -281,6 +281,12 @@ event_cb (alpm_event_t event, void *data1, void *data2)
         g_variant_builder_unref (builder);
         alpm_list_free (optdeps);
     }
+    else if (event == ALPM_EVENT_OPTDEP_REQUIRED)
+    {
+        emit_signal ("EventOptdepRequired", "ss",
+                alpm_pkg_get_name (data1),
+                alpm_dep_compute_string (data2));
+    }
     else if (event == ALPM_EVENT_RETRIEVE_START)
     {
         /* Retrieving packages (from repo) */

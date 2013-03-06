@@ -99,6 +99,10 @@ struct _KaluUpdaterClass
                                      const gchar        *delta,
                                      const gchar        *dest);
 
+    void (*event_optdep_required)   (KaluUpdater        *kupdater,
+                                     const gchar        *pkg,
+                                     const gchar        *optdep);
+
     void (*progress)                (KaluUpdater        *kupdater,
                                      event_t             event,
                                      const gchar        *pkg,
@@ -167,6 +171,7 @@ enum
   SIGNAL_EVENT_DELTA_GENERATING,
   SIGNAL_EVENT_RETRIEVING_PKGS,
   SIGNAL_EVENT_SCRIPTLET,
+  SIGNAL_EVENT_OPTDEP_REQUIRED,
   SIGNAL_PROGRESS,
   /* questions */
   SIGNAL_INSTALL_IGNOREPKG,
@@ -583,6 +588,16 @@ kalu_updater_g_signal (GDBusProxy   *proxy,
         free (delta);
         free (dest);
     }
+    else if (g_strcmp0 (signal_name, "EventOptdepRequired") == 0)
+    {
+        gchar *pkg, *optdep;
+
+        g_variant_get (parameters, "(ss)", &pkg, &optdep);
+        g_signal_emit (kupdater, signals[SIGNAL_EVENT_OPTDEP_REQUIRED], 0,
+                pkg, optdep);
+        free (pkg);
+        free (optdep);
+    }
     else if (g_strcmp0 (signal_name, "Progress") == 0)
     {
         gint event, percent;
@@ -912,6 +927,19 @@ kalu_updater_class_init (KaluUpdaterClass *klass)
             g_cclosure_marshal_VOID__STRING,
             G_TYPE_NONE,
             1,
+            G_TYPE_STRING);
+
+    signals[SIGNAL_EVENT_OPTDEP_REQUIRED] = g_signal_new (
+            "event-optdep-required",
+            KALU_TYPE_UPDATER,
+            G_SIGNAL_RUN_LAST,
+            G_STRUCT_OFFSET (KaluUpdaterClass, event_optdep_required),
+            NULL,
+            NULL,
+            g_cclosure_user_marshal_VOID__STRING_STRING,
+            G_TYPE_NONE,
+            2,
+            G_TYPE_STRING,
             G_TYPE_STRING);
 
     signals[SIGNAL_EVENT_DELTA_GENERATING] = g_signal_new (

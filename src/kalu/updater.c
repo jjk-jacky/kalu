@@ -615,6 +615,13 @@ on_event_delta_generating (KaluUpdater *kupdater _UNUSED_, const gchar *delta,
 }
 
 static void
+on_event_optdep_required (KaluUpdater *kupdzter _UNUSED_, const gchar *pkg,
+                          const gchar *optdep)
+{
+    add_log (LOGTYPE_INFO, _("%s optionally requires %s"), pkg, optdep);
+}
+
+static void
 on_progress (KaluUpdater *kupdater _UNUSED_, event_t event, const gchar *pkg,
              int percent, guint total _UNUSED_, guint current _UNUSED_)
 {
@@ -1914,6 +1921,10 @@ updater_new_cb (GObject *source _UNUSED_, GAsyncResult *res,
     g_signal_connect (kalu_updater,
             "event-delta-generating",
             G_CALLBACK (on_event_delta_generating),
+            NULL);
+    g_signal_connect (kalu_updater,
+            "event-optdep-required",
+            G_CALLBACK (on_event_optdep_required),
             NULL);
     g_signal_connect (kalu_updater,
             "progress",
