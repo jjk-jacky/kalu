@@ -462,6 +462,9 @@ on_event (KaluUpdater *kupdater _UNUSED_, event_t event)
         case EVENT_DELTA_INTEGRITY:
             msg = _("Checking delta integrity...");
             break;
+        case EVENT_KEY_DOWNLOAD:
+            msg = _("Importing required keys...");
+            break;
         case EVENT_DELTA_PATCHES:
             msg = _("Applying delta patches...");
             break;

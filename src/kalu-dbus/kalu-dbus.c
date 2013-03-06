@@ -311,6 +311,10 @@ event_cb (alpm_event_t event, void *data1, void *data2)
     {
         emit_signal ("EventScriptlet", "s", data1);
     }
+    else if (event == ALPM_EVENT_KEY_DOWNLOAD_START)
+    {
+        emit_signal ("Event", "i", EVENT_KEY_DOWNLOAD);
+    }
     else if (event == ALPM_EVENT_DELTA_INTEGRITY_START)
     {
         /* checking delta integrity */
