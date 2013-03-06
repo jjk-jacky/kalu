@@ -333,6 +333,8 @@ event_cb (alpm_event_t event, void *data1, void *data2)
     {
         emit_signal ("Event", "i", EVENT_DELTA_PATCH_FAILED);
     }
+    /* we ignore ALPM_EVENT_DATABASE_MISSING because it should only be relevant
+     * on operations that do not sync databases, and we always do */
 }
 
 /* callback to handle display of transaction progress */
