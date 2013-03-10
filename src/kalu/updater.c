@@ -568,6 +568,14 @@ on_event_installed (KaluUpdater *kupdater _UNUSED_, const gchar *pkg,
 }
 
 static void
+on_event_reinstalled (KaluUpdater *kupdater _UNUSED_, const gchar *pkg,
+                      const gchar *version)
+{
+    add_log (LOGTYPE_NORMAL, _("Package reinstalled: %s (%s)\n"), pkg, version);
+    finish_pkg_install (pkg, version);
+}
+
+static void
 on_event_removed (KaluUpdater *kupdater _UNUSED_, const gchar *pkg,
                     const gchar *version)
 {
@@ -583,6 +591,28 @@ on_event_upgraded (KaluUpdater *kupdater _UNUSED_, const gchar *pkg,
     alpm_list_t *i;
 
     add_log (LOGTYPE_NORMAL, _("Package upgraded: %s (%s -> %s)\n"),
+            pkg, old_version, new_version);
+    finish_pkg_install (pkg, new_version);
+
+    if (newoptdeps != NULL)
+    {
+        add_log (LOGTYPE_INFO, _("New optional dependencies for %s-%s:\n"),
+                pkg, new_version);
+        FOR_LIST (i, newoptdeps)
+        {
+            add_log (LOGTYPE_INFO, "- %s\n", (const char *) i->data);
+        }
+    }
+}
+
+static void
+on_event_downgraded (KaluUpdater *kupdater _UNUSED_, const gchar *pkg,
+                     const gchar *old_version, const gchar *new_version,
+                     alpm_list_t *newoptdeps)
+{
+    alpm_list_t *i;
+
+    add_log (LOGTYPE_NORMAL, _("Package downgraded: %s (%s -> %s)\n"),
             pkg, old_version, new_version);
     finish_pkg_install (pkg, new_version);
 
@@ -654,7 +684,9 @@ on_progress (KaluUpdater *kupdater _UNUSED_, event_t event, const gchar *pkg,
             pctg_step = updater->pctg_keyring;
             break;
         case EVENT_INSTALLING:
+        case EVENT_REINSTALLING:
         case EVENT_UPGRADING:
+        case EVENT_DOWNGRADING:
         case EVENT_REMOVING:
             step = STEP_UPGRADING;
             msg = _("Upgrading system...");
@@ -1907,12 +1939,20 @@ updater_new_cb (GObject *source _UNUSED_, GAsyncResult *res,
             G_CALLBACK (on_event_installed),
             NULL);
     g_signal_connect (kalu_updater,
+            "event-reinstalled",
+            G_CALLBACK (on_event_reinstalled),
+            NULL);
+    g_signal_connect (kalu_updater,
             "event-removed",
             G_CALLBACK (on_event_removed),
             NULL);
     g_signal_connect (kalu_updater,
             "event-upgraded",
             G_CALLBACK (on_event_upgraded),
+            NULL);
+    g_signal_connect (kalu_updater,
+            "event-downgraded",
+            G_CALLBACK (on_event_downgraded),
             NULL);
     g_signal_connect (kalu_updater,
             "event-scriptlet",

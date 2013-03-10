@@ -244,6 +244,16 @@ event_cb (alpm_event_t event, void *data1, void *data2)
                 builder);
         g_variant_builder_unref (builder);
     }
+    else if (event == ALPM_EVENT_REINSTALL_DONE)
+    {
+        alpm_logaction (handle, PREFIX, "reinstalled %s (%s)\n",
+                alpm_pkg_get_name (data1),
+                alpm_pkg_get_version (data1));
+
+        emit_signal ("EventReinstalled", "ss",
+                alpm_pkg_get_name (data1),
+                alpm_pkg_get_version (data1));
+    }
     else if (event == ALPM_EVENT_REMOVE_DONE)
     {
         alpm_logaction (handle, PREFIX, "removed %s (%s)\n",
@@ -274,6 +284,34 @@ event_cb (alpm_event_t event, void *data1, void *data2)
         }
 
         emit_signal ("EventUpgraded", "sssas",
+                alpm_pkg_get_name (data1),
+                alpm_pkg_get_version (data2),
+                alpm_pkg_get_version (data1),
+                builder);
+        g_variant_builder_unref (builder);
+        alpm_list_free (optdeps);
+    }
+    else if (event == ALPM_EVENT_DOWNGRADE_DONE)
+    {
+        alpm_logaction (handle, PREFIX, "downgraded %s (%s -> %s)\n",
+                alpm_pkg_get_name (data1),
+                alpm_pkg_get_version (data2),
+                alpm_pkg_get_version (data1));
+
+        /* computing new optional dependencies */
+        GVariantBuilder *builder;
+        alpm_list_t *old = alpm_pkg_get_optdepends (data2);
+        alpm_list_t *new = alpm_pkg_get_optdepends (data1);
+        alpm_list_t *i, *optdeps;
+        optdeps = alpm_list_diff (new, old, (alpm_list_fn_cmp) depend_cmp);
+
+        builder = g_variant_builder_new (G_VARIANT_TYPE ("as"));
+        FOR_LIST (i, optdeps)
+        {
+            g_variant_builder_add (builder, "s", make_optstring (i->data));
+        }
+
+        emit_signal ("EventDowngraded", "sssas",
                 alpm_pkg_get_name (data1),
                 alpm_pkg_get_version (data2),
                 alpm_pkg_get_version (data1),
@@ -354,8 +392,14 @@ progress_cb (alpm_progress_t _event, const char *_pkgname, int percent,
         case ALPM_PROGRESS_ADD_START:
             event = EVENT_INSTALLING;
             break;
+        case ALPM_PROGRESS_REINSTALL_START:
+            event = EVENT_REINSTALLING;
+            break;
         case ALPM_PROGRESS_UPGRADE_START:
             event = EVENT_UPGRADING;
+            break;
+        case ALPM_PROGRESS_DOWNGRADE_START:
+            event = EVENT_DOWNGRADING;
             break;
         case ALPM_PROGRESS_REMOVE_START:
             event = EVENT_REMOVING;

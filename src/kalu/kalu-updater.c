@@ -79,11 +79,21 @@ struct _KaluUpdaterClass
                                      const gchar        *version,
                                      alpm_list_t        *optdeps);
 
+    void (*event_reinstalled)       (KaluUpdater        *kupdater,
+                                     const gchar        *pkg,
+                                     const gchar        *version);
+
     void (*event_removed)           (KaluUpdater        *kupdater,
                                      const gchar        *pkg,
                                      const gchar        *version);
 
     void (*event_upgraded)          (KaluUpdater        *kupdater,
+                                     const gchar        *pkg,
+                                     const gchar        *old_version,
+                                     const gchar        *new_version,
+                                     alpm_list_t        *newoptdeps);
+
+    void (*event_downgraded)        (KaluUpdater        *kupdater,
                                      const gchar        *pkg,
                                      const gchar        *old_version,
                                      const gchar        *new_version,
@@ -163,8 +173,10 @@ enum
   SIGNAL_TOTAL_DOWNLOAD,
   SIGNAL_EVENT,
   SIGNAL_EVENT_INSTALLED,
+  SIGNAL_EVENT_REINSTALLED,
   SIGNAL_EVENT_REMOVED,
   SIGNAL_EVENT_UPGRADED,
+  SIGNAL_EVENT_DOWNGRADED,
   SIGNAL_EVENT_DELTA_GENERATING,
   SIGNAL_EVENT_RETRIEVING_PKGS,
   SIGNAL_EVENT_SCRIPTLET,
@@ -525,6 +537,16 @@ kalu_updater_g_signal (GDBusProxy   *proxy,
         free (version);
         FREELIST (optdeps);
     }
+    else if (g_strcmp0 (signal_name, "EventReinstalled") == 0)
+    {
+        gchar *pkg, *version;
+
+        g_variant_get (parameters, "(ss)", &pkg, &version);
+        g_signal_emit (kupdater, signals[SIGNAL_EVENT_REINSTALLED], 0,
+                pkg, version);
+        free (pkg);
+        free (version);
+    }
     else if (g_strcmp0 (signal_name, "EventRemoved") == 0)
     {
         gchar *pkg, *version;
@@ -552,6 +574,29 @@ kalu_updater_g_signal (GDBusProxy   *proxy,
         }
         g_variant_iter_free (iter);
         g_signal_emit (kupdater, signals[SIGNAL_EVENT_UPGRADED], 0, pkg,
+                old_version, new_version, newoptdeps);
+        free (pkg);
+        free (old_version);
+        free (new_version);
+        FREELIST (newoptdeps);
+    }
+    else if (g_strcmp0 (signal_name, "EventDowngraded") == 0)
+    {
+        gchar *pkg, *old_version, *new_version, *dep;
+        alpm_list_t *newoptdeps = NULL;
+        GVariantIter *iter;
+
+        g_variant_get (parameters, "(sssas)",
+                &pkg,
+                &old_version,
+                &new_version,
+                &iter);
+        while (g_variant_iter_loop (iter, "s", &dep))
+        {
+            newoptdeps = alpm_list_add (newoptdeps, strdup (dep));
+        }
+        g_variant_iter_free (iter);
+        g_signal_emit (kupdater, signals[SIGNAL_EVENT_DOWNGRADED], 0, pkg,
                 old_version, new_version, newoptdeps);
         free (pkg);
         free (old_version);

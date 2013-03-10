@@ -111,11 +111,21 @@
       <arg type='s'  name='version' />
       <arg type='as' name='optdeps' />
     </signal>
+    <signal name='EventReinstalled'>
+      <arg type='s' name='pkg' />
+      <arg type='s' name='version' />
+    </signal>
     <signal name='EventRemoved'>
       <arg type='s'  name='pkg' />
       <arg type='s'  name='version' />
     </signal>
     <signal name='EventUpgraded'>
+      <arg type='s'  name='pkg' />
+      <arg type='s'  name='old_version' />
+      <arg type='s'  name='new_version' />
+      <arg type='as' name='newoptdeps' />
+    </signal>
+    <signal name='EventDowngraded'>
       <arg type='s'  name='pkg' />
       <arg type='s'  name='old_version' />
       <arg type='s'  name='new_version' />
