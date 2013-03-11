@@ -24,7 +24,6 @@
 #include <config.h>
 
 /* C */
-#include <stdlib.h> /* strtod */
 #include <string.h>
 #include <glob.h>
 #include <sys/utsname.h> /* uname */
@@ -488,7 +487,7 @@ parse_pacman_conf (const char       *file,
                 {
                     double ratio;
                     char *end;
-                    ratio = strtod (value, &end);
+                    ratio = g_ascii_strtod (value, &end);
                     if (*end != '\0' || ratio < 0.0 || ratio > 2.0)
                     {
                         set_error ("config file %s, line %d: invalid delta ratio: %s",
