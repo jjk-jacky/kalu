@@ -776,6 +776,12 @@ watched_new_window (w_type_t type)
         gtk_widget_show (GTK_WIDGET (tb_item));
     }
 
+    /* scrolled window for the list */
+    GtkWidget *sw;
+    sw = gtk_scrolled_window_new (NULL, NULL);
+    gtk_box_pack_start (GTK_BOX (vbox), sw, TRUE, TRUE, 0);
+    gtk_widget_show (sw);
+
     /* store for the list */
     GtkListStore *store;
     store = gtk_list_store_new (WCOL_NB,
@@ -895,7 +901,7 @@ watched_new_window (w_type_t type)
         }
     }
 
-    gtk_box_pack_start (GTK_BOX (vbox), list, TRUE, TRUE, 0);
+    gtk_container_add (GTK_CONTAINER (sw), list);
     gtk_widget_show (list);
 
     /* button box */
