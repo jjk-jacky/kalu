@@ -23,6 +23,7 @@
 #include <config.h>
 
 /* C */
+#include <locale.h>
 #include <string.h>
 #include <stdio.h>
 #include <time.h>
@@ -1420,8 +1421,8 @@ main (int argc _UNUSED_, char *argv[] _UNUSED_)
 {
     guint owner_id;
 
-#ifdef ENABLE_NLS
     setlocale (LC_ALL, "");
+#ifdef ENABLE_NLS
     bindtextdomain (PACKAGE, LOCALEDIR);
     textdomain (PACKAGE);
 #endif

@@ -23,6 +23,7 @@
 #include <config.h>
 
 /* C */
+#include <locale.h>
 #include <string.h>
 #include <time.h> /* for debug() */
 
@@ -954,8 +955,8 @@ main (int argc, char *argv[])
     zero (kalpm_state);
 #endif
 
-#ifdef ENABLE_NLS
     setlocale (LC_ALL, "");
+#ifdef ENABLE_NLS
     bindtextdomain (PACKAGE, LOCALEDIR);
     textdomain (PACKAGE);
 #endif
