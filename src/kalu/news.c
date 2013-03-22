@@ -1292,7 +1292,19 @@ news_show (gchar *xml_news, gboolean only_updates, GError **error)
         free (xml_news);
     }
 
-    gtk_widget_show (window);
+    /* if we were only showing updates, but there are none to show (i.e. from
+     * the menu "Show unread news") then just show a notif about it */
+    if (only_updates && data.lists && data.lists[LIST_TITLES_SHOWN] == NULL)
+    {
+        gtk_widget_destroy (window);
+        notify_error (_("No unread news"),
+                _("There are no unread Arch Linux news."));
+    }
+    else
+    {
+        gtk_widget_show (window);
+    }
+
     set_kalpm_busy (FALSE);
     return TRUE;
 }

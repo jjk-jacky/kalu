@@ -557,9 +557,11 @@ kalu_sysupgrade (void)
 }
 
 static void
-menu_news_cb (GtkMenuItem *item _UNUSED_, gpointer data _UNUSED_)
+menu_news_cb (GtkMenuItem *item _UNUSED_, gpointer data)
 {
     GError *error = NULL;
+    gboolean unread_only = GPOINTER_TO_INT (data);
+
     /* in case e.g. the menu was shown (sensitive) before an auto-check started */
     if (kalpm_state.is_busy)
     {
@@ -567,7 +569,7 @@ menu_news_cb (GtkMenuItem *item _UNUSED_, gpointer data _UNUSED_)
     }
     set_kalpm_busy (TRUE);
 
-    if (!news_show (NULL, FALSE, &error))
+    if (!news_show (NULL, unread_only, &error))
     {
         show_error (_("Unable to show the recent Arch Linux news"),
                 error->message, NULL);
@@ -724,13 +726,24 @@ icon_popup_cb (GtkStatusIcon *_icon _UNUSED_, guint button, guint activate_time,
     }
 
     item = gtk_image_menu_item_new_with_label (
+            _c("systray-menu", "Show unread Arch Linux news..."));
+    gtk_widget_set_sensitive (item, !kalpm_state.is_busy);
+    image = gtk_image_new_from_stock ("kalu-logo", GTK_ICON_SIZE_MENU);
+    gtk_image_menu_item_set_image (GTK_IMAGE_MENU_ITEM (item), image);
+    gtk_widget_set_tooltip_text (item, _("Show only unread Arch Linux news"));
+    g_signal_connect (G_OBJECT (item), "activate",
+            G_CALLBACK (menu_news_cb), GINT_TO_POINTER (1));
+    gtk_widget_show (item);
+    gtk_menu_attach (GTK_MENU (menu), item, 0, 1, pos, pos + 1); ++pos;
+
+    item = gtk_image_menu_item_new_with_label (
             _c("systray-menu", "Show recent Arch Linux news..."));
     gtk_widget_set_sensitive (item, !kalpm_state.is_busy);
     image = gtk_image_new_from_stock ("kalu-logo", GTK_ICON_SIZE_MENU);
     gtk_image_menu_item_set_image (GTK_IMAGE_MENU_ITEM (item), image);
     gtk_widget_set_tooltip_text (item, _("Show most recent Arch Linux news"));
     g_signal_connect (G_OBJECT (item), "activate",
-            G_CALLBACK (menu_news_cb), NULL);
+            G_CALLBACK (menu_news_cb), GINT_TO_POINTER (0));
     gtk_widget_show (item);
     gtk_menu_attach (GTK_MENU (menu), item, 0, 1, pos, pos + 1); ++pos;
 

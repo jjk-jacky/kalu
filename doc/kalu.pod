@@ -113,6 +113,10 @@ For example, images are not supported.
 Links are opened using the command-line specified in B<PREFERENCES>, by default
 using B<xdg-open(1)> to be opened them in your default browser.
 
+In case your notification daemon doesn't support action buttons on
+notifications, you can still easilly mark news read using the menu "Show unread
+Arch Linux News" from right-clickig on kalu's systray icon.
+
 =back
 
 =head1 DATA LOCATION & FORMAT
