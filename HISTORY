@@ -1,5 +1,23 @@
 
-# 01/22/2013, v1.4.0
+# 2013-04-05, v2.0.0
+
+- Major version bump for compatibility with API changes of pacman 4.1
+
+- Add menu "Show unread news" to help marking them read
+Not so much to avoid running all checks (just re-show notifs) but for people who
+do not have buttons shown on notifications.
+
+- Escape a few more characters for notifications (Fix #3)
+
+- Watched (AUR) window: add scrollbar to the list of watched packages
+
+- Parse UseDelta value in locale-independent way
+
+- Timeouts for checks are now calculated using real time (and not monotonic
+time) to handled suspended system.
+
+
+# 2013-01-22, v1.4.0
 
 - Add feature pause: when paused kalu will not perform its automatic checks
 
@@ -77,7 +95,7 @@ name and supported values of each settings.
 about everywhere (systray, windows, menus...)
 
 
-# 10/27/2012, v1.3.0
+# 2012-10-27, v1.3.0
 
 - Add $DESC to all templates (but news) for package description
 
@@ -119,7 +137,7 @@ which case adding "UseIP=4" in ~/.config/kalu/kalu.conf (under [options])
 might help.
 
 
-# 10/21/2012, v1.2.1
+# 2012-10-21, v1.2.1
 
 - Fix error checking news (due to switch to https)
 
@@ -127,7 +145,7 @@ Downloading the news used URL on http and didn't follow redirection, so the
 switch to https-only caused an error checking the news.
 
 
-# 09/15/2012, v1.2.0
+# 2012-09-15, v1.2.0
 
 - Instead of hard-coded use of xdg-open, one can now define the command line to
 be used when a link is clicked (in news). Variable $URL will be replaced by the
@@ -169,7 +187,7 @@ to a git one (https://github.com/jjk-jacky/kalu)
 in kalu (and man page) will come from `git describe` ran at compile/make time.
 
 
-# 08/10/2012, v1.1.0
+# 2012-08-10, v1.1.0
 
 - Added options --manual-checks (-m) and --auto-checks (-a) to run manual/auto
 checks from command line. No GUI used at all, everything gets printed on
@@ -192,7 +210,7 @@ processing of &minus;, &lsquo;, &rsquo;, &amp;, &lt; and &gt;
 click to open in default browser (via xdg-open)
 
 
-# 05/10/2012, v1.0.0
+# 2012-05-10, v1.0.0
 
 - Preferences: kalu's updater: added option to disable confirmation before
 starting PostSysUpgrade processes.
@@ -215,7 +233,7 @@ kalu would run a check after each, fixed
 - Bumped to 1.0.0 to follow semantic versioning
 
 
-# 04/19/2012, v0.1.5.1
+# 2012-04-19, v0.1.5.1
 
 - Preferences: option SyncDbsInTooltip could not be changed, fixed
 
@@ -228,7 +246,7 @@ If so, a button will be featured on the notification, to show a little message
 about the reason for such a conflict, and how to perform the system upgrade.
 
 
-# 04/14/2012, v0.1.5
+# 2012-04-14, v0.1.5
 
 - Now using automake & autoconf. (Hopefully) this shouldn't really change
 much for most people, but if you don't care for kalu's updater and only want
@@ -259,7 +277,7 @@ continues parsing, and report all errors (at once)
 - Other minor fixes
 
 
-# 03/26/2012, v0.1.4
+# 2012-03-26, v0.1.4
 
 - added section "Misc" under Preferences, with options to define action on
 single- & double-click on systray icon: nothing, check for upgrades, system
@@ -278,19 +296,19 @@ upgrades avability). Can be disabled via option under "Misc" in Preferences
 PostSysUpgrade list disabled, fixed
 
 
-# 03/20/2012, v0.1.3
+# 2012-03-20, v0.1.3
 
 - when saving Preferences, \n in templates wasn't resolved to newline (for
 current run), fixed
 
 
-# 03/18/2012, v0.1.2
+# 2012-03-18, v0.1.2
 
 - saving preferences if the folder (~/.config/kalu) did not already exist would
 fail, fixed
 
 
-# 03/11/2012, v0.1.1
+# 2012-03-11, v0.1.1
 
 - kalu-updater: environment variables were unset, which could cause issues on
 some post_{install,upgrade} scripts, fixed
@@ -304,7 +322,7 @@ restore a proper environment) before launching kalu-dbus
 (See https://bbs.archlinux.org/viewtopic.php?id=136784)
 
 
-# 03/06/2012, v0.1.0
+# 2012-03-06, v0.1.0
 
 - first stable release
 
@@ -315,7 +333,7 @@ IOW those two (notifications' button & menu item) are 2 GUI elements of the same
 feature.
 
 
-# 03/03/2012, v0.0.6
+# 2012-03-03, v0.0.6
 
 - When performing a sysupgrade through kalu's updater, when (new) optionnal
 dependencies were to be listed, kalu would crash. Note that "only" kalu (aka the
@@ -327,19 +345,19 @@ as the log (pacman.log) would show. Still pretty bad, and fixed.
 ("sysupgrade completed")
 
 
-# 02/23/2012, v0.0.5
+# 2012-02-23, v0.0.5
 
 - added man page
 
 - Preferences: added notification expiration delay
 
 
-# 02/21/2012, v0.0.4.1
+# 2012-02-21, v0.0.4.1
 
 - kalu did not perform automatic checks (forgot to remove debugging comment), fixed
 
 
-# 02/21/2012, v0.0.4
+# 2012-02-21, v0.0.4
 
 - added window Preferences to configure things
 
@@ -350,7 +368,7 @@ as the log (pacman.log) would show. Still pretty bad, and fixed.
 - templates were overly complicated, rewrote the whole thing
 
 
-# 02/17/2012, v0.0.3
+# 2012-02-17, v0.0.3
 
 - when creating local copy of dbs, it would fail if there were folders (in sync/);
 fixed (only copy files now)
@@ -358,7 +376,7 @@ fixed (only copy files now)
 - added basic command-line parser, and option -d/--debug to enable debug mode
 
 
-# 02/15/2012, v0.0.2
+# 2012-02-15, v0.0.2
 
 - saving data (marking (AUR) watched packages, read news, managing (AUR) watched
 packages) would silently failed if the folder did not exists (yet kalu acted as
@@ -367,6 +385,6 @@ if it had worked), which was pretty much always the case on a new installation, 
 - template Title was missing $INS (total install size), fixed
 
 
-# 02/14/2012, v0.0.1
+# 2012-02-14, v0.0.1
 
 - first release, still in development phase
