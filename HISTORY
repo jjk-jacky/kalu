@@ -1,4 +1,12 @@
 
+# 2013-04-06, v2.0.1
+
+- Fix unable to start a sysupgrade (kalu-dbus would fail to start, due to a
+wrongly removed init call)
+
+- Couple other (minor) fixes
+
+
 # 2013-04-05, v2.0.0
 
 - Major version bump for compatibility with API changes of pacman 4.1
