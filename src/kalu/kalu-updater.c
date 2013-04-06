@@ -919,6 +919,19 @@ kalu_updater_class_init (KaluUpdaterClass *klass)
             G_TYPE_STRING,
             G_TYPE_POINTER);
 
+    signals[SIGNAL_EVENT_REINSTALLED] = g_signal_new (
+            "event-reinstalled",
+            KALU_TYPE_UPDATER,
+            G_SIGNAL_RUN_LAST,
+            G_STRUCT_OFFSET (KaluUpdaterClass, event_reinstalled),
+            NULL,
+            NULL,
+            g_cclosure_user_marshal_VOID__STRING_STRING,
+            G_TYPE_NONE,
+            2,
+            G_TYPE_STRING,
+            G_TYPE_STRING);
+
     signals[SIGNAL_EVENT_REMOVED] = g_signal_new (
             "event-removed",
             KALU_TYPE_UPDATER,
@@ -937,6 +950,21 @@ kalu_updater_class_init (KaluUpdaterClass *klass)
             KALU_TYPE_UPDATER,
             G_SIGNAL_RUN_LAST,
             G_STRUCT_OFFSET (KaluUpdaterClass, event_upgraded),
+            NULL,
+            NULL,
+            g_cclosure_user_marshal_VOID__STRING_STRING_STRING_POINTER,
+            G_TYPE_NONE,
+            4,
+            G_TYPE_STRING,
+            G_TYPE_STRING,
+            G_TYPE_STRING,
+            G_TYPE_POINTER);
+
+    signals[SIGNAL_EVENT_DOWNGRADED] = g_signal_new (
+            "event-downgraded",
+            KALU_TYPE_UPDATER,
+            G_SIGNAL_RUN_LAST,
+            G_STRUCT_OFFSET (KaluUpdaterClass, event_downgraded),
             NULL,
             NULL,
             g_cclosure_user_marshal_VOID__STRING_STRING_STRING_POINTER,
