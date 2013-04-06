@@ -732,7 +732,6 @@ kalu_updater_g_signal (GDBusProxy   *proxy,
             g_variant_iter_loop (iter2, "s", &provider->repo);
             g_variant_iter_loop (iter2, "s", &provider->pkg);
             g_variant_iter_loop (iter2, "s", &provider->version);
-            g_variant_iter_free (iter2);
             providers = alpm_list_add (providers, provider);
         }
         g_variant_iter_free (iter1);
