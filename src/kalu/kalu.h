@@ -140,8 +140,10 @@ typedef struct _config_t {
     gboolean         check_pacman_conflict;
     on_click_t       on_sgl_click;
     on_click_t       on_dbl_click;
+    on_click_t       on_mdl_click;
     on_click_t       on_sgl_click_paused;
     on_click_t       on_dbl_click_paused;
+    on_click_t       on_mdl_click_paused;
     int              use_ip;
     gboolean         auto_notifs;
 

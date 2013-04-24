@@ -102,8 +102,10 @@ static GtkWidget *sane_sort_order           = NULL;
 static GtkWidget *syncdbs_in_tooltip        = NULL;
 static GtkWidget *on_sgl_click              = NULL;
 static GtkWidget *on_dbl_click              = NULL;
+static GtkWidget *on_mdl_click              = NULL;
 static GtkWidget *on_sgl_click_paused       = NULL;
 static GtkWidget *on_dbl_click_paused       = NULL;
+static GtkWidget *on_mdl_click_paused       = NULL;
 
 /* we keep a copy of templates like so, so that we can use it when refreshing
  * the different templates. that is, values shown when a template is not set
@@ -1111,8 +1113,10 @@ btn_save_cb (GtkButton *button _UNUSED_, gpointer data _UNUSED_)
 
     do_click (on_sgl_click, "OnSglClick", 0);
     do_click (on_dbl_click, "OnDblClick", 0);
+    do_click (on_mdl_click, "OnMdlClick", 0);
     do_click (on_sgl_click_paused, "OnSglClickPaused", 1);
     do_click (on_dbl_click_paused, "OnDblClickPaused", 1);
+    do_click (on_mdl_click_paused, "OnMdlClickPaused", 1);
 
     /* ** TEMPLATES ** */
 
@@ -1424,28 +1428,47 @@ add_list (GtkWidget     *grid,
     gtk_widget_show (tree);
 }
 
+enum click
+{
+    CLICK_SGL,
+    CLICK_DBL,
+    CLICK_MDL
+};
+
 static void
 add_on_click_actions (
         int *top,
         GtkWidget *grid,
-        gboolean is_sgl_click,
+        enum click click,
         gboolean is_paused
         )
 {
-    GtkWidget    *label;
-    GtkWidget   **combo;
-    on_click_t    on_click;
+    GtkWidget    *label     = NULL;
+    GtkWidget   **combo     = NULL;
+    on_click_t    on_click  = DO_NOTHING;
 
     ++*top;
-    label = gtk_label_new ((is_sgl_click)
-            ? _("When clicking the systray icon :")
-            : _("When double clicking the systray icon :"));
+    switch (click)
+    {
+        case CLICK_SGL:
+            label = gtk_label_new (_("When clicking the systray icon :"));
+            combo = (is_paused) ? &on_sgl_click_paused : &on_sgl_click;
+            on_click = (is_paused) ? config->on_sgl_click_paused : config->on_sgl_click;
+            break;
+        case CLICK_DBL:
+            label = gtk_label_new (_("When double clicking the systray icon :"));
+            combo = (is_paused) ? &on_dbl_click_paused : &on_dbl_click;
+            on_click = (is_paused) ? config->on_dbl_click_paused : config->on_dbl_click;
+            break;
+        case CLICK_MDL:
+            label = gtk_label_new (_("When middle clicking the systray icon :"));
+            combo = (is_paused) ? &on_mdl_click_paused : &on_mdl_click;
+            on_click = (is_paused) ? config->on_mdl_click_paused : config->on_mdl_click;
+            break;
+    }
+
     gtk_grid_attach (GTK_GRID (grid), label, 0, *top, 1, 1);
     gtk_widget_show (label);
-
-    combo = (is_sgl_click)
-        ? (is_paused) ? &on_sgl_click_paused : &on_sgl_click
-        : (is_paused) ? &on_dbl_click_paused : &on_dbl_click;
 
     *combo = gtk_combo_box_text_new ();
     if (is_paused)
@@ -1474,10 +1497,6 @@ add_on_click_actions (
             _("Exit kalu"));
     gtk_grid_attach (GTK_GRID (grid), *combo, 1, *top, 1, 1);
     gtk_widget_show (*combo);
-
-    on_click = (is_sgl_click)
-        ? (is_paused) ? config->on_sgl_click_paused : config->on_sgl_click
-        : (is_paused) ? config->on_dbl_click_paused : config->on_dbl_click;
 
     if (is_paused && on_click == DO_SAME_AS_ACTIVE)
     {
@@ -2183,8 +2202,9 @@ show_prefs (void)
     gtk_grid_attach (GTK_GRID (grid), label, 0, top, 2, 1);
     gtk_widget_show (label);
 
-    add_on_click_actions (&top, grid, TRUE, FALSE);
-    add_on_click_actions (&top, grid, FALSE, FALSE);
+    add_on_click_actions (&top, grid, CLICK_SGL, FALSE);
+    add_on_click_actions (&top, grid, CLICK_DBL, FALSE);
+    add_on_click_actions (&top, grid, CLICK_MDL, FALSE);
 
     ++top;
     label = gtk_label_new (NULL);
@@ -2196,8 +2216,9 @@ show_prefs (void)
     gtk_grid_attach (GTK_GRID (grid), label, 0, top, 2, 1);
     gtk_widget_show (label);
 
-    add_on_click_actions (&top, grid, TRUE, TRUE);
-    add_on_click_actions (&top, grid, FALSE, TRUE);
+    add_on_click_actions (&top, grid, CLICK_SGL, TRUE);
+    add_on_click_actions (&top, grid, CLICK_DBL, TRUE);
+    add_on_click_actions (&top, grid, CLICK_MDL, TRUE);
 
     /* add page */
     gtk_widget_show (grid);

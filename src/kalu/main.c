@@ -1033,10 +1033,12 @@ main (int argc, char *argv[])
 #else
     config->action = UPGRADE_NO_ACTION;
 #endif
-    config->on_sgl_click = DO_CHECK;
-    config->on_dbl_click = DO_SYSUPGRADE;
+    config->on_sgl_click = DO_LAST_NOTIFS;
+    config->on_dbl_click = DO_CHECK;
+    config->on_mdl_click = DO_TOGGLE_PAUSE;
     config->on_sgl_click_paused = DO_SAME_AS_ACTIVE;
-    config->on_dbl_click_paused = DO_TOGGLE_PAUSE;
+    config->on_dbl_click_paused = DO_SAME_AS_ACTIVE;
+    config->on_mdl_click_paused = DO_SAME_AS_ACTIVE;
     config->sane_sort_order = TRUE;
     config->check_pacman_conflict = TRUE;
 #ifndef DISABLE_GUI
@@ -1182,7 +1184,9 @@ main (int argc, char *argv[])
 
     /* takes care of setting timeout_skip (if needed) and also triggers the
      * auto-checks (unless within skip period) */
+#if 1
     skip_next_timeout ();
+#endif
 
     notify_init ("kalu");
     gtk_main ();

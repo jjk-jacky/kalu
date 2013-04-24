@@ -939,6 +939,13 @@ icon_press_cb (GtkStatusIcon *icon _UNUSED_, GdkEventButton *event, gpointer dat
             }
         }
     }
+    else if (event->button == 2 && event->type == GDK_BUTTON_PRESS)
+    {
+        process_click_action ((kalpm_state.is_paused
+                    && config->on_mdl_click_paused != DO_SAME_AS_ACTIVE)
+                ? config->on_mdl_click_paused
+                : config->on_mdl_click);
+    }
 
     return FALSE;
 }

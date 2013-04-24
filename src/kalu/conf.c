@@ -1014,8 +1014,10 @@ parse_config_file (const char       *file,
                 }
                 else if (  streq (key, "OnSglClick")
                         || streq (key, "OnDblClick")
+                        || streq (key, "OnMdlClick")
                         || streq (key, "OnSglClickPaused")
-                        || streq (key, "OnDblClickPaused"))
+                        || streq (key, "OnDblClickPaused")
+                        || streq (key, "OnMdlClickPaused"))
                 {
                     on_click_t *on_click;
                     gboolean is_paused = FALSE;
@@ -1028,15 +1030,24 @@ parse_config_file (const char       *file,
                     {
                         on_click = &(config->on_dbl_click);
                     }
+                    else if (streq (key, "OnMdlClick"))
+                    {
+                        on_click = &(config->on_mdl_click);
+                    }
                     else if (streq (key, "OnSglClickPaused"))
                     {
                         is_paused = TRUE;
                         on_click = &(config->on_sgl_click_paused);
                     }
-                    else /* if (streq (key, "OnDblClickPaused")) */
+                    else if (streq (key, "OnDblClickPaused"))
                     {
                         is_paused = TRUE;
                         on_click = &(config->on_dbl_click_paused);
+                    }
+                    else /* if (streq (key, "OnMdlClickPaused")) */
+                    {
+                        is_paused = TRUE;
+                        on_click = &(config->on_mdl_click_paused);
                     }
 
                     if (streq (value, "CHECK"))
