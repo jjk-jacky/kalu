@@ -690,6 +690,12 @@ can still be shown on demand, using "re-show last notifications".
 
 Notifications will still be shown for manual checks.
 
+=item B<NotifButtons = 0>
+
+This can be used to not add any buttons to notifications. Can be useful if your
+notification daemon decides to show notifications with action-buttons as
+non-expiring windows instead (e.g. I<notify-osd>).
+
 =back
 
 =head1 SYSTEM UPGRADE

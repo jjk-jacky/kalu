@@ -81,66 +81,71 @@ show_notif (notif_t *notif)
 
     debug ("showing notif: %s\n%s\n--- EOF ---", notif->summary, notif->text);
     notification = new_notification (notif->summary, notif->text);
-    if (notif->type & CHECK_UPGRADES)
+    if (config->notif_buttons)
     {
-        if (!notif->data)
+        if (notif->type & CHECK_UPGRADES)
         {
-            /* no data in this case means this is an error message about a conflict,
-             * in which case we still add the "Update system" button/action */
+            if (!notif->data)
+            {
+                /* no data in this case means this is an error message about a
+                 * conflict, in which case we still add the "Update system"
+                 * button/action */
+            }
+            else if (config->check_pacman_conflict
+                    && is_pacman_conflicting ((alpm_list_t *) notif->data))
+            {
+                notify_notification_add_action (notification, "do_conflict_warn",
+                        _c("notif-button", "Possible pacman/kalu conflict..."),
+                        (NotifyActionCallback) show_pacman_conflict,
+                        NULL, NULL);
+            }
+            if (config->action != UPGRADE_NO_ACTION)
+            {
+                notify_notification_add_action (notification, "do_updates",
+                        _c("notif-button", "Update system..."),
+                        (NotifyActionCallback) action_upgrade,
+                        NULL, NULL);
+            }
         }
-        else if (config->check_pacman_conflict
-                && is_pacman_conflicting ((alpm_list_t *) notif->data))
+        else if (!notif->data)
         {
-            notify_notification_add_action (notification, "do_conflict_warn",
-                    _c("notif-button", "Possible pacman/kalu conflict..."),
-                    (NotifyActionCallback) show_pacman_conflict,
-                    NULL, NULL);
+            /* no data means the notification was modified afterwards, as
+             * news/packages have been marked read. No more data/action button,
+             * just a simple notification (where text explains to re-do checks
+             * to be up to date) */
         }
-        if (config->action != UPGRADE_NO_ACTION)
+        else if (notif->type & CHECK_AUR)
         {
-            notify_notification_add_action (notification, "do_updates",
-                    _c("notif-button", "Update system..."),
+            notify_notification_add_action (notification, "do_updates_aur",
+                    _c("notif-button", "Update AUR packages..."),
                     (NotifyActionCallback) action_upgrade,
-                    NULL, NULL);
+                    notif->data,
+                    NULL);
         }
-    }
-    else if (!notif->data)
-    {
-        /* no data means the notification was modified afterwards, as news/packages
-         * have been marked read. No more data/action button, just a simple
-         * notification (where text explains to re-do checks to be up to date) */
-    }
-    else if (notif->type & CHECK_AUR)
-    {
-        notify_notification_add_action (notification, "do_updates_aur",
-                _c("notif-button", "Update AUR packages..."),
-                (NotifyActionCallback) action_upgrade,
-                notif->data,
-                NULL);
-    }
-    else if (notif->type & CHECK_WATCHED)
-    {
-        notify_notification_add_action (notification, "mark_watched",
-                _c("notif-button", "Mark packages..."),
-                (NotifyActionCallback) action_watched,
-                notif,
-                NULL);
-    }
-    else if (notif->type & CHECK_WATCHED_AUR)
-    {
-        notify_notification_add_action (notification, "mark_watched_aur",
-                _c("notif-button", "Mark packages..."),
-                (NotifyActionCallback) action_watched_aur,
-                notif,
-                NULL);
-    }
-    else if (notif->type & CHECK_NEWS)
-    {
-        notify_notification_add_action (notification, "mark_news",
-                _c("notif-button", "Show news..."),
-                (NotifyActionCallback) action_news,
-                notif,
-                NULL);
+        else if (notif->type & CHECK_WATCHED)
+        {
+            notify_notification_add_action (notification, "mark_watched",
+                    _c("notif-button", "Mark packages..."),
+                    (NotifyActionCallback) action_watched,
+                    notif,
+                    NULL);
+        }
+        else if (notif->type & CHECK_WATCHED_AUR)
+        {
+            notify_notification_add_action (notification, "mark_watched_aur",
+                    _c("notif-button", "Mark packages..."),
+                    (NotifyActionCallback) action_watched_aur,
+                    notif,
+                    NULL);
+        }
+        else if (notif->type & CHECK_NEWS)
+        {
+            notify_notification_add_action (notification, "mark_news",
+                    _c("notif-button", "Show news..."),
+                    (NotifyActionCallback) action_news,
+                    notif,
+                    NULL);
+        }
     }
     /* we use a callback on "closed" to unref it, because when there's an action
      * we need to keep a ref, otherwise said action won't work */

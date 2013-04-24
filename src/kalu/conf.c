@@ -1141,6 +1141,24 @@ parse_config_file (const char       *file,
                         continue;
                     }
                 }
+                else if (streq (key, "NotifButtons"))
+                {
+                    if (value[0] == '0' && value[1] == '\0')
+                    {
+                        config->notif_buttons = FALSE;
+                        debug ("config: disable action-buttons on notifications");
+                    }
+                    else if (value[0] == '1' && value[1] == '\0')
+                    {
+                        config->notif_buttons = TRUE;
+                        debug ("config: enable action-buttons on notifications");
+                    }
+                    else
+                    {
+                        add_error ("unknown value for %s: %s", key, value);
+                        continue;
+                    }
+                }
                 else
                 {
                     add_error ("unknown option: %s", key);

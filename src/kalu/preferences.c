@@ -827,6 +827,12 @@ btn_save_cb (GtkButton *button _UNUSED_, gpointer data _UNUSED_)
         add_to_conf ("AutoNotifs = 0\n");
     }
 
+    /* disabling buttons on notifications (no GUI) */
+    if (!new_config.notif_buttons)
+    {
+        add_to_conf ("NotifButtons = 0\n");
+    }
+
     /* General */
     s = gtk_file_chooser_get_filename (GTK_FILE_CHOOSER (filechooser));
     if (NULL == s)

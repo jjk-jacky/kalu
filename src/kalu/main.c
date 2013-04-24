@@ -1027,6 +1027,7 @@ main (int argc, char *argv[])
     config->checks_auto   = CHECK_UPGRADES | CHECK_WATCHED | CHECK_AUR
         | CHECK_WATCHED_AUR | CHECK_NEWS;
     config->auto_notifs = TRUE;
+    config->notif_buttons = TRUE;
 #ifndef DISABLE_UPDATER
     config->action = UPGRADE_ACTION_KALU;
     config->confirm_post = TRUE;
