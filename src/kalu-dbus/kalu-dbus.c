@@ -169,7 +169,7 @@ depend_cmp (const alpm_depend_t *dep1, const alpm_depend_t *dep2)
 
     ret = strcmp (dep1->name, dep2->name);
     if (ret == 0)
-        ret = dep1->mod - dep2->mod;
+        ret = (int) (dep1->mod - dep2->mod);
 
     if (ret == 0)
     {
