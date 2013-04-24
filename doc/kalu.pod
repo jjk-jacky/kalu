@@ -606,18 +606,22 @@ An indication of how many databases can by synchronized (i.e. are not up-to-date
 will be featured on the tooltip, regardless of whether upgrades are available or
 not.
 
-=item I<When (double) clicking the systray icon>
+=item I<When (double/middle) clicking the systray icon>
 
 =item OnSglClick = I<ACTION>
 
 =item OnDblClick = I<ACTION>
 
+=item OnMdlClick = I<ACTION>
+
 =item OnSglClickPaused = I<ACTION>
 
 =item OnDblClickPaused = I<ACTION>
 
-Defines the action to be done when you single/double click on kalu's systray
-icon.
+=item OnMdlClickPaused = I<ACTION>
+
+Defines the action to be done when you single/double/middle click on kalu's
+systray icon.
 
 You can define actions to be taken when kalu is active (i.e. not paused), and a
 different set of actions when it is paused.
@@ -659,6 +663,10 @@ Will re-show all notifications resulting from the last time checks were ran
 =item B<* Toggle pause/resume automatic checks> ( TOGGLE_PAUSE )
 
 Will toggle kalu's paused state, pausing or resuming automatic checks.
+
+=item B<* Exit kalu> ( EXIT )
+
+Will exit kalu.
 
 =back
 
