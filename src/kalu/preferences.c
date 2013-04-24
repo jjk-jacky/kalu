@@ -3,7 +3,7 @@
  *
  * preferences.c
  * Copyright (C) 2012 Olivier Brunel <i.am.jack.mail@gmail.com>
- * 
+ *
  * This file is part of kalu.
  *
  * kalu is free software: you can redistribute it and/or modify it under the
@@ -762,6 +762,10 @@ btn_manage_watched_cb (GtkButton *button _UNUSED_, gboolean is_aur)
     {                                                                       \
         new_config.name = DO_TOGGLE_PAUSE;                                  \
     }                                                                       \
+    else if (strcmp (s, "EXIT") == 0)                                       \
+    {                                                                       \
+        new_config.name = DO_EXIT;                                          \
+    }                                                                       \
     else if (is_paused && strcmp (s, "SAME_AS_ACTIVE") == 0)                \
     {                                                                       \
         new_config.name = DO_SAME_AS_ACTIVE;                                \
@@ -1466,6 +1470,8 @@ add_on_click_actions (
             _("Re-show last notifications..."));
     gtk_combo_box_text_append (GTK_COMBO_BOX_TEXT (*combo), "TOGGLE_PAUSE",
             _("Toggle pause/resume automatic checks"));
+    gtk_combo_box_text_append (GTK_COMBO_BOX_TEXT (*combo), "EXIT",
+            _("Exit kalu"));
     gtk_grid_attach (GTK_GRID (grid), *combo, 1, *top, 1, 1);
     gtk_widget_show (*combo);
 

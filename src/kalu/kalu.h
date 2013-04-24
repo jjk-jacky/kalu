@@ -92,7 +92,8 @@ typedef enum {
     DO_TOGGLE_WINDOWS,
     DO_LAST_NOTIFS,
     DO_TOGGLE_PAUSE,
-    DO_SAME_AS_ACTIVE
+    DO_SAME_AS_ACTIVE,
+    DO_EXIT
 } on_click_t;
 
 typedef enum {

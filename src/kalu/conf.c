@@ -4,7 +4,7 @@
  * conf.c
  * Copyright (C) 2012 Olivier Brunel <i.am.jack.mail@gmail.com>
  * Copyright (c) 2006-2011 Pacman Development Team <pacman-dev@archlinux.org>
- * 
+ *
  * This file is part of kalu.
  *
  * kalu is free software: you can redistribute it and/or modify it under the
@@ -1062,6 +1062,10 @@ parse_config_file (const char       *file,
                     else if (streq (value, "TOGGLE_PAUSE"))
                     {
                         *on_click = DO_TOGGLE_PAUSE;
+                    }
+                    else if (streq (value, "EXIT"))
+                    {
+                        *on_click = DO_EXIT;
                     }
                     else if (is_paused && streq (value, "SAME_AS_ACTIVE"))
                     {

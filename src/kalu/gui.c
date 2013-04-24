@@ -881,6 +881,10 @@ static guint icon_press_timeout = 0;
     {                                           \
         set_pause (!kalpm_state.is_paused);     \
     }                                           \
+    else if ((on_click) == DO_EXIT)             \
+    {                                           \
+        menu_quit_cb (NULL, NULL);              \
+    }                                           \
 } while (0)
 
 static gboolean
