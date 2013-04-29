@@ -589,15 +589,6 @@ No variables available.
 
 =over
 
-=item I<Use sane indicator>
-
-=item SaneSortOrder = 0|1
-
-Because in the Linux world, when a list is ordered descendingly, the arrow points...
-up!? This option restores sanity and have it point down.
-
-This is used when sorting packages in kalu's updater.
-
 =item I<Show if databases can be synchronized in tooltip>
 
 =item SyncDbsInTooltip = 0|1

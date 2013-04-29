@@ -1040,7 +1040,6 @@ main (int argc, char *argv[])
     config->on_sgl_click_paused = DO_SAME_AS_ACTIVE;
     config->on_dbl_click_paused = DO_SAME_AS_ACTIVE;
     config->on_mdl_click_paused = DO_SAME_AS_ACTIVE;
-    config->sane_sort_order = TRUE;
     config->check_pacman_conflict = TRUE;
 #ifndef DISABLE_GUI
     config->cmdline_link = strdup ("xdg-open '$URL'");

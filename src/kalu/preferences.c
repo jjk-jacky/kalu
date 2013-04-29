@@ -98,7 +98,6 @@ static GtkWidget *watched_aur_title_entry   = NULL;
 static GtkWidget *watched_aur_package_entry = NULL;
 static GtkWidget *watched_aur_sep_entry     = NULL;
 /* Misc */
-static GtkWidget *sane_sort_order           = NULL;
 static GtkWidget *syncdbs_in_tooltip        = NULL;
 static GtkWidget *on_sgl_click              = NULL;
 static GtkWidget *on_dbl_click              = NULL;
@@ -1109,10 +1108,6 @@ btn_save_cb (GtkButton *button _UNUSED_, gpointer data _UNUSED_)
     }
 
     /* Misc */
-    new_config.sane_sort_order = gtk_toggle_button_get_active (
-            GTK_TOGGLE_BUTTON (sane_sort_order));
-    add_to_conf ("SaneSortOrder = %d\n", new_config.sane_sort_order);
-
     new_config.syncdbs_in_tooltip = gtk_toggle_button_get_active (
             GTK_TOGGLE_BUTTON (syncdbs_in_tooltip));
     add_to_conf ("SyncDbsInTooltip = %d\n", new_config.syncdbs_in_tooltip);
@@ -2179,18 +2174,6 @@ show_prefs (void)
     grid = gtk_grid_new ();
     lbl_page = gtk_label_new (_c("prefs-tab", "Misc"));
 
-    sane_sort_order = gtk_check_button_new_with_label (
-            _("Use sane sort indicator"));
-    gtk_widget_set_tooltip_text (sane_sort_order,
-            _("So when sorted descendingly, the arrow points down...\n"
-                "This is used for the packages list in kalu's updater"));
-    gtk_widget_set_margin_top (sane_sort_order, 10);
-    gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON (sane_sort_order),
-            config->sane_sort_order);
-    gtk_grid_attach (GTK_GRID (grid), sane_sort_order, 0, top, 2, 1);
-    gtk_widget_show (sane_sort_order);
-
-    ++top;
     syncdbs_in_tooltip = gtk_check_button_new_with_label (
             _("Show if databases can be synchronized in tooltip"));
     gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON (syncdbs_in_tooltip),

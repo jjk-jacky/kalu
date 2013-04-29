@@ -1091,8 +1091,8 @@ parse_config_file (const char       *file,
                 }
                 else if (streq (key, "SaneSortOrder"))
                 {
-                    config->sane_sort_order = (*value == '1');
-                    debug ("config: sane sort order: %d", config->sane_sort_order);
+                    add_error ("%s", _("Option SaneSortOrder doesn't exist anymore; "
+                            "Please use GTK3 option gtk-alternative-sort-arrows instead."));
                 }
                 else if (streq (key, "SyncDbsInTooltip"))
                 {
