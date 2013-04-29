@@ -36,16 +36,16 @@ static gboolean rt_timeout_check    (GSource *source);
 static gboolean rt_timeout_dispatch (GSource *source, GSourceFunc callback, gpointer data);
 static void     rt_timeout_finalize (GSource *source);
 
-GSourceFuncs rt_timeout_funcs =
+static GSourceFuncs rt_timeout_funcs =
 {
-    rt_timeout_prepare,
-    rt_timeout_check,
-    rt_timeout_dispatch,
-    rt_timeout_finalize
+    .prepare    = rt_timeout_prepare,
+    .check      = rt_timeout_check,
+    .dispatch   = rt_timeout_dispatch,
+    .finalize   = rt_timeout_finalize
 };
 
 static gboolean
-rt_timeout_prepare (GSource *source, gint *timeout)
+rt_timeout_prepare (GSource *source __attribute__ ((unused)), gint *timeout)
 {
     *timeout = -1;
     return FALSE;
