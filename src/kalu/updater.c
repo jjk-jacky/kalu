@@ -3,7 +3,7 @@
  *
  * updater.c
  * Copyright (C) 2012 Olivier Brunel <i.am.jack.mail@gmail.com>
- * 
+ *
  * This file is part of kalu.
  *
  * kalu is free software: you can redistribute it and/or modify it under the
@@ -135,11 +135,15 @@ typedef struct _updater_t {
     GtkWidget *pbar_action;
     GtkListStore *store;
     GtkWidget *list;
+    GtkWidget *paned;
     GtkWidget *expander;
     GtkWidget *text_view;
     GtkTextBuffer *buffer;
     GtkWidget *btn_sysupgrade;
     GtkWidget *btn_close;
+
+    gint pos_expanded;
+    gint pos_collapsed;
 
     steps_t step;
     void *step_data;
@@ -2143,11 +2147,37 @@ window_destroy_cb (GtkWidget *window _UNUSED_, gpointer data _UNUSED_)
     set_kalpm_busy (FALSE);
 }
 
+static void
+paned_position_cb (GObject *o, GParamSpec *pspec _UNUSED_, gpointer data _UNUSED_)
+{
+    if (gtk_expander_get_expanded (GTK_EXPANDER (updater->expander)))
+        updater->pos_expanded  = gtk_paned_get_position (GTK_PANED (o));
+    else
+        updater->pos_collapsed = gtk_paned_get_position (GTK_PANED (o));
+}
+
+static void
+expander_expanded_cb (GObject *o, GParamSpec *pspec _UNUSED_, gpointer sw)
+{
+    if (gtk_expander_get_expanded (GTK_EXPANDER (o)))
+    {
+        gtk_widget_show (GTK_WIDGET (sw));
+        gtk_paned_set_position (GTK_PANED (updater->paned), updater->pos_expanded);
+    }
+    else
+    {
+        gtk_widget_hide (GTK_WIDGET (sw));
+        gtk_paned_set_position (GTK_PANED (updater->paned), updater->pos_collapsed);
+    }
+}
+
 void
 updater_run (const gchar *conffile, alpm_list_t *cmdline_post)
 {
     updater = new0 (updater_t, 1);
     updater->cmdline_post = cmdline_post;
+    updater->pos_expanded = -1;
+    updater->pos_collapsed = -1;
 
     /* the window */
     GtkWidget *window;
@@ -2222,6 +2252,7 @@ updater_run (const gchar *conffile, alpm_list_t *cmdline_post)
     /* paned for list & log */
     GtkWidget *paned;
     paned = gtk_paned_new (GTK_ORIENTATION_VERTICAL);
+    updater->paned = paned;
     gtk_box_pack_start (GTK_BOX (vbox), paned, TRUE, TRUE, 0);
     gtk_widget_show (paned);
 
@@ -2360,12 +2391,17 @@ updater_run (const gchar *conffile, alpm_list_t *cmdline_post)
     gtk_container_add (GTK_CONTAINER (scrolled_window), list);
     gtk_widget_show (list);
 
+    /* box for expander & log (paned2) */
+    GtkWidget *box;
+    box = gtk_box_new (GTK_ORIENTATION_VERTICAL, 0);
+    gtk_paned_pack2 (GTK_PANED (paned), box, FALSE, FALSE);
+    gtk_widget_show (box);
+
     /* expander */
     GtkWidget *expander;
     expander = gtk_expander_new (_("Log"));
     updater->expander = expander;
-    gtk_expander_set_resize_toplevel (GTK_EXPANDER (expander), TRUE);
-    gtk_paned_pack2 (GTK_PANED (paned), expander, FALSE, FALSE);
+    gtk_box_pack_start (GTK_BOX (box), expander, FALSE, FALSE, 0);
     gtk_widget_show (expander);
 
     /* text view */
@@ -2400,8 +2436,7 @@ updater_run (const gchar *conffile, alpm_list_t *cmdline_post)
     scrolled_window = gtk_scrolled_window_new (
             gtk_scrollable_get_hadjustment (GTK_SCROLLABLE (text_view)),
             gtk_scrollable_get_vadjustment (GTK_SCROLLABLE (text_view)));
-    gtk_container_add (GTK_CONTAINER (expander), scrolled_window);
-    gtk_widget_show (scrolled_window);
+    gtk_box_pack_start (GTK_BOX (box), scrolled_window, TRUE, TRUE, 0);
 
     gtk_container_add (GTK_CONTAINER (scrolled_window), text_view);
     gtk_widget_show (text_view);
@@ -2438,6 +2473,10 @@ updater_run (const gchar *conffile, alpm_list_t *cmdline_post)
             G_CALLBACK (window_delete_event_cb), NULL);
     g_signal_connect (G_OBJECT (window), "destroy",
             G_CALLBACK (window_destroy_cb), NULL);
+    g_signal_connect (G_OBJECT (paned), "notify::position",
+            G_CALLBACK (paned_position_cb), NULL);
+    g_signal_connect (G_OBJECT (expander), "notify::expanded",
+            G_CALLBACK (expander_expanded_cb), scrolled_window);
 
     gtk_widget_show (window);
 
