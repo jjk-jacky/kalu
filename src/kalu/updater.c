@@ -1133,28 +1133,6 @@ on_select_provider (KaluUpdater *kupdater _UNUSED_, const gchar *pkg, alpm_list_
 }
 
 static gboolean
-on_local_newer (KaluUpdater *kupdater _UNUSED_, const gchar *pkg, const gchar *pkg_version,
-                const gchar *repo, const gchar *repo_version)
-{
-    gchar question[255], lbl_yes[42], lbl_no[42];
-    gboolean answer;
-
-    snprintf (question, 255,
-            _("Local version of %s is newer (%s) than in %s (%s). Install anyway ?"),
-            pkg,
-            pkg_version,
-            repo,
-            repo_version);
-    snprintf (lbl_yes, 42,   _("Install %s"), pkg);
-    snprintf (lbl_no,  42,   _("Skip %s"), pkg);
-    add_log (LOGTYPE_INFO, "%s", question);
-    answer = confirm (question, NULL, lbl_yes, NULL, lbl_no, NULL,
-            updater->window);
-    add_log (LOGTYPE_INFO, " %s\n", (answer) ? _("Yes") : _("No"));
-    return answer;
-}
-
-static gboolean
 on_corrupted_pkg (KaluUpdater *kupdater _UNUSED_, const gchar *file, const gchar *error)
 {
     gchar question[255], lbl_yes[42], lbl_no[42];
@@ -2018,10 +1996,6 @@ updater_new_cb (GObject *source _UNUSED_, GAsyncResult *res,
     g_signal_connect (kalu_updater,
             "select-provider",
             G_CALLBACK (on_select_provider),
-            NULL);
-    g_signal_connect (kalu_updater,
-            "local-newer",
-            G_CALLBACK (on_local_newer),
             NULL);
     g_signal_connect (kalu_updater,
             "corrupted-pkg",

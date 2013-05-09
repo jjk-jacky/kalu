@@ -139,12 +139,6 @@ struct _KaluUpdaterClass
                                      const gchar        *pkg,
                                      alpm_list_t        *providers);
 
-    gboolean (*local_newer)         (KaluUpdater        *kupdater,
-                                     const gchar        *pkg,
-                                     const gchar        *pkg_version,
-                                     const gchar        *repo,
-                                     const gchar        *repo_version);
-
     gboolean (*corrupted_pkg)       (KaluUpdater        *kupdater,
                                      const gchar        *file,
                                      const gchar        *error);
@@ -188,7 +182,6 @@ enum
   SIGNAL_CONFLICT_PKG,
   SIGNAL_REMOVE_PKGS,
   SIGNAL_SELECT_PROVIDER,
-  SIGNAL_LOCAL_NEWER,
   SIGNAL_CORRUPTED_PKG,
   SIGNAL_IMPORT_KEY,
   NB_SIGNALS
@@ -751,21 +744,6 @@ kalu_updater_g_signal (GDBusProxy   *proxy,
         }
         alpm_list_free (providers);
     }
-    else if (g_strcmp0 (signal_name, "AskLocalNewer") == 0)
-    {
-        gchar *pkg, *pkg_version, *repo, *repo_version;
-
-        g_variant_get (parameters, "(ssss)",
-                &pkg,
-                &pkg_version,
-                &repo,
-                &repo_version);
-        emit_signal_answer (SIGNAL_LOCAL_NEWER, pkg, pkg_version, repo, repo_version);
-        free (pkg);
-        free (pkg_version);
-        free (repo);
-        free (repo_version);
-    }
     else if (g_strcmp0 (signal_name, "AskCorruptedPkg") == 0)
     {
         gchar *file, *err;
@@ -1096,21 +1074,6 @@ kalu_updater_class_init (KaluUpdaterClass *klass)
             2,
             G_TYPE_STRING,
             G_TYPE_POINTER);
-
-    signals[SIGNAL_LOCAL_NEWER] = g_signal_new (
-            "local-newer",
-            KALU_TYPE_UPDATER,
-            G_SIGNAL_RUN_LAST,
-            G_STRUCT_OFFSET (KaluUpdaterClass, local_newer),
-            NULL,
-            NULL,
-            g_cclosure_user_marshal_BOOLEAN__STRING_STRING_STRING_STRING,
-            G_TYPE_BOOLEAN,
-            4,
-            G_TYPE_STRING,
-            G_TYPE_STRING,
-            G_TYPE_STRING,
-            G_TYPE_STRING);
 
     signals[SIGNAL_CORRUPTED_PKG] = g_signal_new (
             "corrupted-pkg",

@@ -85,12 +85,6 @@
       <arg type='s'   name='pkg' />
       <arg type='aas' name='providers' />
     </signal>
-    <signal name='AskLocalNewer'>
-      <arg type='s' name='pkg' />
-      <arg type='s' name='pkg_version' />
-      <arg type='s' name='repo' />
-      <arg type='s' name='repo_version' />
-    </signal>
     <signal name='AskCorruptedPkg'>
       <arg type='s' name='file' />
       <arg type='s' name='error' />
