@@ -84,6 +84,7 @@ gboolean icon_query_tooltip_cb (GtkWidget *icon, gint x, gint y,
 void set_kalpm_nb (check_t type, gint nb, gboolean update_icon);
 void set_kalpm_nb_syncdbs (gint nb);
 void set_kalpm_busy (gboolean busy);
+void reset_timeout (void);
 void skip_next_timeout (void);
 gboolean reload_watched (gboolean is_aur, GError **error);
 

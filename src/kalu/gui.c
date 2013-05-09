@@ -1243,6 +1243,32 @@ set_kalpm_busy (gboolean busy)
     }
 }
 
+void
+reset_timeout (void)
+{
+    guint seconds;
+
+    if (kalpm_state.is_busy > 0 || kalpm_state.is_paused)
+    {
+        debug ("reset timeout: noting to do");
+        return;
+    }
+
+    /* remove auto-check timeout */
+    if (kalpm_state.timeout > 0)
+    {
+        g_source_remove (kalpm_state.timeout);
+        kalpm_state.timeout = 0;
+        debug ("reset timeout: disable next auto-checks");
+    }
+
+    /* set timeout for next auto-check */
+    seconds = (guint) config->interval;
+    kalpm_state.timeout = rt_timeout_add_seconds (seconds,
+            (GSourceFunc) kalu_auto_check, NULL);
+    debug ("reset timeout: next auto-checks in %d seconds", seconds);
+}
+
 static inline gboolean
 is_within_skip (void)
 {

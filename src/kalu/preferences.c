@@ -1285,6 +1285,9 @@ btn_save_cb (GtkButton *button _UNUSED_, gpointer data _UNUSED_)
     /* copy new ones over */
     memcpy (config, &new_config, sizeof (config_t));
 
+    /* reset timeout for next auto-checks */
+    reset_timeout ();
+
     /* done */
     gtk_widget_destroy (window);
     return;
