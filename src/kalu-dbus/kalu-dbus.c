@@ -554,22 +554,6 @@ question_cb (alpm_question_t event, void *data1, void *data2, void *data3, int *
             }
             break;
 
-        case ALPM_QUESTION_LOCAL_NEWER:
-            pkg1 = alpm_pkg_get_name (data1);
-            /* get pkg from local db */
-            alpm_pkg_t *pkg;
-            pkg = alpm_db_get_pkg (alpm_get_localdb (handle), pkg1);
-            emit_signal ("AskLocalNewer", "ssss",
-                    /* pkg name */
-                    pkg1,
-                    /* local version */
-                    alpm_pkg_get_version (pkg),
-                    /* repo */
-                    alpm_db_get_name (alpm_pkg_get_db (data1)),
-                    /* repo version */
-                    alpm_pkg_get_version (data1));
-            break;
-
         case ALPM_QUESTION_CORRUPTED_PKG:
             emit_signal ("AskCorruptedPkg", "ss", data1,
                     alpm_strerror (*(enum _alpm_errno_t *) data2));
