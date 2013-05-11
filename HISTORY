@@ -1,4 +1,30 @@
 
+# 2013-05-12, v2.1.0
+
+- Add new option on single/double-click to exit kalu
+
+- Add support of middle-click on the systray icon
+
+- kalu-updater: Change the way expander (Log) behaves: It wasn't very nice
+whenever the paned position was changed, with regards to resizing the toplevel
+window. Now it won't resize it, and should remember the last used positions
+(expanded & collapsed).
+Still not perfect, but better.
+
+- Preferences: Reset timeout for next auto-checks after a save
+
+- Add config tweak NotifButtons to remove buttons from all notifications
+(So notify-osd doesn't turn notifications into non-expiring windows.)
+
+- Remove option SaneSortOrder; It's useless, since GTK3 actually has an option
+of its own for that (gtk-alternative-sort-arrows).
+
+- kalu-dbus: ALPM_QUESTION_LOCAL_NEWER was removed from ALPM in libalpm 8.0.1
+(pacman 4.1.1)
+
+- Update French translation to 2.0.1
+
+
 # 2013-04-06, v2.0.1
 
 - Fix unable to start a sysupgrade (kalu-dbus would fail to start, due to a
