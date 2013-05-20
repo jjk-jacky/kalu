@@ -2,13 +2,13 @@
 # Traductions françaises du paquet kalu.
 # Copyright (C) 2012 Olivier Brunel <i.am.jack.mail@gmail.com>
 # This file is distributed under the same license as the kalu package.
-#  kolibry <j.fournier1987@laposte.net>, 2012.
+#  kolibry <kolibry@riseup.net>, 2012.
 #
 msgid ""
 msgstr ""
 "Project-Id-Version: kalu 1.3.0\n"
 "Report-Msgid-Bugs-To: https://github.com/jjk-jacky/kalu/issues\n"
-"POT-Creation-Date: 2013-04-01 14:16+0200\n"
+"POT-Creation-Date: 2013-04-29 16:54+0200\n"
 "PO-Revision-Date: 2012-12-23 13:47+0100\n"
 "Last-Translator: kolibry <j.fournier1987@laposte.net>\n"
 "Language-Team: French\n"
@@ -64,40 +64,46 @@ msgstr "Le fichier de configuration %s n'a pas pu être lu: %s"
 msgid "syntax error: missing key"
 msgstr "Erreur de syntaxe: clé manquante"
 
+#: src/kalu/conf.c:1094
+msgid ""
+"Option SaneSortOrder doesn't exist anymore; Please use GTK3 option gtk-"
+"alternative-sort-arrows instead."
+msgstr "L'option SaneSortOrder n'existe plus; Vueillez utiliser l'option GTK3 gtk-alternative-sort-arrows à la place."
+
 #: src/kalu/curl.c:74
 msgid "Unable to init cURL\n"
 msgstr "Impossible de démarrer cURL\n"
 
-#: src/kalu/gui.c:95
+#: src/kalu/gui.c:98
 msgctxt "notif-button"
 msgid "Possible pacman/kalu conflict..."
 msgstr "Conflit possible entre pacman et kalu"
 
-#: src/kalu/gui.c:102 src/kalu/main.c:563
+#: src/kalu/gui.c:105 src/kalu/main.c:563
 msgctxt "notif-button"
 msgid "Update system..."
 msgstr "Mettre à jour le système"
 
-#: src/kalu/gui.c:116
+#: src/kalu/gui.c:120
 msgctxt "notif-button"
 msgid "Update AUR packages..."
 msgstr "Mettre à jour les paquets AUR"
 
-#: src/kalu/gui.c:124 src/kalu/gui.c:132
+#: src/kalu/gui.c:128 src/kalu/gui.c:136
 msgctxt "notif-button"
 msgid "Mark packages..."
 msgstr "Marquer les paquets..."
 
-#: src/kalu/gui.c:140
+#: src/kalu/gui.c:144
 msgctxt "notif-button"
 msgid "Show news..."
 msgstr "Afficher les nouvelles"
 
-#: src/kalu/gui.c:162
+#: src/kalu/gui.c:167
 msgid "Unable to start process"
 msgstr "Impossible de démarrer le processus"
 
-#: src/kalu/gui.c:164
+#: src/kalu/gui.c:169
 #, c-format
 msgid ""
 "Error while trying to run command line: %s\n"
@@ -108,15 +114,15 @@ msgstr ""
 "\n"
 " L'erreur est: <b>%s</b>"
 
-#: src/kalu/gui.c:167
+#: src/kalu/gui.c:172
 msgid "kalu: Unable to start process"
 msgstr "kalu: impossible de démarrer le processus"
 
-#: src/kalu/gui.c:267
+#: src/kalu/gui.c:272
 msgid "Unable to mark watched packages"
 msgstr "Impossible de marquer les paquets surveillés"
 
-#: src/kalu/gui.c:268 src/kalu/watched.c:439
+#: src/kalu/gui.c:273 src/kalu/watched.c:439
 msgid ""
 "Watched packages have changed, you need to run the checks again to be up-to-"
 "date."
@@ -124,11 +130,11 @@ msgstr ""
 "Les paquets surveillés ont changé, vous devez relancer les vérifications "
 "afin de finaliser les mises à jour"
 
-#: src/kalu/gui.c:285
+#: src/kalu/gui.c:290
 msgid "Unable to mark watched AUR packages"
 msgstr "Impossible de marquer les paquets AUR surveillés "
 
-#: src/kalu/gui.c:286 src/kalu/watched.c:437
+#: src/kalu/gui.c:291 src/kalu/watched.c:437
 msgid ""
 "Watched AUR packages have changed, you need to run the checks again to be up-"
 "to-date."
@@ -136,154 +142,154 @@ msgstr ""
 "Les paquets AUR surveillés  ont changé, vous devez relancer les "
 "vérifications afin de finaliser les mises à jour"
 
-#: src/kalu/gui.c:304
+#: src/kalu/gui.c:309
 msgid "Unable to show the news"
 msgstr "Impossible d'afficher les nouvelles"
 
-#: src/kalu/gui.c:310
+#: src/kalu/gui.c:315
 msgid "Unable to show unread news"
 msgstr "Impossible d'afficher les nouvelles non lues"
 
-#: src/kalu/gui.c:311 src/kalu/news.c:916
+#: src/kalu/gui.c:316 src/kalu/news.c:916
 msgid ""
 "Read news have changed, you need to run the checks again to be up-to-date."
 msgstr ""
 "Les nouvelles lues ont changé, vous devez relancer les vérifications pour "
 "être à jour"
 
-#: src/kalu/gui.c:453
+#: src/kalu/gui.c:458
 msgid "No notifications to show."
 msgstr "Aucune notification à afficher"
 
-#: src/kalu/gui.c:574
+#: src/kalu/gui.c:579
 msgid "Unable to show the recent Arch Linux news"
 msgstr "Impossible d'afficher les nouvelles Arch Linux récentes "
 
-#: src/kalu/gui.c:587
+#: src/kalu/gui.c:592
 msgid "Unable to show help"
 msgstr "Impossible d'afficher l'aide"
 
-#: src/kalu/gui.c:599
+#: src/kalu/gui.c:604
 msgid "Unable to show change log"
 msgstr "Impossible d'afficher le journal des modifications"
 
 #. TRANSLATORS: Put your name here to get credit on the About window
-#: src/kalu/gui.c:644
+#: src/kalu/gui.c:649
 msgid "translator-credits"
 msgstr "kolibry"
 
-#: src/kalu/gui.c:670
+#: src/kalu/gui.c:675
 msgctxt "systray-menu"
 msgid "Re-show last notifications..."
 msgstr "Ré-afficher les dernières notifications"
 
-#: src/kalu/gui.c:675
+#: src/kalu/gui.c:680
 msgid "Show notifications from last ran checks"
 msgstr "Afficher les notifications des dernières vérifications effectuées"
 
-#: src/kalu/gui.c:682
+#: src/kalu/gui.c:687
 msgctxt "systray-menu"
 msgid "Resume automatic checks"
 msgstr "Reprendre les vérifications automatiques"
 
-#: src/kalu/gui.c:683
+#: src/kalu/gui.c:688
 msgctxt "systray-menu"
 msgid "Pause automatic checks"
 msgstr "Mettre en pause les vérifications automatiques"
 
-#: src/kalu/gui.c:691
+#: src/kalu/gui.c:696
 msgid "Resume automatic checks (starting now)"
 msgstr "Reprendre les vérifications automatiques (démarrage immédiat)"
 
-#: src/kalu/gui.c:692
+#: src/kalu/gui.c:697
 msgid "Pause automatic checks (until resumed)"
 msgstr "Mettre en pause les vérifications automatiques (jusqu'à la reprise)"
 
-#: src/kalu/gui.c:703
+#: src/kalu/gui.c:708
 msgctxt "systray-menu"
 msgid "Check for Upgrades..."
 msgstr "Chercher des mises à jour"
 
-#: src/kalu/gui.c:708
+#: src/kalu/gui.c:713
 msgid "Check if there are any upgrades available"
 msgstr "Vérifier si des mises à jour sont disponibles"
 
-#: src/kalu/gui.c:717
+#: src/kalu/gui.c:722
 msgctxt "systray-menu"
 msgid "System upgrade..."
 msgstr "Mettre à jour le système"
 
-#: src/kalu/gui.c:721
+#: src/kalu/gui.c:726
 msgid "Perform a system upgrade"
 msgstr "Effectuer une mise à jour du système"
 
-#: src/kalu/gui.c:729
+#: src/kalu/gui.c:734
 #, fuzzy
 msgctxt "systray-menu"
 msgid "Show unread Arch Linux news..."
-msgstr "Afficher les nouvelles Arch Linux non lues "
+msgstr "Afficher les nouvelles Arch Linux non lues... "
 
-#: src/kalu/gui.c:733
+#: src/kalu/gui.c:738
 #, fuzzy
 msgid "Show only unread Arch Linux news"
 msgstr "Afficher seulement les nouvelles Arch Linux non lues"
 
-#: src/kalu/gui.c:740
+#: src/kalu/gui.c:745
 msgctxt "systray-menu"
 msgid "Show recent Arch Linux news..."
 msgstr "Afficher les nouvelles Arch Linux récentes "
 
-#: src/kalu/gui.c:744
+#: src/kalu/gui.c:749
 msgid "Show most recent Arch Linux news"
 msgstr "Afficher les nouvelles Arch Linux les plus récentes"
 
-#: src/kalu/gui.c:755
+#: src/kalu/gui.c:760
 msgctxt "systray-menu"
 msgid "Manage watched packages..."
 msgstr "Gérer les paquets surveillés..."
 
-#: src/kalu/gui.c:762
+#: src/kalu/gui.c:767
 msgctxt "systray-menu"
 msgid "Manage watched AUR packages..."
 msgstr "Gérer les paquets AUR surveillés..."
 
-#: src/kalu/gui.c:773
+#: src/kalu/gui.c:778
 msgid "Edit preferences"
 msgstr "Modifier les préférences"
 
-#: src/kalu/gui.c:784
+#: src/kalu/gui.c:789
 msgid "Show help (man page)"
 msgstr "Afficher l'aide (manuel)"
 
-#: src/kalu/gui.c:791
+#: src/kalu/gui.c:796
 msgctxt "systray-menu"
 msgid "Change log"
 msgstr "Journal des modifications"
 
-#: src/kalu/gui.c:792
+#: src/kalu/gui.c:797
 msgid "Show change log"
 msgstr "Afficher le journal des modifications"
 
-#: src/kalu/gui.c:800
+#: src/kalu/gui.c:805
 msgid "Show Copyright & version information"
 msgstr "Afficher Copyright et information de version"
 
-#: src/kalu/gui.c:812
+#: src/kalu/gui.c:817 src/kalu/preferences.c:1498
 msgid "Exit kalu"
 msgstr "Quitter kalu"
 
 #. TRANSLATORS: This goes in kalu's systray tooltip. It usually
 #. * just says "kalu" but will show this when paused, indicating that
 #. * kalu is indeed in paused mode.
-#: src/kalu/gui.c:963
+#: src/kalu/gui.c:979
 msgid "paused kalu"
 msgstr "En pause"
 
-#: src/kalu/gui.c:968
+#: src/kalu/gui.c:984
 msgid "Checking/updating in progress..."
 msgstr "Vérification/mise à jour en cours..."
 
-#: src/kalu/gui.c:984
+#: src/kalu/gui.c:1000
 msgid "Last checked just now"
 msgstr "Dernière vérification à l'instant"
 
@@ -291,25 +297,25 @@ msgstr "Dernière vérification à l'instant"
 #. * by adding a string, the days/hours/minutes if apply, and a last
 #. * string. (Make sure to end this first, and the days/hours/minutes
 #. * strings with a space)
-#: src/kalu/gui.c:1010
+#: src/kalu/gui.c:1026
 msgid "Last checked "
 msgstr "Dernière vérification il y a "
 
-#: src/kalu/gui.c:1012
+#: src/kalu/gui.c:1028
 #, c-format
 msgid "1 day "
 msgid_plural "%d days "
 msgstr[0] "1 jour "
 msgstr[1] "%d jours "
 
-#: src/kalu/gui.c:1015
+#: src/kalu/gui.c:1031
 #, c-format
 msgid "1 hour "
 msgid_plural "%d hours "
 msgstr[0] "1 heure "
 msgstr[1] "%d heures "
 
-#: src/kalu/gui.c:1018
+#: src/kalu/gui.c:1034
 #, c-format
 msgid "1 minute "
 msgid_plural "%d minutes "
@@ -318,11 +324,11 @@ msgstr[1] "%d minutes"
 
 #. TRANSLATORS: Ending the "Last checked 42 days ago" sentence. Use " "
 #. * if it doesn't apply.
-#: src/kalu/gui.c:1022
+#: src/kalu/gui.c:1038
 msgid "ago"
 msgstr " "
 
-#: src/kalu/gui.c:1027
+#: src/kalu/gui.c:1043
 #, c-format
 msgid ""
 "\n"
@@ -337,7 +343,7 @@ msgstr[1] ""
 "\n"
 "Synchronisation possible avec %d bases de données"
 
-#: src/kalu/gui.c:1035
+#: src/kalu/gui.c:1051
 #, c-format
 msgid ""
 "\n"
@@ -352,7 +358,7 @@ msgstr[1] ""
 "\n"
 "%d nouvelles non lues"
 
-#: src/kalu/gui.c:1042
+#: src/kalu/gui.c:1058
 #, c-format
 msgid ""
 "\n"
@@ -367,7 +373,7 @@ msgstr[1] ""
 "\n"
 "%d mises à jour disponibles"
 
-#: src/kalu/gui.c:1049
+#: src/kalu/gui.c:1065
 msgid ""
 "\n"
 "upgrades available (unknown number due to conflict)"
@@ -375,7 +381,7 @@ msgstr ""
 "\n"
 "Mises à jour disponibles (nombre inconnu à cause des conflits)"
 
-#: src/kalu/gui.c:1053
+#: src/kalu/gui.c:1069
 #, c-format
 msgid ""
 "\n"
@@ -390,7 +396,7 @@ msgstr[1] ""
 "\n"
 "%d paquets surveillés mis à jour"
 
-#: src/kalu/gui.c:1060
+#: src/kalu/gui.c:1076
 #, c-format
 msgid ""
 "\n"
@@ -405,7 +411,7 @@ msgstr[1] ""
 "\n"
 "%d paquets AUR mis à jour"
 
-#: src/kalu/gui.c:1067
+#: src/kalu/gui.c:1083
 #, c-format
 msgid ""
 "\n"
@@ -420,7 +426,7 @@ msgstr[1] ""
 "\n"
 "%d paquets AUR surveillés mis à jour"
 
-#: src/kalu/gui.c:1075
+#: src/kalu/gui.c:1091
 #, c-format
 msgid "kalu: error setting tooltip"
 msgstr "kalu: erreur de réglage de l'info-bulle"
@@ -524,16 +530,16 @@ msgstr "Rien"
 msgid "No error message specified in MethodFailed\n"
 msgstr "Aucun message d'erreur spécifié dans MethodFailed\n"
 
-#: src/kalu/kalu-updater.c:1122
+#: src/kalu/kalu-updater.c:1149
 msgid "Object is not a KaluUpdater\n"
 msgstr "L'objet n'est pas un KaluUpdater\n"
 
-#: src/kalu/kalu-updater.c:1134
+#: src/kalu/kalu-updater.c:1161
 #, c-format
 msgid "Cannot call method %s: already running\n"
 msgstr "Impossible de lancer la méthode %s: déjà en cours\n"
 
-#: src/kalu/kalu-updater.c:1145
+#: src/kalu/kalu-updater.c:1172
 #, c-format
 msgid "Internal method definition missing for %s\n"
 msgstr "Définition de la méthode interne manquante pour %s\n"
@@ -599,61 +605,61 @@ msgstr "Afficher les informations de version"
 msgid "option parsing failed: %s\n"
 msgstr "Echec de l'analyse des options: %s\n"
 
-#: src/kalu/main.c:1047
+#: src/kalu/main.c:1049
 msgid "$NB updates available (D: $DL; N: $NET)"
 msgstr "$NB mises à jour disponibles (D: $DL; N: $NET)"
 
-#: src/kalu/main.c:1048
+#: src/kalu/main.c:1050
 msgid "- <b>$PKG</b> $OLD > <b>$NEW</b> (D: $DL; N: $NET)"
 msgstr "- <b>$PKG</b> $OLD > <b>$NEW</b> (D: $DL; N: $NET)"
 
-#: src/kalu/main.c:1052
+#: src/kalu/main.c:1054
 msgid "$NB watched packages updated (D: $DL; N: $NET)"
 msgstr "$NB paquets surveillés mis à jour (D: $DL; N: $NET)"
 
-#: src/kalu/main.c:1055
+#: src/kalu/main.c:1057
 msgid "AUR: $NB packages updated"
 msgstr "AUR: $NB paquets mis à jour"
 
-#: src/kalu/main.c:1059
+#: src/kalu/main.c:1061
 msgid "AUR: $NB watched packages updated"
 msgstr "AUR: $NB paquets surveillés mis à jour"
 
-#: src/kalu/main.c:1062
+#: src/kalu/main.c:1064
 msgid "$NB unread news"
 msgstr "$NB nouvelles non lues"
 
-#: src/kalu/main.c:1070
+#: src/kalu/main.c:1072
 msgid "GTK+ initialization failed\n"
 msgstr "Echec de l'initialisation GTK+\n"
 
-#: src/kalu/main.c:1071
+#: src/kalu/main.c:1073
 msgid "To run kalu on CLI only mode, use --auto-checks or --manual-checks"
 msgstr ""
 "Pour éxécuter kalu uniquement en mode console, utilisez --autochecks ou --"
 "manual-checks"
 
-#: src/kalu/main.c:1083
+#: src/kalu/main.c:1085
 msgid "Errors while parsing configuration"
 msgstr "Erreurs pendant l'analyse de la configuration"
 
-#: src/kalu/main.c:1092 src/kalu/watched.c:604
+#: src/kalu/main.c:1094 src/kalu/watched.c:604
 msgid "Unable to parse watched packages"
 msgstr "Impossible d'analyser les paquets surveillés"
 
-#: src/kalu/main.c:1101 src/kalu/watched.c:603
+#: src/kalu/main.c:1103 src/kalu/watched.c:603
 msgid "Unable to parse watched AUR packages"
 msgstr "Impossible d'analyser les paquets AUR surveillés"
 
-#: src/kalu/main.c:1110
+#: src/kalu/main.c:1112
 msgid "Unable to parse last news data"
 msgstr "Impossible d'analyser les données des dernières nouvelles"
 
-#: src/kalu/main.c:1122
+#: src/kalu/main.c:1124
 msgid "Unable to initialize cURL"
 msgstr "Impossible d'initialiser cURL"
 
-#: src/kalu/main.c:1123
+#: src/kalu/main.c:1125
 msgid "kalu will therefore not be able to check the AUR"
 msgstr "kalu ne sera donc plus capable de chercher dans AUR"
 
@@ -729,34 +735,34 @@ msgstr ""
 msgid "Possible pacman/kalu conflict - kalu"
 msgstr "Conflit possible entre pacman et kalu - kalu"
 
-#: src/kalu/preferences.c:352
+#: src/kalu/preferences.c:353
 msgctxt "expiration-delay"
 msgid "Default"
 msgstr "Par défaut"
 
-#: src/kalu/preferences.c:356
+#: src/kalu/preferences.c:357
 msgctxt "expiration-delay"
 msgid "Never"
 msgstr "Jamais"
 
 #. TRANSLATORS: context "expiration-delay" Also note this can only be
 #. * from 4 to 42
-#: src/kalu/preferences.c:362
+#: src/kalu/preferences.c:363
 #, c-format
 msgid "%d seconds"
 msgid_plural "%d seconds"
 msgstr[0] "%d secondes"
 msgstr[1] "%d secondes"
 
-#: src/kalu/preferences.c:596
+#: src/kalu/preferences.c:597
 msgid "<b>Notification template</b>"
 msgstr "Modèle de notification"
 
-#: src/kalu/preferences.c:603
+#: src/kalu/preferences.c:604
 msgid "Title :"
 msgstr "Titre :"
 
-#: src/kalu/preferences.c:608
+#: src/kalu/preferences.c:609
 msgid ""
 "The following variables are available :\n"
 "- <b>$NB</b> : number of packages/news items"
@@ -764,7 +770,7 @@ msgstr ""
 "Les variables suivantes sont disponibles :\n"
 "- <b>$NB</b> : nombre de paquets/nouveaux objets"
 
-#: src/kalu/preferences.c:611
+#: src/kalu/preferences.c:612
 msgid ""
 "\n"
 "- <b>$DL</b> : total download size\n"
@@ -776,19 +782,19 @@ msgstr ""
 "- <b>$INS</b> : Taille totale installée\n"
 "- <b>$NET</b> : Taille totale nette (différence après installation)"
 
-#: src/kalu/preferences.c:628
+#: src/kalu/preferences.c:629
 msgid "News item :"
 msgstr "Champ Nouvelles :"
 
-#: src/kalu/preferences.c:628
+#: src/kalu/preferences.c:629
 msgid "Package :"
 msgstr "Paquet :"
 
-#: src/kalu/preferences.c:634
+#: src/kalu/preferences.c:635
 msgid "The following variables are available :"
 msgstr "Les variables suivantes sont disponibles :"
 
-#: src/kalu/preferences.c:636
+#: src/kalu/preferences.c:637
 msgid ""
 "\n"
 "- <b>$NEWS</b> : the news title"
@@ -796,7 +802,7 @@ msgstr ""
 "\n"
 "- <b>$NEWS</b> : le titre des nouvelles"
 
-#: src/kalu/preferences.c:637
+#: src/kalu/preferences.c:638
 msgid ""
 "\n"
 "- <b>$PKG</b> : package name\n"
@@ -808,7 +814,7 @@ msgstr ""
 "- <b>$OLD</b> : ancien/actuel numéro de version\n"
 "- <b>$NEW</b> : nouveau numéro de version"
 
-#: src/kalu/preferences.c:641
+#: src/kalu/preferences.c:642
 msgid ""
 "\n"
 "- <b>$DL</b> : download size\n"
@@ -820,248 +826,253 @@ msgstr ""
 "- <b>$INS</b> : Taille installée\n"
 "- <b>$NET</b> : Taille nette (différence après installation)"
 
-#: src/kalu/preferences.c:659
+#: src/kalu/preferences.c:660
 msgid "Separator :"
 msgstr "Séparateur :"
 
-#: src/kalu/preferences.c:663
+#: src/kalu/preferences.c:664
 msgid "No variables available."
 msgstr "Auicun variable disponible."
 
-#: src/kalu/preferences.c:702
+#: src/kalu/preferences.c:703
 msgid "Unable to apply/save preferences"
 msgstr "Impossible d'appliquer/sauvegarder les préférences"
 
-#: src/kalu/preferences.c:712
+#: src/kalu/preferences.c:713
 msgid "Template missing field "
 msgstr "Modèle de champ manquant "
 
-#: src/kalu/preferences.c:829
+#: src/kalu/preferences.c:840
 msgid ""
 "You need to select the configuration file to use for libalpm (pacman.conf)"
 msgstr ""
 "Vous devez sélectionner le fichier de configuration afin d'utiliser libalpm "
 "(pacman.conf)"
 
-#: src/kalu/preferences.c:851
+#: src/kalu/preferences.c:862
 msgid "You need to select the file to use as icon on notifications"
 msgstr "Sélectionnez le fichier à utiliser comme icône pour les notifications"
 
-#: src/kalu/preferences.c:862
+#: src/kalu/preferences.c:873
 msgid "You need to specify an interval."
 msgstr "Vous devez spécifier un intervalle."
 
-#: src/kalu/preferences.c:868 src/kalu/preferences.c:910
+#: src/kalu/preferences.c:879 src/kalu/preferences.c:921
 msgid "Invalid value for the auto-check interval."
 msgstr ""
 "Valeur incorrecte pour l'intervalle de vérification automatique des mises à "
 "jour"
 
-#: src/kalu/preferences.c:949
+#: src/kalu/preferences.c:960
 msgid "Nothing selected for automatic checks."
 msgstr "Rien n'est sélectionné pour les mises à jour automatiques."
 
-#: src/kalu/preferences.c:983
+#: src/kalu/preferences.c:994
 msgid "Nothing selected for manual checks."
 msgstr "Rien n'est sélectionné pour les mises à jour manuelles."
 
-#: src/kalu/preferences.c:999
+#: src/kalu/preferences.c:1010
 msgid "You need to specify the command-line to open links."
 msgstr "Vous devez spécifier la commande pour ouvrir les liens."
 
-#: src/kalu/preferences.c:1004
+#: src/kalu/preferences.c:1015
 msgid "You need to use $URL on the command line to open links."
 msgstr "Vous devez utiliser $URL dans la commande pour ouvrir les liens."
 
-#: src/kalu/preferences.c:1031 src/kalu/preferences.c:1076
+#: src/kalu/preferences.c:1042 src/kalu/preferences.c:1087
 msgid "You need to specify the command-line."
 msgstr "Vous devez spécifier la commande."
 
-#: src/kalu/preferences.c:1244
+#: src/kalu/preferences.c:1253
 #, c-format
 msgid "%s cannot be created or is not a folder"
 msgstr "%s n'a pas pu être créé ou n'est pas un dossier"
 
-#: src/kalu/preferences.c:1246 src/kalu/preferences.c:1253
+#: src/kalu/preferences.c:1255 src/kalu/preferences.c:1262
 msgid "Unable to write configuration file"
 msgstr "Impossible d'éditer le fichier de configuration"
 
-#: src/kalu/preferences.c:1437
+#: src/kalu/preferences.c:1455
 msgid "When clicking the systray icon :"
 msgstr "Lors d'un clic sur l'icône de la zone de notification :"
 
-#: src/kalu/preferences.c:1438
+#: src/kalu/preferences.c:1460
 msgid "When double clicking the systray icon :"
 msgstr "Lors d'un double clic sur l'icône de la zone de notification :"
 
-#: src/kalu/preferences.c:1450
+#: src/kalu/preferences.c:1465
+#, fuzzy
+msgid "When middle clicking the systray icon :"
+msgstr "Lors d'un clic milieu sur l'icône de la zone de notification :"
+
+#: src/kalu/preferences.c:1478
 msgid "Same as when active/not paused"
 msgstr "Pareil que lorsque actif/pas en pause"
 
-#: src/kalu/preferences.c:1453
+#: src/kalu/preferences.c:1481
 msgid "Do nothing"
 msgstr "Ne rien faire"
 
-#: src/kalu/preferences.c:1455
+#: src/kalu/preferences.c:1483
 msgid "Check for Upgrades..."
 msgstr "Chercher des mises à jour..."
 
-#: src/kalu/preferences.c:1457
+#: src/kalu/preferences.c:1485
 msgid "System upgrade..."
 msgstr "Mettre à jour le système..."
 
-#: src/kalu/preferences.c:1460
+#: src/kalu/preferences.c:1488
 msgid "Hide/show opened windows (except kalu's updater)"
 msgstr "Cacher/afficher les fenêtres ouvertes (sauf kalu)"
 
-#: src/kalu/preferences.c:1462
+#: src/kalu/preferences.c:1490
 msgid "Hide/show opened windows"
 msgstr "Cacher/afficher les fenêtres ouvertes"
 
-#: src/kalu/preferences.c:1466
+#: src/kalu/preferences.c:1494
 msgid "Re-show last notifications..."
 msgstr "Ré-afficher les dernières notifications..."
 
-#: src/kalu/preferences.c:1468
+#: src/kalu/preferences.c:1496
 msgid "Toggle pause/resume automatic checks"
 msgstr "Activer la pause/reprise des mises à jour automatiques"
 
-#: src/kalu/preferences.c:1517
+#: src/kalu/preferences.c:1543
 msgid "Preferences - kalu"
 msgstr "Préférences - kalu"
 
-#: src/kalu/preferences.c:1554
+#: src/kalu/preferences.c:1580
 msgctxt "prefs-tab"
 msgid "General"
 msgstr "Général"
 
-#: src/kalu/preferences.c:1557
+#: src/kalu/preferences.c:1583
 msgid "Configuration file (pacman.conf) to use:"
 msgstr "Fichier de configuration (pacman.conf) à utiliser:"
 
-#: src/kalu/preferences.c:1561
+#: src/kalu/preferences.c:1587
 msgid "Select your pacman.conf"
 msgstr "Sélectionnez votre fichier pacman.conf"
 
-#: src/kalu/preferences.c:1570
+#: src/kalu/preferences.c:1596
 msgid "Icon used on notifications :"
 msgstr "Icône utilisé dans les notifications :"
 
-#: src/kalu/preferences.c:1576
+#: src/kalu/preferences.c:1602
 msgid "No icon"
 msgstr "Pas d'icônes"
 
-#: src/kalu/preferences.c:1578
+#: src/kalu/preferences.c:1604
 msgid "kalu's icon (small)"
 msgstr "Icône de kalu (petit)"
 
-#: src/kalu/preferences.c:1580
+#: src/kalu/preferences.c:1606
 msgid "Select file:"
 msgstr "Sélectionnez un fichier:"
 
-#: src/kalu/preferences.c:1598
+#: src/kalu/preferences.c:1624
 msgid "Select notification icon"
 msgstr "Sélectionnez l'icône de notification"
 
-#: src/kalu/preferences.c:1601
+#: src/kalu/preferences.c:1627
 msgid "Supported Images"
 msgstr "Images supportées"
 
-#: src/kalu/preferences.c:1621
+#: src/kalu/preferences.c:1647
 msgid "Notifications expire after (seconds) :"
 msgstr "Notifications expirent après (secondes) :"
 
-#: src/kalu/preferences.c:1623 src/kalu/preferences.c:1631
+#: src/kalu/preferences.c:1649 src/kalu/preferences.c:1657
 msgid ""
 "Delay after which the notification should expire/be automatically closed by "
 "the daemon."
 msgstr "Délai après lequel les notifications expirent/sont fermées"
 
-#: src/kalu/preferences.c:1652
+#: src/kalu/preferences.c:1678
 msgid "Check for upgrades every (minutes) :"
 msgstr "Vérifier les mises à jour toutes les (minutes) :"
 
-#: src/kalu/preferences.c:1666
+#: src/kalu/preferences.c:1692
 msgctxt "delay-in-minutes"
 msgid "60 (Hour)"
 msgstr "60 (une heure)"
 
-#: src/kalu/preferences.c:1668
+#: src/kalu/preferences.c:1694
 msgctxt "delay-in-minutes"
 msgid "120 (Two hours)"
 msgstr "120 (deux heures)"
 
-#: src/kalu/preferences.c:1670
+#: src/kalu/preferences.c:1696
 msgctxt "delay-in-minutes"
 msgid "1440 (Day)"
 msgstr "1440 (un jour)"
 
-#: src/kalu/preferences.c:1695
+#: src/kalu/preferences.c:1721
 msgctxt "skip-between"
 msgid "Do not check between"
 msgstr "Ne pas vérifier entre"
 
-#: src/kalu/preferences.c:1719
+#: src/kalu/preferences.c:1745
 msgctxt "skip-between"
 msgid "and"
 msgstr "et"
 
-#: src/kalu/preferences.c:1753
+#: src/kalu/preferences.c:1779
 msgctxt "checks"
 msgid "Arch Linux news"
 msgstr "Nouvelles Arch Linux"
 
-#: src/kalu/preferences.c:1754
+#: src/kalu/preferences.c:1780
 msgctxt "checks"
 msgid "Package upgrades"
 msgstr "Mises à jour paquets"
 
-#: src/kalu/preferences.c:1755
+#: src/kalu/preferences.c:1781
 msgctxt "checks"
 msgid "Watched package upgrades"
 msgstr "Mises à jour paquets surveillés"
 
-#: src/kalu/preferences.c:1756
+#: src/kalu/preferences.c:1782
 msgctxt "checks"
 msgid "AUR package upgrades"
 msgstr "Mises à jour paquets AUR"
 
-#: src/kalu/preferences.c:1757
+#: src/kalu/preferences.c:1783
 msgctxt "checks"
 msgid "AUR watched package upgrades"
 msgstr "Mises à jour paquets AUR surveillés"
 
-#: src/kalu/preferences.c:1761
+#: src/kalu/preferences.c:1787
 msgid "During an automatic check, check for :"
 msgstr "Pendant une vérification automatique, chercher :"
 
-#: src/kalu/preferences.c:1797
+#: src/kalu/preferences.c:1823
 msgid "During a manual check, check for :"
 msgstr "Pendant une vérification manuelle, chercher :"
 
-#: src/kalu/preferences.c:1865
+#: src/kalu/preferences.c:1891
 msgctxt "prefs-tab"
 msgid "News"
 msgstr "Nouvelles"
 
-#: src/kalu/preferences.c:1867
+#: src/kalu/preferences.c:1893
 msgid "Command line to open links :"
 msgstr "Commande pour ouvrir les liens :"
 
-#: src/kalu/preferences.c:1873
+#: src/kalu/preferences.c:1899
 msgid "Use variable <b>$URL</b> for the URL to open"
 msgstr "Utilisez la variable <b>$URL</b> pour ouvrir l'URL "
 
-#: src/kalu/preferences.c:1898
+#: src/kalu/preferences.c:1924
 msgctxt "prefs-tab"
 msgid "Upgrades"
 msgstr "Mises à jour"
 
-#: src/kalu/preferences.c:1902
+#: src/kalu/preferences.c:1928
 msgid "Check for pacman/kalu conflict"
 msgstr "Vérifier les conflits pacman/kalu"
 
-#: src/kalu/preferences.c:1904
+#: src/kalu/preferences.c:1930
 msgid ""
 "Check whether an upgrade of pacman is likely to fail due to kalu's "
 "dependency, and if so adds a button on to notification to show a message "
@@ -1072,13 +1083,13 @@ msgstr ""
 "notification pour afficher un message sur les causes, et comment mettre à "
 "jour."
 
-#: src/kalu/preferences.c:1915
+#: src/kalu/preferences.c:1941
 msgid "Show a button \"Upgrade system\" on notifications (and on kalu's menu)"
 msgstr ""
 "Afficher un bouton \"Mettre à jour le système\" dans les notifications (et "
 "dans le menu de kalu)"
 
-#: src/kalu/preferences.c:1917
+#: src/kalu/preferences.c:1943
 msgid ""
 "Whether or not to show a button \"Upgrade system\" on notifications, as well "
 "as an item \"System upgrade\" on kalu's menu"
@@ -1087,11 +1098,11 @@ msgstr ""
 "notifications, ainsi qu'une option \"Mise à jour du système\" dans le menu "
 "de kalu"
 
-#: src/kalu/preferences.c:1928
+#: src/kalu/preferences.c:1954
 msgid "When clicking the button/menu :"
 msgstr "Lors d'un clic sur le bouton/menu :"
 
-#: src/kalu/preferences.c:1930 src/kalu/preferences.c:1937
+#: src/kalu/preferences.c:1956 src/kalu/preferences.c:1963
 msgid ""
 "When clicking the button \"Upgrade system\" on notifications, or the menu "
 "\"System upgrade\""
@@ -1099,46 +1110,46 @@ msgstr ""
 "Lors d'un clic sur le bouton \"Mettre à jour le système\" dans les "
 "notifications ou \"Mise à jour du système\" dans le menu"
 
-#: src/kalu/preferences.c:1943
+#: src/kalu/preferences.c:1969
 msgid "Run kalu's system updater"
 msgstr "Lancer kalu "
 
-#: src/kalu/preferences.c:1946
+#: src/kalu/preferences.c:1972
 msgid "Run the specified command-line"
 msgstr "Exécuter la commande spécifiée"
 
-#: src/kalu/preferences.c:1961
+#: src/kalu/preferences.c:1987
 msgid "Command-line:"
 msgstr "Commande:"
 
-#: src/kalu/preferences.c:1987
+#: src/kalu/preferences.c:2013
 msgid "After completing a system upgrade, start the following :"
 msgstr "Une fois le système mis à jour, lancer :"
 
-#: src/kalu/preferences.c:1988
+#: src/kalu/preferences.c:2014
 msgid ""
 "You can use <b>$PACKAGES</b> to be replaced by the list of upgraded packages"
 msgstr ""
 "Vous pouvez utiliser <b>$PACKAGES</b> qui sera remplacé par une liste des "
 "paquets mis à jour"
 
-#: src/kalu/preferences.c:1989
+#: src/kalu/preferences.c:2015
 msgid "Add a new command-line"
 msgstr "Ajouter une nouvelle commande"
 
-#: src/kalu/preferences.c:1990
+#: src/kalu/preferences.c:2016
 msgid "Edit selected command-line"
 msgstr "Editer la commande sélectionnée"
 
-#: src/kalu/preferences.c:1991
+#: src/kalu/preferences.c:2017
 msgid "Remove selected command-line"
 msgstr "Supprimer la commande sélectionnée"
 
-#: src/kalu/preferences.c:1998
+#: src/kalu/preferences.c:2024
 msgid "Ask confirmation before starting anything"
 msgstr "Demander confirmation avant d'effectuer une action"
 
-#: src/kalu/preferences.c:2000
+#: src/kalu/preferences.c:2026
 msgid ""
 "Confirmation will be asked before starting those processes. With multiple "
 "ones, you'll be able to select which one(s) to start."
@@ -1147,30 +1158,30 @@ msgstr ""
 "plusieurs processus, vous pourrez sélectionnez ceux que vous souhaitez "
 "lancer. "
 
-#: src/kalu/preferences.c:2030
+#: src/kalu/preferences.c:2056
 msgctxt "prefs-tab"
 msgid "Watched"
 msgstr "Surveillés"
 
-#: src/kalu/preferences.c:2032
+#: src/kalu/preferences.c:2058
 msgid "Manage watched packages..."
 msgstr "Gérer les paquets surveillés"
 
-#: src/kalu/preferences.c:2056
+#: src/kalu/preferences.c:2082
 msgctxt "prefs-tab"
 msgid "AUR"
 msgstr "AUR"
 
-#: src/kalu/preferences.c:2060
+#: src/kalu/preferences.c:2086
 msgid "Show a button \"Update AUR packages\" on notifications"
 msgstr ""
 "Afficher un bouton \"Mettre à jour les paquets AUR\" dans les notifications"
 
-#: src/kalu/preferences.c:2069
+#: src/kalu/preferences.c:2095
 msgid "When clicking the button, run the following :"
 msgstr "Lors d'un clic sur le bouton, lancer :"
 
-#: src/kalu/preferences.c:2075
+#: src/kalu/preferences.c:2101
 msgid ""
 "You can use <b>$PACKAGES</b> to be replaced by the list of AUR packages with "
 "upgrades available"
@@ -1178,78 +1189,66 @@ msgstr ""
 "Vous pouvez utiliser <b>$PACKAGES</b> qui sera remplacé par une liste des "
 "paquets AUR pour lesquels des mises à jour sont disponibles"
 
-#: src/kalu/preferences.c:2091
+#: src/kalu/preferences.c:2117
 msgid "Do not check the AUR for the following packages :"
 msgstr "Ne pas vérifier AUR pour les paquets suivants :"
 
-#: src/kalu/preferences.c:2098
+#: src/kalu/preferences.c:2124
 msgid "Package name"
 msgstr "Nom du paquet"
 
-#: src/kalu/preferences.c:2100 src/kalu/watched.c:728
+#: src/kalu/preferences.c:2126 src/kalu/watched.c:728
 msgid "Add a new package"
 msgstr "Ajouter un nouveau paquet"
 
-#: src/kalu/preferences.c:2101 src/kalu/watched.c:736
+#: src/kalu/preferences.c:2127 src/kalu/watched.c:736
 msgid "Edit selected package"
 msgstr "Editer le paquet sélectionné"
 
-#: src/kalu/preferences.c:2102 src/kalu/watched.c:745
+#: src/kalu/preferences.c:2128 src/kalu/watched.c:745
 msgid "Remove selected package"
 msgstr "Supprimer le paquet sélectionné"
 
-#: src/kalu/preferences.c:2123
+#: src/kalu/preferences.c:2149
 msgctxt "prefs-tab"
 msgid "Watched AUR"
 msgstr "AUR surveillés"
 
-#: src/kalu/preferences.c:2125
+#: src/kalu/preferences.c:2151
 msgid "Manage watched AUR packages..."
 msgstr "Gérer les paquets AUR surveillés..."
 
-#: src/kalu/preferences.c:2149
+#: src/kalu/preferences.c:2175
 msgctxt "prefs-tab"
 msgid "Misc"
 msgstr "Divers"
 
-#: src/kalu/preferences.c:2152
-msgid "Use sane sort indicator"
-msgstr "Utiliser un indicateur de tri sain"
-
-#: src/kalu/preferences.c:2154
-msgid ""
-"So when sorted descendingly, the arrow points down...\n"
-"This is used for the packages list in kalu's updater"
-msgstr ""
-"Lors d'un tri décroissant, les flèches pointent vers le bas... \n"
-"Cela est utilisé pour la liste des paquets dans kalu"
-
-#: src/kalu/preferences.c:2164
+#: src/kalu/preferences.c:2178
 msgid "Show if databases can be synchronized in tooltip"
 msgstr ""
 "Montrer dans l'info-bulle si les bases de données peuvent être synchronisées"
 
-#: src/kalu/preferences.c:2174
+#: src/kalu/preferences.c:2188
 msgid "When kalu is <b>active</b> :"
 msgstr "Quand kalu est <b>actif</b> :"
 
-#: src/kalu/preferences.c:2176
+#: src/kalu/preferences.c:2190
 msgid "Actions to be done when kalu is <b>not</b> paused."
 msgstr "Actions à effectuer quand kalu n'est <b>pas</b> en pause."
 
-#: src/kalu/preferences.c:2187
+#: src/kalu/preferences.c:2202
 msgid "When kalu is <b>paused</b> :"
 msgstr "Quand kalu est <b>en pause</b> :"
 
-#: src/kalu/preferences.c:2189
+#: src/kalu/preferences.c:2204
 msgid "Actions to be done when kalu is <b>paused</b>."
 msgstr "Actions à effectuer quand kalu est <b>en pause</b>."
 
-#: src/kalu/preferences.c:2208
+#: src/kalu/preferences.c:2224
 msgid "Save preferences"
 msgstr "Enregistrer les préférences"
 
-#: src/kalu/preferences.c:2212
+#: src/kalu/preferences.c:2228
 msgid "Apply and save preferences"
 msgstr "Appliquer et enregistrer les préférences"
 
@@ -1489,7 +1488,7 @@ msgctxt "column"
 msgid "Repo"
 msgstr "Dépôt"
 
-#: src/kalu/updater.c:1051 src/kalu/updater.c:2285 src/kalu/watched.c:842
+#: src/kalu/updater.c:1051 src/kalu/updater.c:2276 src/kalu/watched.c:842
 msgctxt "column"
 msgid "Package"
 msgstr "Paquet"
@@ -1664,7 +1663,7 @@ msgstr "Lancement: '%s' .."
 
 #: src/kalu/updater.c:1543 src/kalu/updater.c:1744 src/kalu/updater.c:1776
 #: src/kalu/updater.c:1816 src/kalu/updater.c:1843 src/kalu/updater.c:1875
-#: src/kalu/updater.c:1893 src/kalu/updater.c:2012 src/kalu/updater.c:2495
+#: src/kalu/updater.c:1893 src/kalu/updater.c:2012 src/kalu/updater.c:2450
 msgid " failed\n"
 msgstr "Echec\n"
 
@@ -1682,7 +1681,7 @@ msgstr ""
 "Erreur: %s"
 
 #: src/kalu/updater.c:1551 src/kalu/updater.c:1750 src/kalu/updater.c:1821
-#: src/kalu/updater.c:1848 src/kalu/updater.c:2503
+#: src/kalu/updater.c:1848 src/kalu/updater.c:2458
 msgid " ok\n"
 msgstr "ok\n"
 
@@ -1796,56 +1795,56 @@ msgstr "Initialisation de kalu..."
 msgid "Could not initialize kalu_updater"
 msgstr "Impossible d'initialiser kalu"
 
-#: src/kalu/updater.c:2165
+#: src/kalu/updater.c:2156
 msgid "System upgrade - kalu"
 msgstr "Mise à jour du système - kalu"
 
-#: src/kalu/updater.c:2192
+#: src/kalu/updater.c:2183
 msgid "Initializing... Please wait..."
 msgstr "Initialisation...Patientez SVP..."
 
-#: src/kalu/updater.c:2300
+#: src/kalu/updater.c:2286
 msgctxt "column"
 msgid "Old/Current"
 msgstr "Ancien/Actuel"
 
-#: src/kalu/updater.c:2315 src/kalu/watched.c:871
+#: src/kalu/updater.c:2296 src/kalu/watched.c:871
 msgctxt "column"
 msgid "New"
 msgstr "Nouveaux"
 
-#: src/kalu/updater.c:2333 src/kalu/watched.c:881
+#: src/kalu/updater.c:2309 src/kalu/watched.c:881
 msgctxt "column"
 msgid "Download"
 msgstr "Téléchargements"
 
-#: src/kalu/updater.c:2358 src/kalu/watched.c:892
+#: src/kalu/updater.c:2329 src/kalu/watched.c:892
 msgctxt "column"
 msgid "Installed"
 msgstr "Installés"
 
-#: src/kalu/updater.c:2410
+#: src/kalu/updater.c:2365
 msgid "Log"
 msgstr "Journal"
 
-#: src/kalu/updater.c:2462
+#: src/kalu/updater.c:2417
 msgid "Upgrade system..."
 msgstr "Mettre à jour le système..."
 
-#: src/kalu/updater.c:2492
+#: src/kalu/updater.c:2447
 #, c-format
 msgid "Parsing %s ..."
 msgstr "Analyse de %s ..."
 
-#: src/kalu/updater.c:2496
+#: src/kalu/updater.c:2451
 msgid "Unable to parse pacman.conf"
 msgstr "Impossible d'analyser pacman.conf"
 
-#: src/kalu/updater.c:2509
+#: src/kalu/updater.c:2464
 msgid "No databases defined"
 msgstr "Aucune base de données définie"
 
-#: src/kalu/updater.c:2516
+#: src/kalu/updater.c:2471
 msgid "Creating kalu_updater..."
 msgstr "Création de kalu..."
 
@@ -1937,7 +1936,7 @@ msgstr "Enregistrer la liste des paquets surveillés"
 #: src/kalu-dbus/kalu-dbus.c:205
 #, fuzzy
 msgid " [installed]"
-msgstr "Installés"
+msgstr "[installé]"
 
 #: src/kalu-dbus/kalu-dbus.c:207
 msgid " [pending]"
@@ -2092,6 +2091,16 @@ msgstr "Session initialisée pour un autre client\n"
 #, c-format
 msgid "Unknown method: %s\n"
 msgstr "Méthode inconnue: %s\n"
+
+#~ msgid "Use sane sort indicator"
+#~ msgstr "Utiliser un indicateur de tri sain"
+
+#~ msgid ""
+#~ "So when sorted descendingly, the arrow points down...\n"
+#~ "This is used for the packages list in kalu's updater"
+#~ msgstr ""
+#~ "Lors d'un tri décroissant, les flèches pointent vers le bas... \n"
+#~ "Cela est utilisé pour la liste des paquets dans kalu"
 
 #~ msgid "Downloading packages from %s\n"
 #~ msgstr "Téléchargement des paquets à partir de %s\n"
