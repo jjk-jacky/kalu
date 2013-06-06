@@ -741,12 +741,6 @@ database synchronized, one when starting the upgrade, one after the upgrade
 was completed, and one after each package operation (installed, upgraded,
 removed).
 
-This is all very much like pacman itself, only all those will be prefixed with
-I<kalu:> so that you can identify them easily. Note however that other log
-entries added during an upgrade with kalu's updater might not have such prefix,
-specifically all those coming from libalpm directly, such as warnings, errors
-or scriptlet output.
-
 =head1 NOTES
 
 Command-line options B<--auto-checks> and B<--manual-checks> both work without
