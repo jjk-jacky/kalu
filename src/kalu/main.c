@@ -961,6 +961,8 @@ main (int argc, char *argv[])
     textdomain (PACKAGE);
 #endif
 
+    set_user_agent ();
+
     /* parse command line */
     gboolean         show_version       = FALSE;
     gboolean         run_manual_checks  = FALSE;

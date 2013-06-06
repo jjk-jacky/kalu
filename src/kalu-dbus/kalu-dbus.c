@@ -3,7 +3,7 @@
  *
  * kalu-dbus.c
  * Copyright (C) 2012-2013 Olivier Brunel <i.am.jack.mail@gmail.com>
- * 
+ *
  * This file is part of kalu.
  *
  * kalu is free software: you can redistribute it and/or modify it under the
@@ -1412,6 +1412,8 @@ main (int argc _UNUSED_, char *argv[] _UNUSED_)
 #endif
 
     g_type_init ();
+
+    set_user_agent ();
 
     owner_id = g_bus_own_name (G_BUS_TYPE_SYSTEM,
             "org.jjk.kalu",

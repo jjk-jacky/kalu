@@ -2,7 +2,7 @@
  * kalu - Copyright (C) 2012-2013 Olivier Brunel
  *
  * shared.h
- * Copyright (C) 2012 Olivier Brunel <i.am.jack.mail@gmail.com>
+ * Copyright (C) 2012-2013 Olivier Brunel <i.am.jack.mail@gmail.com>
  *
  * This file is part of kalu.
  *
@@ -86,5 +86,6 @@ pgettext_aux (const char *domain,
 
 void *_alloc (size_t len, int zero);
 void *_realloc (void *ptr, size_t len);
+void set_user_agent (void);
 
 #endif /* _SHARED_H */

@@ -2,7 +2,7 @@
  * kalu - Copyright (C) 2012-2013 Olivier Brunel
  *
  * shared.c
- * Copyright (C) 2012 Olivier Brunel <i.am.jack.mail@gmail.com>
+ * Copyright (C) 2012-2013 Olivier Brunel <i.am.jack.mail@gmail.com>
  *
  * This file is part of kalu.
  *
@@ -20,7 +20,15 @@
  * kalu. If not, see http://www.gnu.org/licenses/
  */
 
+/* C */
+#include <stdio.h>
+#include <sys/utsname.h>
+
+/* alpm */
+#include <alpm.h>
+
 /* kalu */
+#include "config.h"
 #include "shared.h"
 
 void *
@@ -49,4 +57,16 @@ _realloc (void *ptr, size_t len)
         exit (255);
     }
     return ptr;
+}
+
+void
+set_user_agent (void)
+{
+    char ua[128];
+    struct utsname un;
+
+    uname (&un);
+    snprintf (ua, 128, "kalu/%s (%s %s) libalpm/%s",
+            PACKAGE_VERSION, un.sysname, un.machine, alpm_version ());
+    setenv ("HTTP_USER_AGENT", ua, 0);
 }
