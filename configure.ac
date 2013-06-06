@@ -75,6 +75,13 @@ else
 fi
 AM_CONDITIONAL([DISABLE_UPDATER], [test "x$with_updater" = "xno"])
 
+# Group name for not requiring auth to do a sysupgrade
+AC_ARG_WITH([sysupgrade-group],
+        AC_HELP_STRING([--with-sysupgrade-group=GROUP],
+                       [set the GROUP whose members can run sysupgrade without authentication]),
+        [GROUP=$withval], [GROUP="kalu"])
+AC_SUBST([SYSUPGRADE_GROUP], ["$GROUP"])
+
 # Option to use git version
 AC_ARG_ENABLE([git-version],
 	AS_HELP_STRING([--enable-git-version], [enable the use of git version]),
@@ -212,6 +219,7 @@ echo "
    prefix                   : ${prefix}
    GUI                      : ${with_gui}
    kalu's updater           : ${with_updater}
+   group to not need auth   ! ${GROUP}
    compiler warning flags   : ${WARNING_CFLAGS}
 
    Arch Linux News RSS URL  : ${NEWS_RSS_URL}

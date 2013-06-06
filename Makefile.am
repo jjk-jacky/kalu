@@ -6,7 +6,8 @@ DISTCLEANFILES = \
 CLEANFILES = \
 	kalu.png \
 	kalu-logo \
-	misc/org.jjk.kalu.service
+	misc/org.jjk.kalu.service \
+	misc/30-kalu.rules
 
 ACLOCAL_AMFLAGS = -I m4
 
@@ -115,6 +116,8 @@ endif
 if ! DISABLE_UPDATER
 policydir = /usr/share/polkit-1/actions
 dist_policy_DATA = misc/org.jjk.kalu.policy
+rulesdir = /usr/share/polkit-1/rules.d
+dist_rules_DATA = misc/30-kalu.rules
 dbusservicedir = /usr/share/dbus-1/system-services
 nodist_dbusservice_DATA = misc/org.jjk.kalu.service
 dbusconfdir = /etc/dbus-1/system.d
@@ -134,6 +137,7 @@ EXTRA_DIST = \
 	src/kalu-dbus/updater-dbus.xml \
 	doc/kalu.pod \
 	misc/org.jjk.kalu.service.tpl \
+	misc/30-kalu.rules.tpl \
 	misc/arch_linux_48x48_icon_by_painlessrob.png
 
 src/kalu-dbus/updater-dbus.h: src/kalu-dbus/updater-dbus.xml
@@ -155,6 +159,10 @@ doc/index.html: doc/kalu.1
 misc/org.jjk.kalu.service: misc/org.jjk.kalu.service.tpl
 	$(AM_V_GEN)cd misc && sed 's|@BINDIR@|$(bindir)|' org.jjk.kalu.service.tpl \
 		> org.jjk.kalu.service
+
+misc/30-kalu.rules: misc/30-kalu.rules.tpl
+	$(AM_V_GEN)cd misc && sed 's|@GROUP@|$(SYSUPGRADE_GROUP)|' 30-kalu.rules.tpl \
+		> 30-kalu.rules
 
 kalu.png: misc/arch_linux_48x48_icon_by_painlessrob.png
 	$(AM_V_GEN)$(LN_S) misc/arch_linux_48x48_icon_by_painlessrob.png kalu.png

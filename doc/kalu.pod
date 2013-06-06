@@ -720,6 +720,21 @@ This binary will be executed automatically, with root privileges, through DBus
 when needed, and PolicyKit will be used to ensure that you are authorized to
 upgrade the system.
 
+By default you probably will be prompted for your password in order to be able
+to run the system upgrade. Should you want to bypass that, a rule has been
+installed which will allow members of the group I<kalu> to perform a sysupgrade
+without extra authentication.
+
+All you need to do to use this feature is add yourself to the group (and
+re-login).
+
+If you'd rather use another group (e.g. I<wheel>) you can copy the file
+I</usr/share/polkit-1/rules.d/30-kalu.rules> to I</etc/polkit-1/rules.d> and
+modify it as you wish.
+
+Note that the group used by default can actually be set at compile time, through
+a I<configure> option.
+
 When upgrading your system with kalu's updater, your log file (e.g. pacman.log,
 as defined in pacman.conf) will be updated. kalu adds an entry for each
 database synchronized, one when starting the upgrade, one after the upgrade
