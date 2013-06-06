@@ -23,6 +23,9 @@ Run manual checks (no GUI, see L<B<NOTES>|/NOTES> below)
 Enable debug mode. Debugging messages will then be sent to kalu's stdout,
 prefixed with a timestamp.
 
+Specify twice to include messages from ALPM; three times to include debugging
+messages from ALPM.
+
 =item B<-V, --version>
 
 Show version information and exit

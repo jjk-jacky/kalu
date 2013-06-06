@@ -2,8 +2,8 @@
  * kalu - Copyright (C) 2012-2013 Olivier Brunel
  *
  * kalu-alpm.c
- * Copyright (C) 2012 Olivier Brunel <i.am.jack.mail@gmail.com>
- * 
+ * Copyright (C) 2012-2013 Olivier Brunel <i.am.jack.mail@gmail.com>
+ *
  * This file is part of kalu.
  *
  * kalu is free software: you can redistribute it and/or modify it under the
@@ -202,6 +202,31 @@ error:
     return FALSE;
 }
 
+static void
+log_cb (alpm_loglevel_t level, const char *fmt, va_list args)
+{
+    gchar *s;
+    gsize l;
+
+    if (!fmt || *fmt == '\0')
+    {
+        return;
+    }
+
+    if (config->is_debug == 2 && (level & (ALPM_LOG_DEBUG | ALPM_LOG_FUNCTION)))
+    {
+        return;
+    }
+
+    s = g_strdup_vprintf (fmt, args);
+    l = strlen (s);
+    if (s[--l] == '\n')
+        s[l] = '\0';
+
+    debug ("ALPM: %s", s);
+    g_free (s);
+}
+
 gboolean
 kalu_alpm_load (const gchar *conffile, GError **error)
 {
@@ -253,6 +278,9 @@ kalu_alpm_load (const gchar *conffile, GError **error)
     alpm_option_set_ignoregroups (alpm->handle, pac_conf->ignoregroups);
     /* cachedirs are used when determining download size */
     alpm_option_set_cachedirs (alpm->handle, pac_conf->cachedirs);
+
+    if (config->is_debug > 1)
+        alpm_option_set_logcb (alpm->handle, log_cb);
 
     /* now we need to add dbs */
     alpm_list_t *i;

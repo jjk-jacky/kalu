@@ -2,7 +2,7 @@
  * kalu - Copyright (C) 2012-2013 Olivier Brunel
  *
  * kalu.h
- * Copyright (C) 2012 Olivier Brunel <i.am.jack.mail@gmail.com>
+ * Copyright (C) 2012-2013 Olivier Brunel <i.am.jack.mail@gmail.com>
  *
  * This file is part of kalu.
  *
@@ -115,7 +115,7 @@ typedef struct _templates_t {
 } templates_t;
 
 typedef struct _config_t {
-    gboolean         is_debug;
+    int              is_debug;
     char            *pacmanconf;
     check_t          checks_manual;
     check_t          checks_auto;

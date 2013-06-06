@@ -937,6 +937,16 @@ get_gray_iconset (GdkPixbuf *pixbuf, GdkPixbuf **pixbuf_gray)
 }
 #endif
 
+static gboolean
+opt_debug (const gchar  *option _UNUSED_,
+           const gchar  *value  _UNUSED_,
+           gpointer      data   _UNUSED_,
+           GError      **error  _UNUSED_)
+{
+    ++config->is_debug;
+    return TRUE;
+}
+
 int
 main (int argc, char *argv[])
 {
@@ -972,8 +982,8 @@ main (int argc, char *argv[])
             N_("Run automatic checks"), NULL },
         { "manual-checks",  'm', 0, G_OPTION_ARG_NONE, &run_manual_checks,
             N_("Run manual checks"), NULL },
-        { "debug",          'd', 0, G_OPTION_ARG_NONE, &config->is_debug,
-            N_("Enable debug mode"), NULL },
+        { "debug",          'd', G_OPTION_FLAG_NO_ARG, G_OPTION_ARG_CALLBACK,
+            opt_debug, N_("Enable debug mode"), NULL },
         { "version",        'V', 0, G_OPTION_ARG_NONE, &show_version,
             N_("Show version information"), NULL },
         { NULL }
@@ -1008,7 +1018,8 @@ main (int argc, char *argv[])
         }
         if (config->is_debug)
         {
-            debug ("kalu v" PACKAGE_VERSION " -- debug mode enabled");
+            debug ("kalu v" PACKAGE_VERSION " -- debug mode enabled (level %d)",
+                    config->is_debug);
         }
 #ifndef DISABLE_GUI
         if (run_manual_checks || run_auto_checks)
