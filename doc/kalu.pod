@@ -48,6 +48,8 @@ the tooltip) what was found.
 
 If the icon happens to blink from gray to blue, it means kalu is currently busy.
 
+See L<B<ICONS>|/ICONS> below for more about how icons are created in kalu.
+
 kalu can also be paused, meaning automatic checks will not be ran anymore until
 automatic checks are resumed, either through manual action, or automatically
 when then "paused period" ends (see L<B<PREFERENCES>|/PREFERENCES> below).
@@ -121,6 +123,29 @@ notifications, you can still easilly mark news read using the menu "Show unread
 Arch Linux News" from right-clickig on kalu's systray icon.
 
 =back
+
+=head1 ICONS
+
+kalu uses 4 versions of its icon in the systray, based on its current state. The
+regular (blue) icon indicates that upgrades were found during the last checks,
+the gray version indicates that nothing was found; Both versions exists with a
+pause symbol on top, when kalu is paused.
+
+If the icon happens to blink from gray to blue, it means kalu is currently busy.
+
+kalu tries to load all icons from the current theme, thus allowing you to
+override any (and all) of them as you wish. The main icon is "kalu", the paused
+version "kalu-paused", the gray versions are "kalu-gray" and "kalu-gray-paused"
+respectively.
+
+So to e.g. use a different gray icon, one could simply put a file
+I<kalu-gray.png> in folder I<~/.local/share/icons>
+
+Of course, kalu will still create the gray and/or paused versions as needed,
+based on loaded icons.
+
+Note that the regular icon is also used elsewhere in kalu, e.g. in buttons or
+menus.
 
 =head1 DATA LOCATION & FORMAT
 

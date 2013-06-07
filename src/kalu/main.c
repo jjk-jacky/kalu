@@ -859,13 +859,12 @@ debug (const char *fmt, ...)
 extern GtkStatusIcon *icon;
 extern GPtrArray     *open_windows;
 
-static GtkIconSet *
-get_paused_iconset (GdkPixbuf *pixbuf)
+static GdkPixbuf *
+get_paused_pixbuf (GdkPixbuf *pixbuf)
 {
     cairo_surface_t *s;
     cairo_t         *cr;
     GdkPixbuf       *pb;
-    GtkIconSet      *iconset;
 
     s = cairo_image_surface_create (CAIRO_FORMAT_ARGB32, 48, 48);
     cr = cairo_create (s);
@@ -897,19 +896,16 @@ get_paused_iconset (GdkPixbuf *pixbuf)
     pb = gdk_pixbuf_get_from_surface (s, 0, 0, 48, 48);
     cairo_surface_destroy (s);
 
-    iconset = gtk_icon_set_new_from_pixbuf (pb);
-    g_object_unref (G_OBJECT (pb));
-    return iconset;
+    return pb;
 }
 
-static GtkIconSet *
-get_gray_iconset (GdkPixbuf *pixbuf, GdkPixbuf **pixbuf_gray)
+static GdkPixbuf *
+get_gray_pixbuf (GdkPixbuf *pixbuf)
 {
     cairo_surface_t *s;
     cairo_pattern_t *pattern;
     cairo_t         *cr;
     GdkPixbuf       *pb;
-    GtkIconSet      *iconset;
 
     s = cairo_image_surface_create (CAIRO_FORMAT_ARGB32, 48, 48);
     cr = cairo_create (s);
@@ -931,9 +927,7 @@ get_gray_iconset (GdkPixbuf *pixbuf, GdkPixbuf **pixbuf_gray)
     pb = gdk_pixbuf_get_from_surface (s, 0, 0, 48, 48);
     cairo_surface_destroy (s);
 
-    iconset = gtk_icon_set_new_from_pixbuf (pb);
-    *pixbuf_gray = pb;
-    return iconset;
+    return pb;
 }
 #endif
 
@@ -952,10 +946,12 @@ main (int argc, char *argv[])
 {
     GError          *error = NULL;
 #ifndef DISABLE_GUI
+    GtkIconTheme    *icon_theme;
     GInputStream    *stream;
     GtkIconFactory  *factory;
     GtkIconSet      *iconset;
     GdkPixbuf       *pixbuf;
+    GdkPixbuf       *pixbuf_kalu;
     GdkPixbuf       *pixbuf_gray;
 #endif
     gchar            conffile[MAX_PATH];
@@ -1150,33 +1146,57 @@ main (int argc, char *argv[])
 
     /* icon stuff: so we'll be able to use "kalu-logo" from stock, and it will
      * handle multiple size/resize as well as graying out (e.g. on unsensitive
-     * widgets) automatically */
+     * widgets) automatically.
+     * We load from icon theme so users can easily specify icons (putting files
+     * in ~/.local/share/icons) for each of the 4 icons. */
+    icon_theme = gtk_icon_theme_get_default ();
     factory = gtk_icon_factory_new ();
     /* kalu-logo */
-    pixbuf = gdk_pixbuf_new_from_file (KALU_LOGO, NULL);
-    if (!pixbuf)
+    pixbuf_kalu = gtk_icon_theme_load_icon (icon_theme, "kalu", 48, 0, NULL);
+    if (!pixbuf_kalu)
     {
         /* fallback to inline logo */
+        debug ("Failed to load icon 'kalu' -- fallback to inline logo");
         stream = g_memory_input_stream_new_from_data (
                 &_binary_kalu_logo_start,
                 (gssize) &_binary_kalu_logo_size,
                 NULL);
-        pixbuf = gdk_pixbuf_new_from_stream (stream, NULL, NULL);
+        pixbuf_kalu = gdk_pixbuf_new_from_stream (stream, NULL, NULL);
         g_object_unref (G_OBJECT (stream));
     }
-    iconset = gtk_icon_set_new_from_pixbuf (pixbuf);
+    iconset = gtk_icon_set_new_from_pixbuf (pixbuf_kalu);
     gtk_icon_factory_add (factory, "kalu-logo", iconset);
     /* add paused version */
-    iconset = get_paused_iconset (pixbuf);
+    pixbuf = gtk_icon_theme_load_icon (icon_theme, "kalu-paused", 48, 0, NULL);
+    if (!pixbuf)
+    {
+        debug ("Failed to load icon 'kalu-paused' -- creating it");
+        pixbuf = get_paused_pixbuf (pixbuf_kalu);
+    }
+    iconset = gtk_icon_set_new_from_pixbuf (pixbuf);
+    g_object_unref (G_OBJECT (pixbuf));
     gtk_icon_factory_add (factory, "kalu-logo-paused", iconset);
     /* kalu-logo-gray */
-    iconset = get_gray_iconset (pixbuf, &pixbuf_gray);
+    pixbuf_gray = gtk_icon_theme_load_icon (icon_theme, "kalu-gray", 48, 0, NULL);
+    if (!pixbuf_gray)
+    {
+        debug ("Failed to load icon 'kalu-gray' -- creating it");
+        pixbuf_gray = get_gray_pixbuf (pixbuf_kalu);
+    }
+    iconset = gtk_icon_set_new_from_pixbuf (pixbuf_gray);
     gtk_icon_factory_add (factory, "kalu-logo-gray", iconset);
     /* add paused version */
-    iconset = get_paused_iconset (pixbuf_gray);
+    pixbuf = gtk_icon_theme_load_icon (icon_theme, "kalu-gray-paused", 48, 0, NULL);
+    if (!pixbuf)
+    {
+        debug ("Failed to load icon 'kalu-gray-paused' -- creating it");
+        pixbuf = get_paused_pixbuf (pixbuf_gray);
+    }
+    iconset = gtk_icon_set_new_from_pixbuf (pixbuf);
+    g_object_unref (G_OBJECT (pixbuf));
     gtk_icon_factory_add (factory, "kalu-logo-gray-paused", iconset);
     /* free pixbufs */
-    g_object_unref (G_OBJECT (pixbuf));
+    g_object_unref (G_OBJECT (pixbuf_kalu));
     g_object_unref (G_OBJECT (pixbuf_gray));
     /* add it all */
     gtk_icon_factory_add_default (factory);
