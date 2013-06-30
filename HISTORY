@@ -1,4 +1,24 @@
 
+# 2013-06-30, v2.2.0
+
+- Set user-agent via environment variable HTTP_USER_AGENT; fix issue with some
+server/repo where lack of one resulted in a download error (HTTP 406).
+
+- Change how icons are loaded, allowing easy override. All 4 icons used are now
+loaded from the theme - "kalu", "kalu-paused", "kalu-gray" & "kalu-gray-paused"
+- so that users can easily override any (and all) of them, simply putting files
+correctly named in ~/.local/share/icons
+
+- Add polkit rule so members of group "kalu" don't need auth to run a sysupgrade
+This obviously only affects sysupgrade ran through kalu's updater. The group
+name can be set on configure. It's also possible to just copy the file to
+/etc/polkit-1/rules.d to overwrite it at "runtime".
+
+- Update French translation
+
+- Can specify --debug multiple times
+
+
 # 2013-05-12, v2.1.0
 
 - Add new option on single/double-click to exit kalu
