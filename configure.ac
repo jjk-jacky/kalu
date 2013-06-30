@@ -10,7 +10,7 @@ AC_CONFIG_AUX_DIR([build-aux])
 
 AC_SYS_LARGEFILE
 
-AM_INIT_AUTOMAKE([-Wall -Werror foreign silent-rules])
+AM_INIT_AUTOMAKE([-Wall -Werror foreign silent-rules subdir-objects])
 AM_SILENT_RULES([yes])
 
 # For automake >= 1.12
