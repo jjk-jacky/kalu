@@ -2449,7 +2449,7 @@ updater_run (const gchar *conffile, alpm_list_t *cmdline_post)
 
     GtkWidget *button;
     /* Upgrade system */
-    button = gtk_button_new_with_label (_("Upgrade system..."));
+    button = gtk_button_new_with_mnemonic (_("_Upgrade system..."));
     updater->btn_sysupgrade = button;
     image = gtk_image_new_from_stock ("kalu-logo", GTK_ICON_SIZE_BUTTON);
     gtk_button_set_image (GTK_BUTTON (button), image);
