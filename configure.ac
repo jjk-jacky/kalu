@@ -118,7 +118,7 @@ AS_IF([test "x$with_gui" = "xyes"], [
 ])
 
 # Check for libcurl
-LIBCURL_CHECK_CONFIG([yes], , , AC_MSG_ERROR([libcurl is required]))
+PKG_CHECK_MODULES(LIBCURL, [libcurl], , AC_MSG_ERROR([libcurl is required]))
 
 # Checks for header files.
 AC_CHECK_HEADERS([fcntl.h float.h limits.h stdlib.h string.h unistd.h utime.h])

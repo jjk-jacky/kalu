@@ -42,7 +42,7 @@ libshared_la_SOURCES = \
 	src/kalu/shared.c
 
 kalu_CFLAGS = ${AM_CFLAGS}
-kalu_LDADD = libshared.la -lalpm -lm @LIBCURL@
+kalu_LDADD = libshared.la -lalpm -lm @LIBCURL_LIBS@
 kalu_SOURCES = \
 	src/kalu/main.c \
 	src/kalu/kalu.h \
