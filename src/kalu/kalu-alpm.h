@@ -2,8 +2,8 @@
  * kalu - Copyright (C) 2012-2013 Olivier Brunel
  *
  * kalu-alpm.h
- * Copyright (C) 2012 Olivier Brunel <i.am.jack.mail@gmail.com>
- * 
+ * Copyright (C) 2012-2013 Olivier Brunel <i.am.jack.mail@gmail.com>
+ *
  * This file is part of kalu.
  *
  * kalu is free software: you can redistribute it and/or modify it under the
@@ -30,17 +30,33 @@
 #include <alpm.h>
 #include <alpm_list.h>
 
+#ifndef DISABLE_UPDATER
+typedef struct {
+    void (*dl_progress_cb) (const gchar *filename, off_t xfered, off_t total);
+    void (*question_cb) (alpm_question_t event, void *data1, void *data2,
+            void *data3, int *response);
+    void (*on_sync_dbs) (gpointer unused, gint nb);
+    void (*on_sync_db_start) (gpointer unused, const gchar *name);
+    void (*on_sync_db_end) (gpointer unused, guint result);
+} kalu_simul_t;
+#else
+typedef _kalu_simul_t kalu_simul_t;
+#endif
+
 typedef struct _kalu_alpm_t {
     char            *dbpath; /* the tmp-path where we copied dbs */
     alpm_handle_t   *handle;
     alpm_transflag_t flags;
+#ifndef DISABLE_UPDATER
+    kalu_simul_t    *simulation;
+#endif
 } kalu_alpm_t;
 
 /* global variable */
 extern unsigned short alpm_verbose;
 
 gboolean
-kalu_alpm_load (const gchar *conffile, GError **error);
+kalu_alpm_load (kalu_simul_t *simulation, const gchar *conffile, GError **error);
 
 gboolean
 kalu_alpm_syncdbs (gint *nb_dbs_synced, GError **error);

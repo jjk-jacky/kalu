@@ -2,8 +2,8 @@
  * kalu - Copyright (C) 2012-2013 Olivier Brunel
  *
  * gui.h
- * Copyright (C) 2012 Olivier Brunel <i.am.jack.mail@gmail.com>
- * 
+ * Copyright (C) 2012-2013 Olivier Brunel <i.am.jack.mail@gmail.com>
+ *
  * This file is part of kalu.
  *
  * kalu is free software: you can redistribute it and/or modify it under the
@@ -49,6 +49,11 @@ void show_notif (notif_t *notif);
 
 gboolean show_error_cmdline (gchar *arg[]);
 
+#ifndef DISABLE_UPDATER
+void run_simulation (NotifyNotification  *notification,
+        const gchar *action,
+        gpointer data);
+#endif
 void action_upgrade (NotifyNotification *notification,
         const char *action,
         gchar *_cmdline);

@@ -769,6 +769,43 @@ database synchronized, one when starting the upgrade, one after the upgrade
 was completed, and one after each package operation (installed, upgraded,
 removed).
 
+=head1 SIMULATION
+
+Every once in a while, kalu might not be able to list the available upgrades,
+notifying you instead that there is a conflict between some packages. If you
+then want to know more about this conflict, and still want to know what upgrades
+are available regardless of the conflict, the extra button "Run simulation"
+might be of interest to you.
+
+A simulation is simply running the first step (i.e. compiling packages list) of
+kalu's updater on a temporary copy of the (synchronized) databases, in order to
+see what the conflicts are.
+
+You will be presented with the usual GUI of kalu's updater, and after answering
+the questions to resolve (or not) the conflicts, you'll then be able to see the
+full list of available upgrades.
+
+Of course it stops there, there's no upgrading. The point of this is simply to
+see how to resolve the conflict, and see what the upgrades are, as there might
+be new dependencies to install, old packages to remove/replace, and of course a
+few other/unrelated packages with available upgrades.
+
+You can easily start over by pressing "Rerun simulation" to have all the
+questions asked again, so you can try different scenario and see which one works
+(best) for you.
+
+Once you're done, press "Close" and all temporary files will be removed. That's
+it, your system remains unchanged. If you now want to actually do the upgrade,
+use "Upgrade system" as usual.
+
+Note that you don't need to use kalu's updater for this to work. Even if e.g.
+you have set things to run `pacman -Syu` in a new terminal when pressing
+"Upgrade system", or not have the button at all, the "Run simulation"
+button/feature will be available.
+
+The only requirement is that kalu's updater was compiled in, of course, i.e. it
+won't work if you compiled kalu using `--disable-updater` (or `--disable-gui`).
+
 =head1 NOTES
 
 Command-line options B<--auto-checks> and B<--manual-checks> both work without

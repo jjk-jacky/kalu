@@ -228,7 +228,7 @@ log_cb (alpm_loglevel_t level, const char *fmt, va_list args)
 }
 
 gboolean
-kalu_alpm_load (const gchar *conffile, GError **error)
+kalu_alpm_load (kalu_simul_t *simulation, const gchar *conffile, GError **error)
 {
     GError             *local_err = NULL;
     gchar              *newpath;
@@ -281,6 +281,15 @@ kalu_alpm_load (const gchar *conffile, GError **error)
 
     if (config->is_debug > 1)
         alpm_option_set_logcb (alpm->handle, log_cb);
+
+#ifndef DISABLE_UPDATER
+    if (simulation)
+    {
+        alpm->simulation = simulation;
+        alpm_option_set_dlcb (alpm->handle, simulation->dl_progress_cb);
+        alpm_option_set_questioncb (alpm->handle, simulation->question_cb);
+    }
+#endif
 
     /* now we need to add dbs */
     alpm_list_t *i;
@@ -379,11 +388,20 @@ kalu_alpm_syncdbs (gint *nb_dbs_synced, GError **error)
     }
 
     sync_dbs = alpm_get_syncdbs (alpm->handle);
-    *nb_dbs_synced = 0;
+    if (nb_dbs_synced)
+        *nb_dbs_synced = 0;
+#ifndef DISABLE_UPDATER
+    if (alpm->simulation)
+        alpm->simulation->on_sync_dbs (NULL, (gint) alpm_list_count (sync_dbs));
+#endif
     FOR_LIST (i, sync_dbs)
     {
         alpm_db_t *db = i->data;
 
+#ifndef DISABLE_UPDATER
+        if (alpm->simulation)
+            alpm->simulation->on_sync_db_start (NULL, alpm_db_get_name (db));
+#endif
         ret = alpm_db_update (0, db);
         if (ret < 0)
         {
@@ -399,9 +417,24 @@ kalu_alpm_syncdbs (gint *nb_dbs_synced, GError **error)
         }
         else
         {
-            ++*nb_dbs_synced;
+            if (nb_dbs_synced)
+                ++*nb_dbs_synced;
             debug ("%s was updated", alpm_db_get_name (db));
         }
+#ifndef DISABLE_UPDATER
+        if (alpm->simulation)
+        {
+            /* keep in sync with kupdater.h */
+            enum {
+                SYNC_SUCCESS,
+                SYNC_FAILURE,
+                SYNC_NOT_NEEDED
+            };
+
+            alpm->simulation->on_sync_db_end (NULL,
+                    (ret < 0) ? SYNC_FAILURE : (ret == 1) ? SYNC_NOT_NEEDED : SYNC_SUCCESS);
+        }
+#endif
     }
 
     return TRUE;
@@ -512,7 +545,7 @@ kalu_alpm_has_updates (alpm_list_t **packages, GError **error)
         goto cleanup;
     }
 
-    alpm_db_t  *db_local = alpm_get_localdb (alpm->handle);
+    alpm_db_t *db_local = alpm_get_localdb (alpm->handle);
     FOR_LIST (i, alpm_trans_get_add (alpm->handle))
     {
         alpm_pkg_t *pkg = i->data;
@@ -541,6 +574,30 @@ kalu_alpm_has_updates (alpm_list_t **packages, GError **error)
 
         *packages = alpm_list_add (*packages, package);
     }
+
+#ifndef DISABLE_UPDATER
+    /* packages don't get removed automatically during a sysupgrade, however in
+     * simulation the user will have chosen to remove/replace a package, so we
+     * need to include them as well */
+    if (alpm->simulation)
+        FOR_LIST (i, alpm_trans_get_remove (alpm->handle))
+        {
+            alpm_pkg_t *pkg = i->data;
+            alpm_pkg_t *old = alpm_db_get_pkg (db_local, alpm_pkg_get_name (pkg));
+            kalu_package_t *package;
+
+            package = new0 (kalu_package_t, 1);
+            package->name = strdup (alpm_pkg_get_name (pkg));
+            package->desc = strdup (alpm_pkg_get_desc (pkg));
+            package->new_version = strdup (_("none"));
+            package->dl_size = 0;
+            package->new_size = 0;
+            package->old_version = strdup (alpm_pkg_get_version (old));
+            package->old_size = (guint) alpm_pkg_get_isize (old);
+
+            *packages = alpm_list_add (*packages, package);
+        }
+#endif
 
 cleanup:
     if (data)

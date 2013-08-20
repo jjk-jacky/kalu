@@ -2,8 +2,8 @@
  * kalu - Copyright (C) 2012-2013 Olivier Brunel
  *
  * kupdater.h
- * Copyright (C) 2012 Olivier Brunel <i.am.jack.mail@gmail.com>
- * 
+ * Copyright (C) 2012-2013 Olivier Brunel <i.am.jack.mail@gmail.com>
+ *
  * This file is part of kalu.
  *
  * kalu is free software: you can redistribute it and/or modify it under the
@@ -23,6 +23,7 @@
 #ifndef _KALU_KUPDATER_H
 #define _KALU_KUPDATER_H
 
+/* keep in sync w/ kalu_alpm_syncdbs in kalu-alpm.c */
 typedef enum _sync_db_results_t {
     SYNC_SUCCESS,
     SYNC_FAILURE,

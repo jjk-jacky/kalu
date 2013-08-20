@@ -475,7 +475,7 @@ kalu_check_work (gboolean is_auto)
      * packages from localdb (however we can skip sync-ing dbs then) */
     if (checks & (CHECK_UPGRADES | CHECK_WATCHED | CHECK_AUR))
     {
-        if (!kalu_alpm_load (config->pacmanconf, &error))
+        if (!kalu_alpm_load (NULL, config->pacmanconf, &error))
         {
             do_notify_error (
                     _("Unable to check for updates -- loading alpm library failed"),

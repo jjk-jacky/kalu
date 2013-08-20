@@ -2,7 +2,7 @@
  * kalu - Copyright (C) 2012-2013 Olivier Brunel
  *
  * updater.c
- * Copyright (C) 2012 Olivier Brunel <i.am.jack.mail@gmail.com>
+ * Copyright (C) 2012-2013 Olivier Brunel <i.am.jack.mail@gmail.com>
  *
  * This file is part of kalu.
  *
@@ -40,6 +40,7 @@
 #include "kalu-updater.h"
 #include "conf.h"
 #include "gui.h" /* show_notif() */
+#include "kalu-alpm.h"  /* simulation */
 
 #include "../kalu-dbus/kupdater.h"
 
@@ -1349,8 +1350,8 @@ on_sync_dbs (KaluUpdater *kupdater _UNUSED_, gint nb)
             _n("Synchronizing a database\n", "Synchronizing %d databases\n",
                 (long unsigned int) nb),
             nb);
-    gtk_label_set_text (GTK_LABEL (updater->lbl_main),
-            _("Synchronizing databases..."));
+    gtk_label_set_text (GTK_LABEL (updater->lbl_main), (updater->kupdater)
+            ? _("Synchronizing databases...") : _("Synchronizing simulation databases..."));
 }
 
 static void
@@ -1418,6 +1419,8 @@ btn_close_cb (GtkButton *button _UNUSED_, gpointer data _UNUSED_)
         }
         kalu_updater_free_alpm (updater->kupdater, NULL, NULL, NULL, NULL);
     }
+    else
+        kalu_alpm_free ();
     gtk_widget_destroy (updater->window);
 }
 
@@ -1605,6 +1608,9 @@ updater_get_packages_cb (KaluUpdater *kupdater _UNUSED_, const gchar *errmsg,
     if (errmsg != NULL)
     {
         _show_error (_("Failed to get packages list"), "%s", errmsg);
+        if (!updater->kupdater)
+            /* simulation: this is button rerun */
+            gtk_widget_set_sensitive (updater->btn_sysupgrade, TRUE);
         return;
     }
     else if (pkgs == NULL)
@@ -1660,8 +1666,9 @@ updater_get_packages_cb (KaluUpdater *kupdater _UNUSED_, const gchar *errmsg,
     gtk_widget_hide (updater->pbar_main);
     gtk_progress_bar_set_fraction (GTK_PROGRESS_BAR (updater->pbar_main), 0);
 
-    gtk_label_set_markup (GTK_LABEL (updater->lbl_main),
-            _("<big><b>Do you want to upgrade your system ?</b></big>"));
+    gtk_label_set_markup (GTK_LABEL (updater->lbl_main), (updater->kupdater)
+            ? _("<big><b>Do you want to upgrade your system ?</b></big>")
+            : _("<big><b>Simulation complete</b></big>"));
     if (dl_size > 0)
     {
         updater->pctg_download          = PCTG_DOWNLOAD;
@@ -1697,8 +1704,9 @@ updater_get_packages_cb (KaluUpdater *kupdater _UNUSED_, const gchar *errmsg,
     gtk_widget_set_sensitive (updater->btn_sysupgrade, TRUE);
     gtk_widget_set_sensitive (updater->btn_close, TRUE);
     updater->step = STEP_WAITING_USER_CONFIRMATION;
-    add_log (LOGTYPE_UNIMPORTANT,
-            _("Got package list; waiting for user confirmation.\n"));
+    add_log (LOGTYPE_UNIMPORTANT, (updater->kupdater)
+            ? _("Got package list; waiting for user confirmation.\n")
+            : _("Simulation complete.\n"));
 }
 
 static void
@@ -2138,8 +2146,11 @@ window_destroy_cb (GtkWidget *window _UNUSED_, gpointer data _UNUSED_)
         updater->step_data = NULL;
     }
 
-    g_object_unref (updater->kupdater);
-    updater->kupdater = NULL;
+    if (updater->kupdater)
+    {
+        g_object_unref (updater->kupdater);
+        updater->kupdater = NULL;
+    }
 
     free (updater);
     updater = NULL;
@@ -2171,9 +2182,132 @@ expander_expanded_cb (GObject *o, GParamSpec *pspec _UNUSED_, gpointer sw)
     }
 }
 
+static void
+btn_rerun_cb (GtkButton *button _UNUSED_, gpointer data _UNUSED_)
+{
+    GError *err = NULL;
+    alpm_list_t *packages = NULL;
+
+    add_log (LOGTYPE_NORMAL, _("\nRerun simulation...\n"));
+    gtk_list_store_clear (updater->store);
+    kalu_alpm_has_updates (&packages, &err);
+    updater_get_packages_cb (NULL, (err) ? err->message : NULL, packages, NULL);
+    g_clear_error (&err);
+    FREE_PACKAGE_LIST (packages);
+}
+
+static void
+dl_progress_cb (const gchar *filename, off_t xfered, off_t total)
+{
+    on_download (NULL, filename, (guint) xfered, (guint) total);
+    /* because in simulation the sync-ing dbs is actually done in the main
+     * thread */
+    while (gtk_events_pending ())
+        gtk_main_iteration ();
+}
+
+static void
+question_cb (alpm_question_t event, void *data1, void *data2, void *data3, int *response)
+{
+    const char *repo1, *pkg1;
+    const char *repo2, *pkg2;
+    alpm_list_t *i, *l;
+
+    switch (event)
+    {
+        case ALPM_QUESTION_INSTALL_IGNOREPKG:
+            *response = on_install_ignorepkg (NULL, alpm_pkg_get_name (data1));
+            break;
+
+        case ALPM_QUESTION_REPLACE_PKG:
+            repo1 = alpm_db_get_name (alpm_pkg_get_db (data1));
+            pkg1 = alpm_pkg_get_name (data1);
+            repo2 = (const char *) data3;
+            pkg2 = alpm_pkg_get_name (data2);
+            *response = on_replace_pkg (NULL, repo1, pkg1, repo2, pkg2);
+            break;
+
+        case ALPM_QUESTION_CONFLICT_PKG:
+            /* this time no pointers to alpm_pkt_t, it's all strings */
+            /* also, reason (data3) can be just same as data1 or data2...) */
+            {
+                const char *reason;
+                if (strcmp (data3, data1) == 0 || strcmp (data3, data2) == 0)
+                {
+                    reason = "";
+                }
+                else
+                {
+                    reason = (const char *) data3;
+                }
+                *response = on_conflict_pkg (NULL, data1, data2, reason);
+            }
+            break;
+
+        case ALPM_QUESTION_REMOVE_PKGS:
+            l = NULL;
+            FOR_LIST (i, data1)
+            {
+                l = alpm_list_add (l, (gpointer) alpm_pkg_get_name (i->data));
+            }
+
+            *response = on_remove_pkgs (NULL, l);
+            alpm_list_free (l);
+            break;
+
+        case ALPM_QUESTION_SELECT_PROVIDER:
+            {
+                /* creates a string like "foobar>=4.2" */
+                char *pkg = alpm_dep_compute_string ((alpm_depend_t *) data2);
+
+                l = NULL;
+                FOR_LIST (i, data1)
+                {
+                    provider_t *provider;
+
+                    provider = g_slice_new (provider_t);
+                    provider->repo = (gchar *) alpm_db_get_name (alpm_pkg_get_db (i->data));
+                    provider->pkg = (gchar *) alpm_pkg_get_name (i->data);
+                    provider->version = (gchar *) alpm_pkg_get_version (i->data);
+                    l = alpm_list_add (l, provider);
+                }
+
+                *response = on_select_provider (NULL, pkg, l);
+                free (pkg);
+                FOR_LIST (i, l)
+                {
+                    g_slice_free (provider_t, l->data);
+                }
+                alpm_list_free (l);
+            }
+            break;
+
+        case ALPM_QUESTION_CORRUPTED_PKG:
+            *response = on_corrupted_pkg (NULL, data1, alpm_strerror (*(enum _alpm_errno_t *) data2));
+            break;
+
+        case ALPM_QUESTION_IMPORT_KEY:
+            {
+                alpm_pgpkey_t *key = data1;
+                gchar created[12];
+                strftime (created, 12, "%Y-%m-%d", localtime (&key->created));
+
+                *response = on_import_key (NULL, key->fingerprint, key->uid, created);
+            }
+            break;
+
+        default:
+            debug ("Received unknown question-event: %d", event);
+            return;
+    }
+}
+
 void
 updater_run (const gchar *conffile, alpm_list_t *cmdline_post)
 {
+    /* conffile == NULL means run simulation, translate into kupdater == NULL */
+    gboolean run_simulation = conffile == NULL;
+
     updater = new0 (updater_t, 1);
     updater->cmdline_post = cmdline_post;
     updater->pos_expanded = -1;
@@ -2183,7 +2317,8 @@ updater_run (const gchar *conffile, alpm_list_t *cmdline_post)
     GtkWidget *window;
     window = gtk_window_new (GTK_WINDOW_TOPLEVEL);
     updater->window = window;
-    gtk_window_set_title (GTK_WINDOW (window), _("System upgrade - kalu"));
+    gtk_window_set_title (GTK_WINDOW (window), (!run_simulation)
+            ? _("System upgrade - kalu") : _("Upgrade simulation - kalu"));
     gtk_container_set_border_width (GTK_CONTAINER (window), 0);
     gtk_window_set_has_resize_grip (GTK_WINDOW (window), FALSE);
     /* icon */
@@ -2448,16 +2583,19 @@ updater_run (const gchar *conffile, alpm_list_t *cmdline_post)
     gtk_widget_show (hbox);
 
     GtkWidget *button;
-    /* Upgrade system */
-    button = gtk_button_new_with_mnemonic (_("_Upgrade system..."));
-    updater->btn_sysupgrade = button;
-    image = gtk_image_new_from_stock ("kalu-logo", GTK_ICON_SIZE_BUTTON);
-    gtk_button_set_image (GTK_BUTTON (button), image);
-    gtk_widget_set_sensitive (button, FALSE);
-    gtk_box_pack_end (GTK_BOX (hbox), button, FALSE, FALSE, 2);
-    g_signal_connect (G_OBJECT (button), "clicked",
-            G_CALLBACK (btn_sysupgrade_cb), NULL);
-    gtk_widget_show (button);
+    if (!run_simulation)
+    {
+        /* Upgrade system */
+        button = gtk_button_new_with_mnemonic (_("_Upgrade system..."));
+        updater->btn_sysupgrade = button;
+        image = gtk_image_new_from_stock ("kalu-logo", GTK_ICON_SIZE_BUTTON);
+        gtk_button_set_image (GTK_BUTTON (button), image);
+        gtk_widget_set_sensitive (button, FALSE);
+        gtk_box_pack_end (GTK_BOX (hbox), button, FALSE, FALSE, 2);
+        g_signal_connect (G_OBJECT (button), "clicked",
+                G_CALLBACK (btn_sysupgrade_cb), NULL);
+        gtk_widget_show (button);
+    }
 
     /* Close */
     button = gtk_button_new_from_stock (GTK_STOCK_CLOSE);
@@ -2467,6 +2605,20 @@ updater_run (const gchar *conffile, alpm_list_t *cmdline_post)
     g_signal_connect (G_OBJECT (button), "clicked",
             G_CALLBACK (btn_close_cb), NULL);
     gtk_widget_show (button);
+
+    if (run_simulation)
+    {
+        /* Re-run simulation (to ask questions again) */
+        button = gtk_button_new_with_mnemonic (_("_Rerun simulation..."));
+        updater->btn_sysupgrade = button;
+        image = gtk_image_new_from_stock (GTK_STOCK_REFRESH, GTK_ICON_SIZE_BUTTON);
+        gtk_button_set_image (GTK_BUTTON (button), image);
+        gtk_widget_set_sensitive (button, FALSE);
+        gtk_box_pack_end (GTK_BOX (hbox), button, FALSE, FALSE, 2);
+        g_signal_connect (G_OBJECT (button), "clicked",
+                G_CALLBACK (btn_rerun_cb), NULL);
+        gtk_widget_show (button);
+    }
 
     /* signals */
     g_signal_connect (G_OBJECT (window), "delete-event",
@@ -2480,35 +2632,90 @@ updater_run (const gchar *conffile, alpm_list_t *cmdline_post)
 
     gtk_widget_show (window);
 
-    /* parse pacman.conf */
-    GError *error = NULL;
-    pacman_config_t *pac_conf = NULL;
-    add_log (LOGTYPE_UNIMPORTANT, _("Parsing %s ..."), conffile);
-    if (!parse_pacman_conf (conffile, NULL, 0, 0, &pac_conf, &error))
+    if (!run_simulation)
     {
-        add_log (LOGTYPE_UNIMPORTANT, _(" failed\n"));
-        _show_error (_("Unable to parse pacman.conf"), "%s: %s",
-                conffile, error->message);
-        g_clear_error (&error);
-        free_pacman_config (pac_conf);
-        gtk_widget_destroy (window);
-        return;
-    }
-    add_log (LOGTYPE_UNIMPORTANT, _(" ok\n"));
-    gtk_progress_bar_set_fraction (GTK_PROGRESS_BAR (updater->pbar_main), 0.05);
+        /* parse pacman.conf */
+        GError *error = NULL;
+        pacman_config_t *pac_conf = NULL;
+        add_log (LOGTYPE_UNIMPORTANT, _("Parsing %s ..."), conffile);
+        if (!parse_pacman_conf (conffile, NULL, 0, 0, &pac_conf, &error))
+        {
+            add_log (LOGTYPE_UNIMPORTANT, _(" failed\n"));
+            _show_error (_("Unable to parse pacman.conf"), "%s: %s",
+                    conffile, error->message);
+            g_clear_error (&error);
+            free_pacman_config (pac_conf);
+            gtk_widget_destroy (window);
+            return;
+        }
+        add_log (LOGTYPE_UNIMPORTANT, _(" ok\n"));
+        gtk_progress_bar_set_fraction (GTK_PROGRESS_BAR (updater->pbar_main), 0.05);
 
-    /* we must have databases */
-    if (alpm_list_count (pac_conf->databases) == 0)
+        /* we must have databases */
+        if (alpm_list_count (pac_conf->databases) == 0)
+        {
+            _show_error (_("No databases defined"), NULL);
+            free_pacman_config (pac_conf);
+            gtk_widget_destroy (window);
+            return;
+        }
+
+        /* create kalu_updater */
+        add_log (LOGTYPE_UNIMPORTANT, _("Creating kalu_updater..."));
+        kalu_updater_new (NULL,
+                (GAsyncReadyCallback) updater_new_cb,
+                (gpointer) pac_conf);
+    }
+    else
     {
-        _show_error (_("No databases defined"), NULL);
-        free_pacman_config (pac_conf);
-        gtk_widget_destroy (window);
-        return;
-    }
+        GError *err = NULL;
+        kalu_simul_t simulation = {
+            .dl_progress_cb = dl_progress_cb,
+            .question_cb = question_cb,
+            .on_sync_dbs = (void (*) (gpointer unused, gint nb)) on_sync_dbs,
+            .on_sync_db_start =
+                (void (*) (gpointer unused, const gchar *name)) on_sync_db_start,
+            .on_sync_db_end =
+                (void (*) (gpointer unused, guint result)) on_sync_db_end,
+        };
+        sync_dbs_t sync_dbs = { 0, 0 };
+        alpm_list_t *packages = NULL;
 
-    /* create kalu_updater */
-    add_log (LOGTYPE_UNIMPORTANT, _("Creating kalu_updater..."));
-    kalu_updater_new (NULL,
-            (GAsyncReadyCallback) updater_new_cb,
-            (gpointer) pac_conf);
+        /* make sure the window is visible, etc */
+        while (gtk_events_pending ())
+            gtk_main_iteration ();
+
+        updater->kupdater = NULL;
+        if (!kalu_alpm_load (&simulation, config->pacmanconf, &err))
+        {
+            _show_error (_("Failed to initialize simulation"),
+                    err->message);
+            g_clear_error (&err);
+            gtk_widget_destroy (window);
+            return;
+        }
+        gtk_progress_bar_set_fraction (GTK_PROGRESS_BAR (updater->pbar_main), 0.42);
+
+        while (gtk_events_pending ())
+            gtk_main_iteration ();
+
+        updater->step = STEP_SYNC_DBS;
+        updater->step_data = &sync_dbs;
+        if (!kalu_alpm_syncdbs (NULL, &err))
+        {
+            _show_error (_("Failed to synchronize databases"),
+                    err->message);
+            g_clear_error (&err);
+            gtk_widget_destroy (window);
+            return;
+        }
+        updater->step_data = NULL;
+        gtk_progress_bar_set_fraction (GTK_PROGRESS_BAR (updater->pbar_main), 1);
+        add_log (LOGTYPE_NORMAL, _("Databases synchronized\n"));
+
+        kalu_alpm_has_updates (&packages, &err);
+        updater_get_packages_cb (NULL, (err) ? err->message : NULL, packages, NULL);
+        g_clear_error (&err);
+        FREE_PACKAGE_LIST (packages);
+    }
 }

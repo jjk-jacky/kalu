@@ -90,6 +90,13 @@ show_notif (notif_t *notif)
                 /* no data in this case means this is an error message about a
                  * conflict, in which case we still add the "Update system"
                  * button/action */
+#ifndef DISABLE_UPDATER
+                /* We also add the "Run simulation" button */
+                notify_notification_add_action (notification, "run_simulation",
+                        _c("notif-button", "Run simulation..."),
+                        (NotifyActionCallback) run_simulation,
+                        NULL, NULL);
+#endif
             }
             else if (config->check_pacman_conflict
                     && is_pacman_conflicting ((alpm_list_t *) notif->data))
@@ -214,6 +221,30 @@ run_cmdline (char *cmdline)
         free (cmdline);
     }
 }
+
+#ifndef DISABLE_UPDATER
+void
+run_simulation (NotifyNotification  *notification,
+                const gchar         *action _UNUSED_,
+                gpointer             data _UNUSED_)
+{
+    if (kalpm_state.is_busy)
+    {
+        show_error (_("Cannot run simulation: kalu is busy"),
+                _("kalu cannot run a simulation while it is busy "
+                    "(e.g. checking/upgrading the system).\n"
+                    "Please wait until kalu isn't busy anymore and try again."),
+                NULL);
+        /* restore if hidden */
+        notify_notification_show (notification, NULL);
+        return;
+    }
+
+    notify_notification_close (notification, NULL);
+    set_kalpm_busy (TRUE);
+    updater_run (NULL, NULL);
+}
+#endif
 
 void
 action_upgrade (NotifyNotification *notification, const char *action, gchar *_cmdline)
