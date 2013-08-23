@@ -676,7 +676,7 @@ free_pacman_config (pacman_config_t *pac_conf)
 }
 
 static void
-setstringoption (char *value, const char *option, char **cfg)
+setstringoption (char *value, const char *option, char **cfg, gboolean esc)
 {
     size_t len;
 
@@ -694,6 +694,12 @@ setstringoption (char *value, const char *option, char **cfg)
     }
 
     *cfg = strreplace (value, "\\n", "\n");
+    if (esc && strstr (*cfg, "\\e"))
+    {
+        char *s = *cfg;
+        *cfg = strreplace (s, "\\e", "\e");
+        free (s);
+    }
     debug ("config: %s: %s", option, value);
 }
 
@@ -806,7 +812,7 @@ parse_config_file (const char       *file,
             {
                 if (streq (key, "PacmanConf"))
                 {
-                    setstringoption (value, "pacmanconf", &(config->pacmanconf));
+                    setstringoption (value, "pacmanconf", &(config->pacmanconf), FALSE);
                 }
                 else if (streq (key, "Interval"))
                 {
@@ -928,11 +934,11 @@ parse_config_file (const char       *file,
                 }
                 else if (streq (key, "CmdLine"))
                 {
-                    setstringoption (value, "cmdline", &(config->cmdline));
+                    setstringoption (value, "cmdline", &(config->cmdline), FALSE);
                 }
                 else if (streq (key, "CmdLineAur"))
                 {
-                    setstringoption (value, "cmdline_aur", &(config->cmdline_aur));
+                    setstringoption (value, "cmdline_aur", &(config->cmdline_aur), FALSE);
                 }
 #ifndef DISABLE_UPDATER
                 else if (streq (key, "PostSysUpgrade"))
@@ -948,7 +954,7 @@ parse_config_file (const char       *file,
                 }
                 else if (streq (key, "CmdLineLink"))
                 {
-                    setstringoption (value, "cmdline_link", &(config->cmdline_link));
+                    setstringoption (value, "cmdline_link", &(config->cmdline_link), FALSE);
                 }
 #endif
                 else if (streq (key, "AurIgnore"))
@@ -1198,15 +1204,15 @@ parse_config_file (const char       *file,
 
                 if (streq (key, "Title"))
                 {
-                    setstringoption (value, "title", &(t->title));
+                    setstringoption (value, "title", &(t->title), TRUE);
                 }
                 else if (streq (key, "Package"))
                 {
-                    setstringoption (value, "package", &(t->package));
+                    setstringoption (value, "package", &(t->package), TRUE);
                 }
                 else if (streq (key, "Sep"))
                 {
-                    setstringoption (value, "sep", &(t->sep));
+                    setstringoption (value, "sep", &(t->sep), TRUE);
                 }
             }
         }
