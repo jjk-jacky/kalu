@@ -40,7 +40,7 @@ typedef struct {
     void (*on_sync_db_end) (gpointer unused, guint result);
 } kalu_simul_t;
 #else
-typedef _kalu_simul_t kalu_simul_t;
+typedef struct _kalu_simul_t kalu_simul_t;
 #endif
 
 typedef struct _kalu_alpm_t {
