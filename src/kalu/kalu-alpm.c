@@ -276,6 +276,16 @@ kalu_alpm_load (kalu_simul_t *simulation, const gchar *conffile, GError **error)
     alpm_option_set_arch (alpm->handle, pac_conf->arch);
     alpm_option_set_ignorepkgs (alpm->handle, pac_conf->ignorepkgs);
     alpm_option_set_ignoregroups (alpm->handle, pac_conf->ignoregroups);
+    /* set GnuPG's rootdir */
+    if (alpm_option_set_gpgdir (alpm->handle, pac_conf->gpgdir) != 0)
+    {
+        g_set_error (error, KALU_ERROR, 1,
+                _("Failed to set GPGDir in ALPM: %s"),
+                    alpm_strerror (alpm_errno (alpm->handle)));
+        free_pacman_config (pac_conf);
+        kalu_alpm_free ();
+        return FALSE;
+    }
     /* cachedirs are used when determining download size */
     alpm_option_set_cachedirs (alpm->handle, pac_conf->cachedirs);
 
