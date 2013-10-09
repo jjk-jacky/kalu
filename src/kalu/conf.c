@@ -2,7 +2,7 @@
  * kalu - Copyright (C) 2012-2013 Olivier Brunel
  *
  * conf.c
- * Copyright (C) 2012 Olivier Brunel <i.am.jack.mail@gmail.com>
+ * Copyright (C) 2012-2013 Olivier Brunel <i.am.jack.mail@gmail.com>
  * Copyright (c) 2006-2011 Pacman Development Team <pacman-dev@archlinux.org>
  *
  * This file is part of kalu.
@@ -1164,6 +1164,11 @@ parse_config_file (const char       *file,
                         add_error ("unknown value for %s: %s", key, value);
                         continue;
                     }
+                }
+                else if (streq (key, "ForceImages"))
+                {
+                    config->force_images = (*value == '1');
+                    debug ("config: force images: %d", config->force_images);
                 }
                 else
                 {

@@ -691,6 +691,9 @@ menu_unmap_cb (GtkWidget *menu, GdkEvent *event _UNUSED_, gpointer data _UNUSED_
     return TRUE;
 }
 
+#define item_force_icon(item)   \
+    if (config->force_images)   \
+        gtk_image_menu_item_set_always_show_image ((GtkImageMenuItem *) item, TRUE);
 void
 icon_popup_cb (GtkStatusIcon *_icon _UNUSED_, guint button, guint activate_time,
                gpointer data _UNUSED_)
@@ -711,6 +714,7 @@ icon_popup_cb (GtkStatusIcon *_icon _UNUSED_, guint button, guint activate_time,
             _("Show notifications from last ran checks"));
     g_signal_connect (G_OBJECT (item), "activate",
             G_CALLBACK (show_last_notifs), NULL);
+    item_force_icon (item);
     gtk_widget_show (item);
     gtk_menu_attach (GTK_MENU (menu), item, 0, 1, pos, pos + 1); ++pos;
 
@@ -728,6 +732,7 @@ icon_popup_cb (GtkStatusIcon *_icon _UNUSED_, guint button, guint activate_time,
             : _("Pause automatic checks (until resumed)"));
     g_signal_connect (G_OBJECT (item), "activate",
             G_CALLBACK (menu_pause_cb), NULL);
+    item_force_icon (item);
     gtk_widget_show (item);
     gtk_menu_attach (GTK_MENU (menu), item, 0, 1, pos, pos + 1); ++pos;
 
@@ -744,6 +749,7 @@ icon_popup_cb (GtkStatusIcon *_icon _UNUSED_, guint button, guint activate_time,
             _("Check if there are any upgrades available"));
     g_signal_connect (G_OBJECT (item), "activate",
             G_CALLBACK (menu_check_cb), NULL);
+    item_force_icon (item);
     gtk_widget_show (item);
     gtk_menu_attach (GTK_MENU (menu), item, 0, 1, pos, pos + 1); ++pos;
 
@@ -757,6 +763,7 @@ icon_popup_cb (GtkStatusIcon *_icon _UNUSED_, guint button, guint activate_time,
         gtk_widget_set_tooltip_text (item, _("Perform a system upgrade"));
         g_signal_connect (G_OBJECT (item), "activate",
                 G_CALLBACK (kalu_sysupgrade), NULL);
+        item_force_icon (item);
         gtk_widget_show (item);
         gtk_menu_attach (GTK_MENU (menu), item, 0, 1, pos, pos + 1); ++pos;
     }
@@ -769,6 +776,7 @@ icon_popup_cb (GtkStatusIcon *_icon _UNUSED_, guint button, guint activate_time,
     gtk_widget_set_tooltip_text (item, _("Show only unread Arch Linux news"));
     g_signal_connect (G_OBJECT (item), "activate",
             G_CALLBACK (menu_news_cb), GINT_TO_POINTER (1));
+    item_force_icon (item);
     gtk_widget_show (item);
     gtk_menu_attach (GTK_MENU (menu), item, 0, 1, pos, pos + 1); ++pos;
 
@@ -780,6 +788,7 @@ icon_popup_cb (GtkStatusIcon *_icon _UNUSED_, guint button, guint activate_time,
     gtk_widget_set_tooltip_text (item, _("Show most recent Arch Linux news"));
     g_signal_connect (G_OBJECT (item), "activate",
             G_CALLBACK (menu_news_cb), GINT_TO_POINTER (0));
+    item_force_icon (item);
     gtk_widget_show (item);
     gtk_menu_attach (GTK_MENU (menu), item, 0, 1, pos, pos + 1); ++pos;
 
@@ -809,6 +818,7 @@ icon_popup_cb (GtkStatusIcon *_icon _UNUSED_, guint button, guint activate_time,
     gtk_widget_set_tooltip_text (item, _("Edit preferences"));
     g_signal_connect (G_OBJECT (item), "activate",
             G_CALLBACK (menu_prefs_cb), NULL);
+    item_force_icon (item);
     gtk_widget_show (item);
     gtk_menu_attach (GTK_MENU (menu), item, 0, 1, pos, pos + 1); ++pos;
 
@@ -820,6 +830,7 @@ icon_popup_cb (GtkStatusIcon *_icon _UNUSED_, guint button, guint activate_time,
     gtk_widget_set_tooltip_text (item, _("Show help (man page)"));
     g_signal_connect (G_OBJECT (item), "activate",
             G_CALLBACK (menu_help_cb), NULL);
+    item_force_icon (item);
     gtk_widget_show (item);
     gtk_menu_attach (GTK_MENU (menu), item, 0, 1, pos, pos + 1); ++pos;
 
@@ -836,6 +847,7 @@ icon_popup_cb (GtkStatusIcon *_icon _UNUSED_, guint button, guint activate_time,
             _("Show Copyright & version information"));
     g_signal_connect (G_OBJECT (item), "activate",
             G_CALLBACK (menu_about_cb), NULL);
+    item_force_icon (item);
     gtk_widget_show (item);
     gtk_menu_attach (GTK_MENU (menu), item, 0, 1, pos, pos + 1); ++pos;
 
@@ -848,6 +860,7 @@ icon_popup_cb (GtkStatusIcon *_icon _UNUSED_, guint button, guint activate_time,
     gtk_widget_set_tooltip_text (item, _("Exit kalu"));
     g_signal_connect (G_OBJECT (item), "activate",
             G_CALLBACK (menu_quit_cb), NULL);
+    item_force_icon (item);
     gtk_widget_show (item);
     gtk_menu_attach (GTK_MENU (menu), item, 0, 1, pos, pos + 1); ++pos;
 

@@ -723,6 +723,12 @@ This can be used to not add any buttons to notifications. Can be useful if your
 notification daemon decides to show notifications with action-buttons as
 non-expiring windows instead (e.g. I<notify-osd>).
 
+=item B<ForceImages = 1>
+
+With GTK+ 3.10 images in menus & buttons have been forcilly removed, as have
+been options I<gtk-menu-images> & I<gtk-button-images>. If you're missing them,
+this tweak will bring them back in kalu.
+
 =back
 
 =head1 SYSTEM UPGRADE

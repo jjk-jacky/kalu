@@ -167,6 +167,8 @@ typedef struct _config_t {
     gboolean         is_curl_init;
 #ifndef DISABLE_GUI
     alpm_list_t     *last_notifs;
+
+    int              force_images;
 #endif
 } config_t;
 

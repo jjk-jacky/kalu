@@ -2,7 +2,7 @@
  * kalu - Copyright (C) 2012-2013 Olivier Brunel
  *
  * preferences.c
- * Copyright (C) 2012 Olivier Brunel <i.am.jack.mail@gmail.com>
+ * Copyright (C) 2012-2013 Olivier Brunel <i.am.jack.mail@gmail.com>
  *
  * This file is part of kalu.
  *
@@ -2231,13 +2231,17 @@ show_prefs (void)
     gtk_widget_set_tooltip_text (button, _("Apply and save preferences"));
     g_signal_connect (G_OBJECT (button), "clicked",
             G_CALLBACK (btn_save_cb), NULL);
+    if (config->force_images)
+        gtk_button_set_always_show_image ((GtkButton *) button, TRUE);
     gtk_widget_show (button);
 
     button = gtk_button_new_from_stock (GTK_STOCK_CLOSE);
     gtk_box_pack_end (GTK_BOX (hbox), button, FALSE, FALSE, 0);
-    gtk_widget_show (button);
     g_signal_connect_swapped (G_OBJECT (button), "clicked",
             G_CALLBACK (gtk_widget_destroy), (gpointer) window);
+    if (config->force_images)
+        gtk_button_set_always_show_image ((GtkButton *) button, TRUE);
+    gtk_widget_show (button);
 
     /* signals */
     g_signal_connect (G_OBJECT (window), "destroy",

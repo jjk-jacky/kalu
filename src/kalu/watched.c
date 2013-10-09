@@ -2,7 +2,7 @@
  * kalu - Copyright (C) 2012-2013 Olivier Brunel
  *
  * watched.c
- * Copyright (C) 2012 Olivier Brunel <i.am.jack.mail@gmail.com>
+ * Copyright (C) 2012-2013 Olivier Brunel <i.am.jack.mail@gmail.com>
  * 
  * This file is part of kalu.
  *
@@ -936,11 +936,15 @@ watched_new_window (w_type_t type)
                 G_CALLBACK (btn_save_cb), GINT_TO_POINTER (is_aur));
         gtk_widget_show (button);
     }
+    if (config->force_images)
+        gtk_button_set_always_show_image ((GtkButton *) button, TRUE);
     /* Close */
     button = gtk_button_new_from_stock (GTK_STOCK_CLOSE);
     gtk_box_pack_end (GTK_BOX (hbox), button, FALSE, FALSE, 2);
     g_signal_connect (G_OBJECT (button), "clicked",
             G_CALLBACK (btn_close_cb), (gpointer) type);
+    if (config->force_images)
+        gtk_button_set_always_show_image ((GtkButton *) button, TRUE);
     gtk_widget_show (button);
 
     /* signals */
