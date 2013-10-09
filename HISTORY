@@ -1,4 +1,33 @@
 
+# 2013-10-18, v2.3.0
+
+With contributions from Mickael FALCK.
+
+- Add "simulation" for when there are conflicts
+
+In case of conflict, kalu can't compile the list of packages. Instead of having
+to either just upgrade blindly, or figure things out manually, one can now run a
+"simulation" to revolve the conflict, and see all the resulting pending
+upgrades.
+
+It uses kalu's updater GUI, but obviously there's no upgrade and it's all done
+in temporary databases.
+
+- Add mnemonic for `Upgrading system...` button (in kalu's updater)
+
+- Fix not setting GPGDir in ALPM; Fixes #7
+
+- Add support for '\e' in template variables
+
+Mostly useful for CLI use, to use e.g. bold/colors in templates.
+
+- Update French translation
+
+- Fix compilation w/ DISABLE_UPDATER
+
+- Add tweak ForceImages (see man page)
+
+
 # 2013-06-30, v2.2.0
 
 - Set user-agent via environment variable HTTP_USER_AGENT; fix issue with some
