@@ -86,6 +86,8 @@ gboolean icon_press_cb (GtkStatusIcon *icon, GdkEventButton *event,
 gboolean icon_query_tooltip_cb (GtkWidget *icon, gint x, gint y,
         gboolean keyboard_mode, GtkTooltip *tooltip, gpointer data);
 
+void process_fifo_command (const gchar *command);
+
 void set_kalpm_nb (check_t type, gint nb, gboolean update_icon);
 void set_kalpm_nb_syncdbs (gint nb);
 void set_kalpm_busy (gboolean busy);

@@ -147,6 +147,59 @@ based on loaded icons.
 Note that the regular icon is also used elsewhere in kalu, e.g. in buttons or
 menus.
 
+=head1 SEND COMMANDS TO KALU VIA FIFO
+
+On start, kalu will create a FIFO named I<kalu_fifo_XXXX> (where XXXX is kalu's
+process ID) under the user's runtime directory (I<$XDG_RUNTIME_DIR>).
+
+It is possible to send kalu "commands" simply by writing to this FIFO. Commands
+are simple text strings, followed by a new-line character (\n).
+
+Note that it is possible for some commands to, at times, be no-op. For example,
+sending a command to start a sysupgrade while kalu is running its check will do
+nothing.
+
+Supported commands are:
+
+=over
+
+=item B<run-checks> (or B<manual-checks>)
+
+Run the manual checks, same as using menu "Check for Upgrades..."
+
+=item B<auto-checks>
+
+Run the automatic checks. This is usually only triggered by kalu and cannot
+otherwise be triggered manually (except using the I<--auto-checks> command line
+argument).
+
+=item B<show-last-notifs>
+
+Re-show last notifications.
+
+=item B<toggle-pause>
+
+Pause/resume automatic checks.
+
+=item B<sysupgrade>
+
+Start a system upgrade. Like using menu "System upgrade..." the actual action
+(e.g. run kalu's updater, or start a command line) depends on your preferences.
+
+=item B<show-unread-news>
+
+Show unread Arch Linux news
+
+=item B<show-recent-news>
+
+Show recent Arch Linux news
+
+=item B<popup-menu>
+
+Pops up the systray menu at current mouse pointer position.
+
+=back
+
 =head1 DATA LOCATION & FORMAT
 
 Every setting/data kalu stores will be done in folder F<~/.config/kalu/>, all

@@ -26,6 +26,14 @@
 #include <locale.h>
 #include <string.h>
 #include <time.h> /* for debug() */
+#ifndef DISABLE_GUI
+/* FIFO */
+#include <errno.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <unistd.h>
+#include <fcntl.h>
+#endif
 
 /* alpm */
 #include <alpm.h>
@@ -910,6 +918,131 @@ get_gray_pixbuf (GdkPixbuf *pixbuf)
 
     return pb;
 }
+
+struct fifo
+{
+    gchar *name;
+    gint   fd;
+
+    gchar  buf[128];
+    gchar *b;
+};
+
+static void
+free_fifo (struct fifo *fifo)
+{
+    if (fifo->fd >= 0)
+    {
+        close (fifo->fd);
+        fifo->fd = -1;
+    }
+
+    if (fifo->name)
+    {
+        if (unlink (fifo->name) < 0)
+        {
+            gint _errno = errno;
+            debug ("failed to remove fifo: %s", g_strerror (_errno));
+        }
+        g_free (fifo->name);
+        fifo->name = NULL;
+    }
+}
+
+static gboolean
+dispatch (GSource *source _UNUSED_, GSourceFunc callback, gpointer data)
+{
+    return callback (data);
+}
+
+static gboolean read_fifo (struct fifo *fifo);
+
+static void
+open_fifo (struct fifo *fifo)
+{
+    fifo->fd = open (fifo->name, O_RDONLY | O_NONBLOCK);
+    if (fifo->fd < 0)
+    {
+        gint _errno = errno;
+        debug ("failed to open fifo: %s", g_strerror (_errno));
+        do_show_error (_("Unable to open FIFO"), g_strerror (_errno), NULL);
+        free_fifo (fifo);
+    }
+    else
+    {
+        static GSourceFuncs funcs = {
+            .prepare = NULL,
+            .check = NULL,
+            .dispatch = dispatch,
+            .finalize = NULL
+        };
+        GSource *source;
+
+        debug ("opened fifo: %d", fifo->fd);
+
+        source = g_source_new (&funcs, sizeof (GSource));
+        g_source_add_unix_fd (source, fifo->fd, G_IO_IN);
+        g_source_set_callback (source, (GSourceFunc) read_fifo, fifo, NULL);
+        g_source_attach (source, NULL);
+        g_source_unref (source);
+    }
+}
+
+static gboolean
+read_fifo (struct fifo *fifo)
+{
+    gsize len;
+
+again:
+    len = read (fifo->fd, fifo->b, 127 - (fifo->b - fifo->buf));
+
+    if (len == 0)
+    {
+        close (fifo->fd);
+        open_fifo (fifo);
+        return FALSE;
+    }
+    else if (len > 0)
+    {
+        gchar *s;
+
+repeat:
+        fifo->b[len] = '\0';
+        s = strchr (fifo->buf, '\n');
+        if (s)
+        {
+            *s = '\0';
+            process_fifo_command (fifo->buf);
+            if (fifo->b + len > s + 1)
+            {
+                memmove (fifo->buf, s + 1, fifo->b + len - s - 1);
+                len = fifo->b + len - s - 1;
+                fifo->b = fifo->buf;
+                goto repeat;
+            }
+            else
+                fifo->b = fifo->buf;
+        }
+        else
+            fifo->b += len;
+
+        if (G_UNLIKELY (fifo->b >= fifo->buf + 127))
+        {
+            do_show_error (_("Received too much invalid data on FIFO, resetting"),
+                    NULL, NULL);
+            fifo->b = fifo->buf;
+        }
+    }
+    else if (errno == EINTR)
+        goto again;
+    else
+    {
+        gint _errno = errno;
+        debug ("error reading from fifo: %s", g_strerror (_errno));
+    }
+
+    return TRUE;
+}
 #endif
 
 static gboolean
@@ -934,6 +1067,8 @@ main (int argc, char *argv[])
     GdkPixbuf       *pixbuf;
     GdkPixbuf       *pixbuf_kalu;
     GdkPixbuf       *pixbuf_gray;
+    struct fifo      fifo = { .fd = -1, .name = NULL };
+    gint             r;
 #endif
     gchar            conffile[MAX_PATH];
 
@@ -1125,6 +1260,25 @@ main (int argc, char *argv[])
         goto eop;
     }
 
+    /* FIFO */
+    fifo.name = g_strdup_printf ("%s/kalu_fifo_%d",
+            g_get_user_runtime_dir (), getpid ());
+    r = mkfifo (fifo.name, 0600);
+    if (r < 0)
+    {
+        gint _errno = errno;
+        debug ("failed to create fifo: %s: %s", fifo.name, g_strerror (_errno));
+        do_show_error (_("Unable to create FIFO"), g_strerror (_errno), NULL);
+        g_free (fifo.name);
+        fifo.name = NULL;
+    }
+    else
+    {
+        debug ("created fifo: %s", fifo.name);
+        fifo.b = fifo.buf;
+        open_fifo (&fifo);
+    }
+
     /* icon stuff: so we'll be able to use "kalu-logo" from stock, and it will
      * handle multiple size/resize as well as graying out (e.g. on unsensitive
      * widgets) automatically.
@@ -1205,6 +1359,7 @@ main (int argc, char *argv[])
     notify_init ("kalu");
     gtk_main ();
 eop:
+    free_fifo (&fifo);
     if (!is_cli)
     {
         notify_uninit ();

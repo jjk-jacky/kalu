@@ -874,6 +874,29 @@ icon_popup_cb (GtkStatusIcon *_icon _UNUSED_, guint button, guint activate_time,
     gtk_menu_popup (GTK_MENU (menu), NULL, NULL, NULL, NULL, button, activate_time);
 }
 
+void
+process_fifo_command (const gchar *command)
+{
+    if (streq (command, "run-checks") || streq (command, "manual-checks"))
+        kalu_check (FALSE);
+    else if (streq (command, "auto-checks"))
+        kalu_check (TRUE);
+    else if (streq (command, "show-last-notifs"))
+        show_last_notifs ();
+    else if (streq (command, "toggle-pause"))
+        set_pause (!kalpm_state.is_paused);
+    else if (streq (command, "sysupgrade"))
+        kalu_sysupgrade ();
+    else if (streq (command, "show-unread-news"))
+        menu_news_cb (NULL, GINT_TO_POINTER (1));
+    else if (streq (command, "show-recent-news"))
+        menu_news_cb (NULL, NULL);
+    else if (streq (command, "popup-menu"))
+        icon_popup_cb (NULL, 1, GDK_CURRENT_TIME, NULL);
+    else
+        show_error (_("kalu received an unknown FIFO command"), command, NULL);
+}
+
 GPtrArray *open_windows = NULL;
 static gboolean has_hidden_windows = FALSE;
 
