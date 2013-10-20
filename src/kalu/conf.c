@@ -1165,11 +1165,13 @@ parse_config_file (const char       *file,
                         continue;
                     }
                 }
+#ifndef DISABLE_GUI
                 else if (streq (key, "ForceImages"))
                 {
                     config->force_images = (*value == '1');
                     debug ("config: force images: %d", config->force_images);
                 }
+#endif
                 else
                 {
                     add_error ("unknown option: %s", key);
