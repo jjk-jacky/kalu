@@ -979,6 +979,7 @@ open_fifo (struct fifo *fifo)
         GSource *source;
 
         debug ("opened fifo: %d", fifo->fd);
+        fifo->b = fifo->buf;
 
         source = g_source_new (&funcs, sizeof (GSource));
         g_source_add_unix_fd (source, fifo->fd, G_IO_IN);
@@ -996,15 +997,27 @@ read_fifo (struct fifo *fifo)
 again:
     len = read (fifo->fd, fifo->b, 127 - (fifo->b - fifo->buf));
 
-    if (len == 0)
+    if (len < 0)
     {
-        close (fifo->fd);
-        open_fifo (fifo);
-        return FALSE;
+        if (errno == EINTR)
+            goto again;
+        else
+        {
+            gint _errno = errno;
+            debug ("error reading from fifo: %s", g_strerror (_errno));
+        }
     }
-    else if (len > 0)
+    else
     {
         gchar *s;
+
+        if (len == 0)
+        {
+            if (fifo->b > fifo->buf)
+                *fifo->b++ = '\n';
+            else
+                goto skip;
+        }
 
 repeat:
         fifo->b[len] = '\0';
@@ -1026,19 +1039,20 @@ repeat:
         else
             fifo->b += len;
 
+        if (len == 0)
+        {
+skip:
+            close (fifo->fd);
+            open_fifo (fifo);
+            return FALSE;
+        }
+
         if (G_UNLIKELY (fifo->b >= fifo->buf + 127))
         {
             do_show_error (_("Received too much invalid data on FIFO, resetting"),
                     NULL, NULL);
             fifo->b = fifo->buf;
         }
-    }
-    else if (errno == EINTR)
-        goto again;
-    else
-    {
-        gint _errno = errno;
-        debug ("error reading from fifo: %s", g_strerror (_errno));
     }
 
     return TRUE;
@@ -1275,7 +1289,6 @@ main (int argc, char *argv[])
     else
     {
         debug ("created fifo: %s", fifo.name);
-        fifo.b = fifo.buf;
         open_fifo (&fifo);
     }
 
