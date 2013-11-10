@@ -49,11 +49,6 @@ void show_notif (notif_t *notif);
 
 gboolean show_error_cmdline (gchar *arg[]);
 
-#ifndef DISABLE_UPDATER
-void run_simulation (NotifyNotification  *notification,
-        const gchar *action,
-        gpointer data);
-#endif
 void action_upgrade (NotifyNotification *notification,
         const char *action,
         gchar *_cmdline);

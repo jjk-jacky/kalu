@@ -44,6 +44,11 @@
 } while (0)
 #endif
 
+#ifndef DISABLE_UPDATER
+static void notif_run_simulation (NotifyNotification  *notification,
+                                  const gchar         *action _UNUSED_,
+                                  gpointer             data _UNUSED_);
+#endif
 static void menu_check_cb (GtkMenuItem *item, gpointer data);
 static void menu_quit_cb (GtkMenuItem *item, gpointer data);
 static gboolean set_status_icon (gboolean active);
@@ -94,7 +99,7 @@ show_notif (notif_t *notif)
                 /* We also add the "Run simulation" button */
                 notify_notification_add_action (notification, "run_simulation",
                         _c("notif-button", "Run simulation..."),
-                        (NotifyActionCallback) run_simulation,
+                        (NotifyActionCallback) notif_run_simulation,
                         NULL, NULL);
 #endif
             }
@@ -223,10 +228,8 @@ run_cmdline (char *cmdline)
 }
 
 #ifndef DISABLE_UPDATER
-void
-run_simulation (NotifyNotification  *notification,
-                const gchar         *action _UNUSED_,
-                gpointer             data _UNUSED_)
+static gboolean
+run_simulation (NotifyNotification *notification)
 {
     if (kalpm_state.is_busy)
     {
@@ -235,14 +238,27 @@ run_simulation (NotifyNotification  *notification,
                     "(e.g. checking/upgrading the system).\n"
                     "Please wait until kalu isn't busy anymore and try again."),
                 NULL);
-        /* restore if hidden */
-        notify_notification_show (notification, NULL);
-        return;
+        return FALSE;
     }
 
-    notify_notification_close (notification, NULL);
+    if (notification)
+    {
+        notify_notification_close (notification, NULL);
+    }
+
     set_kalpm_busy (TRUE);
     updater_run (NULL, NULL);
+    return TRUE;
+}
+
+static void
+notif_run_simulation (NotifyNotification  *notification,
+                      const gchar         *action _UNUSED_,
+                      gpointer             data _UNUSED_)
+{
+    if (!run_simulation (notification))
+        /* restore if hidden */
+        notify_notification_show (notification, NULL);
 }
 #endif
 
@@ -753,6 +769,21 @@ icon_popup_cb (GtkStatusIcon *_icon _UNUSED_, guint button, guint activate_time,
     gtk_widget_show (item);
     gtk_menu_attach (GTK_MENU (menu), item, 0, 1, pos, pos + 1); ++pos;
 
+#ifndef DISABLE_UPDATER
+    item = gtk_image_menu_item_new_with_label (
+            _c("systray-menu", "Upgrade simulation..."));
+    gtk_widget_set_sensitive (item, !kalpm_state.is_busy);
+    image = gtk_image_new_from_stock ("kalu-logo", GTK_ICON_SIZE_MENU);
+    gtk_image_menu_item_set_image (GTK_IMAGE_MENU_ITEM (item), image);
+    gtk_widget_set_tooltip_text (item, _("Run a system upgrade simulation "
+                "(to preview/help deal with conflicts)"));
+    g_signal_connect_swapped (G_OBJECT (item), "activate",
+            G_CALLBACK (run_simulation), NULL);
+    item_force_icon (item);
+    gtk_widget_show (item);
+    gtk_menu_attach (GTK_MENU (menu), item, 0, 1, pos, pos + 1); ++pos;
+#endif
+
     if (config->action != UPGRADE_NO_ACTION)
     {
         item = gtk_image_menu_item_new_with_label (
@@ -767,6 +798,10 @@ icon_popup_cb (GtkStatusIcon *_icon _UNUSED_, guint button, guint activate_time,
         gtk_widget_show (item);
         gtk_menu_attach (GTK_MENU (menu), item, 0, 1, pos, pos + 1); ++pos;
     }
+
+    item = gtk_separator_menu_item_new ();
+    gtk_widget_show (item);
+    gtk_menu_attach (GTK_MENU (menu), item, 0, 1, pos, pos + 1); ++pos;
 
     item = gtk_image_menu_item_new_with_label (
             _c("systray-menu", "Show unread Arch Linux news..."));
@@ -893,6 +928,10 @@ process_fifo_command (const gchar *command)
         menu_news_cb (NULL, NULL);
     else if (streq (command, "popup-menu"))
         icon_popup_cb (NULL, 1, GDK_CURRENT_TIME, NULL);
+#ifndef DISABLE_UPDATER
+    else if (streq (command, "run-simulation"))
+        run_simulation (NULL);
+#endif
     else
         show_error (_("kalu received an unknown FIFO command"), command, NULL);
 }
@@ -932,32 +971,36 @@ toggle_open_windows (void)
 
 static guint icon_press_timeout = 0;
 
-#define process_click_action(on_click)  do {    \
-    if ((on_click) == DO_SYSUPGRADE)            \
-    {                                           \
-        kalu_sysupgrade ();                     \
-    }                                           \
-    else if ((on_click) == DO_CHECK)            \
-    {                                           \
-        kalu_check (FALSE);                     \
-    }                                           \
-    else if ((on_click) == DO_TOGGLE_WINDOWS)   \
-    {                                           \
-        toggle_open_windows ();                 \
-    }                                           \
-    else if ((on_click) == DO_LAST_NOTIFS)      \
-    {                                           \
-        show_last_notifs ();                    \
-    }                                           \
-    else if ((on_click) == DO_TOGGLE_PAUSE)     \
-    {                                           \
-        set_pause (!kalpm_state.is_paused);     \
-    }                                           \
-    else if ((on_click) == DO_EXIT)             \
-    {                                           \
-        menu_quit_cb (NULL, NULL);              \
-    }                                           \
-} while (0)
+static void
+process_click_action (on_click_t on_click)
+{
+    switch (on_click)
+    {
+        case DO_SYSUPGRADE:
+            kalu_sysupgrade ();
+            break;
+        case DO_CHECK:
+            kalu_check (FALSE);
+            break;
+#ifndef DISABLE_UPDATER
+        case DO_SIMULATION:
+            run_simulation (NULL);
+            break;
+#endif
+        case DO_TOGGLE_WINDOWS:
+            toggle_open_windows ();
+            break;
+        case DO_LAST_NOTIFS:
+            show_last_notifs ();
+            break;
+        case DO_TOGGLE_PAUSE:
+            set_pause (!kalpm_state.is_paused);
+            break;
+        case DO_EXIT:
+            menu_quit_cb (NULL, NULL);
+            break;
+    }
+}
 
 static gboolean
 icon_press_click (gpointer data _UNUSED_)

@@ -186,6 +186,14 @@ Pause/resume automatic checks.
 Start a system upgrade. Like using menu "System upgrade..." the actual action
 (e.g. run kalu's updater, or start a command line) depends on your preferences.
 
+=item B<run-simulation>
+
+Start an upgrade simulation. This is mostly useful in case of conflicts, to
+preview what causes it & how to resolve it prior to any upgrade/database
+synchronisation.
+
+See L<B<UPGRADE SIMULATION>|/UPGRADE SIMULATION> below for more.
+
 =item B<show-unread-news>
 
 Show unread Arch Linux news
@@ -721,6 +729,14 @@ depends on your settings under B<Upgrades>
 Note that if no button "Upgrade system" is shown on notification, this option
 will have the same effect as B<Do nothing>
 
+=item B<* Upgrade Simulation> ( SIMULATION )
+
+Start an upgrade simulation. This is mostly useful in case of conflicts, to
+preview what causes it & how to resolve it prior to any upgrade/database
+synchronisation.
+
+See L<B<UPGRADE SIMULATION>|/UPGRADE SIMULATION> below for more.
+
 =item B<* Hide/show opened windows (except kalu's updater)> ( TOGGLE_WINDOWS )
 
 Will hide all opened windows (except for kalu's updater). If at least one
@@ -828,13 +844,17 @@ database synchronized, one when starting the upgrade, one after the upgrade
 was completed, and one after each package operation (installed, upgraded,
 removed).
 
-=head1 SIMULATION
+=head1 UPGRADE SIMULATION
 
 Every once in a while, kalu might not be able to list the available upgrades,
 notifying you instead that there is a conflict between some packages. If you
 then want to know more about this conflict, and still want to know what upgrades
 are available regardless of the conflict, the extra button "Run simulation"
 might be of interest to you.
+
+You can also start a simulation at any time from kalu's menu, FIFO or via its
+systray icon. If there's no conflict, the simulation will simply consist of
+listing the packages to be upgraded, if any.
 
 A simulation is simply running the first step (i.e. compiling packages list) of
 kalu's updater on a temporary copy of the (synchronized) databases, in order to

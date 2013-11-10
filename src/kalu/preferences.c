@@ -751,6 +751,10 @@ btn_manage_watched_cb (GtkButton *button _UNUSED_, gboolean is_aur)
     {                                                                       \
         new_config.name = DO_CHECK;                                         \
     }                                                                       \
+    else if (strcmp (s, "SIMULATION") == 0)                                 \
+    {                                                                       \
+        new_config.name = DO_SIMULATION;                                    \
+    }                                                                       \
     else if (strcmp (s, "TOGGLE_WINDOWS") == 0)                             \
     {                                                                       \
         new_config.name = DO_TOGGLE_WINDOWS;                                \
@@ -1486,6 +1490,10 @@ add_on_click_actions (
             _("Check for Upgrades..."));
     gtk_combo_box_text_append (GTK_COMBO_BOX_TEXT (*combo), "SYSUPGRADE",
             _("System upgrade..."));
+#ifndef DISABLE_UPDATER
+    gtk_combo_box_text_append (GTK_COMBO_BOX_TEXT (*combo), "SIMULATION",
+            _("Upgrade simulation..."));
+#endif
     gtk_combo_box_text_append (GTK_COMBO_BOX_TEXT (*combo), "TOGGLE_WINDOWS",
 #ifndef DISABLE_UPDATER
             _("Hide/show opened windows (except kalu's updater)")
@@ -1514,6 +1522,12 @@ add_on_click_actions (
     {
         gtk_combo_box_set_active_id (GTK_COMBO_BOX (*combo), "SYSUPGRADE");
     }
+#ifndef DISABLE_UPDATER
+    else if (on_click == DO_SIMULATION)
+    {
+        gtk_combo_box_set_active_id (GTK_COMBO_BOX (*combo), "SIMULATION");
+    }
+#endif
     else if (on_click == DO_TOGGLE_WINDOWS)
     {
         gtk_combo_box_set_active_id (GTK_COMBO_BOX (*combo), "TOGGLE_WINDOWS");

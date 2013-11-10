@@ -1064,6 +1064,12 @@ parse_config_file (const char       *file,
                     {
                         *on_click = DO_SYSUPGRADE;
                     }
+#ifndef DISABLE_UPDATER
+                    else if (streq (value, "SIMULATION"))
+                    {
+                        *on_click = DO_SIMULATION;
+                    }
+#endif
                     else if (streq (value, "NOTHING"))
                     {
                         *on_click = DO_NOTHING;

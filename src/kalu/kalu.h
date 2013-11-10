@@ -89,6 +89,7 @@ typedef enum {
     DO_NOTHING = 0,
     DO_CHECK,
     DO_SYSUPGRADE,
+    DO_SIMULATION,
     DO_TOGGLE_WINDOWS,
     DO_LAST_NOTIFS,
     DO_TOGGLE_PAUSE,
