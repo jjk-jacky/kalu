@@ -219,7 +219,7 @@ echo "
    prefix                   : ${prefix}
    GUI                      : ${with_gui}
    kalu's updater           : ${with_updater}
-   group to not need auth   ! ${GROUP}
+   group to not need auth   : ${GROUP}
    compiler warning flags   : ${WARNING_CFLAGS}
 
    Arch Linux News RSS URL  : ${NEWS_RSS_URL}
