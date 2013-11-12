@@ -1411,8 +1411,6 @@ main (int argc _UNUSED_, char *argv[] _UNUSED_)
     textdomain (PACKAGE);
 #endif
 
-    g_type_init ();
-
     set_user_agent ();
 
     owner_id = g_bus_own_name (G_BUS_TYPE_SYSTEM,
