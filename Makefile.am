@@ -70,6 +70,8 @@ kalu_LDADD += \
 	@NOTIFY_LIBS@ \
 	kalu-logo.o
 kalu_SOURCES += \
+	src/kalu/imagemenuitem.h \
+	src/kalu/imagemenuitem.c \
 	src/kalu/gui.h \
 	src/kalu/gui.c \
 	src/kalu/util-gtk.h \
