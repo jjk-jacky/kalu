@@ -202,7 +202,8 @@ new_notification (const gchar *summary, const gchar *text)
 
             debug ("new notification, loading user icon: %s",
                     config->notif_icon_user);
-            pixbuf = gdk_pixbuf_new_from_file (config->notif_icon_user, &error);
+            pixbuf = gdk_pixbuf_new_from_file_at_size (config->notif_icon_user,
+                    config->notif_icon_size, -1, &error);
             if (!pixbuf)
             {
                 debug ("new notification: failed to load user icon: %s",
@@ -215,9 +216,9 @@ new_notification (const gchar *summary, const gchar *text)
         {
             w = gtk_label_new (NULL);
             g_object_ref_sink (w);
-            debug ("new notification: using kalu's icon (small)");
+            debug ("new notification: using kalu's icon");
             pixbuf = gtk_icon_theme_load_icon (gtk_icon_theme_get_default (),
-                    "kalu", 20, 0, NULL);
+                    "kalu", config->notif_icon_size, 0, NULL);
         }
         notify_notification_set_image_from_pixbuf (notification, pixbuf);
         g_object_unref (pixbuf);

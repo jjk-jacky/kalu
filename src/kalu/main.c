@@ -1157,6 +1157,7 @@ main (int argc, char *argv[])
     config->interval = 3600; /* 1 hour */
     config->timeout = NOTIFY_EXPIRES_DEFAULT;
     config->notif_icon = ICON_KALU;
+    config->notif_icon_size = 20;
     config->syncdbs_in_tooltip = TRUE;
     config->checks_manual = CHECK_UPGRADES | CHECK_WATCHED | CHECK_AUR
         | CHECK_WATCHED_AUR | CHECK_NEWS;

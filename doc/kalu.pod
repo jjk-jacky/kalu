@@ -305,15 +305,15 @@ pacman).
 
 =item NotificationIcon = KALU|NONE|/path/to/file
 
-Specify the icon to be used on notifications. Can be none, kalu's icon (small)
-or selecting a file to load it from.
+Specify the icon to be used on notifications. Can be none, kalu's icon or
+selecting a file to load it from.
 
-When loading icon from a file, the icon will be used "full size" so you can use
-a small or a large one, as you like. E.g. using F</usr/share/pixmaps/kalu.png>
-will use kalu's icon at its full (48x48) size.
+If loading the icon fails, kalu will silently fall back to using it own icon.
 
-If loading the icon fails, kalu will silently fall back to using it own icon
-(small).
+=item NotificationIconSize = I<size>
+
+Specify the size of the icon used on notifications. The size must be a number
+between 8 and 48 (both included).
 
 =item I<Notifications expire after (seconds)>
 

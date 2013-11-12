@@ -45,6 +45,7 @@ static GtkWidget *notebook                  = NULL;
 static GtkWidget *filechooser               = NULL;
 static GtkWidget *notif_icon_combo          = NULL;
 static GtkWidget *notif_icon_filechooser    = NULL;
+static GtkWidget *notif_icon_scale          = NULL;
 static GtkWidget *combo_interval            = NULL;
 static GtkWidget *timeout_scale             = NULL;
 static GtkWidget *button_skip               = NULL;
@@ -870,6 +871,10 @@ btn_save_cb (GtkButton *button _UNUSED_, gpointer data _UNUSED_)
         new_config.notif_icon_user = strdup (s);
     }
 
+    nb = (gint) gtk_range_get_value (GTK_RANGE (notif_icon_scale));
+    add_to_conf ("NotificationIconSize = %d\n", nb);
+    new_config.notif_icon_size = nb;
+
     s = gtk_combo_box_text_get_active_text (GTK_COMBO_BOX_TEXT (combo_interval));
     if (*s == '\0')
     {
@@ -1614,7 +1619,7 @@ show_prefs (void)
     gtk_combo_box_text_append (GTK_COMBO_BOX_TEXT (notif_icon_combo), "1",
             _("No icon"));
     gtk_combo_box_text_append (GTK_COMBO_BOX_TEXT (notif_icon_combo), "2",
-            _("kalu's icon (small)"));
+            _("kalu's icon"));
     gtk_combo_box_text_append (GTK_COMBO_BOX_TEXT (notif_icon_combo), "3",
             _("Select file:"));
     gtk_grid_attach (GTK_GRID (grid), notif_icon_combo, 1, top, 1, 1);
@@ -1654,6 +1659,18 @@ show_prefs (void)
     /* doing this now otherwise it's triggered with non-yet-existing widgets to hide/show */
     g_signal_connect (G_OBJECT (notif_icon_combo), "changed",
             G_CALLBACK (notif_icon_combo_changed_cb), NULL);
+
+    ++top;
+    /* NotificationIcon */
+    label = gtk_label_new (_("Size of the icon used on notifications :"));
+    gtk_grid_attach (GTK_GRID (grid), label, 0, top, 1, 1);
+    gtk_widget_show (label);
+
+    notif_icon_scale = gtk_scale_new_with_range (GTK_ORIENTATION_HORIZONTAL,
+            8, 48, 1);
+    gtk_range_set_value (GTK_RANGE (notif_icon_scale), config->notif_icon_size);
+    gtk_grid_attach (GTK_GRID (grid), notif_icon_scale, 1, top, 1, 1);
+    gtk_widget_show (notif_icon_scale);
 
     ++top;
     /* Timeout */

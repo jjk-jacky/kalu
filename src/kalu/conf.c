@@ -908,6 +908,13 @@ parse_config_file (const char       *file,
                     debug ("config: NotifIcon: %d", config->notif_icon);
                     debug ("config: NotifIconUser: %s", config->notif_icon_user);
                 }
+                else if (streq (key, "NotificationIconSize"))
+                {
+                    config->notif_icon_size = atoi (value);
+                    config->notif_icon_size = CLAMP (config->notif_icon_size, 8, 48);
+
+                    debug ("config: notif icon size: %d", config->notif_icon_size);
+                }
                 else if (streq (key, "UpgradeAction"))
                 {
                     if (streq (value, "NONE"))

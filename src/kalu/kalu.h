@@ -130,6 +130,7 @@ typedef struct _config_t {
     int              skip_end_minute;
     notif_icon_t     notif_icon;
     char            *notif_icon_user;
+    int              notif_icon_size;
     upgrade_action_t action;
     char            *cmdline;
     char            *cmdline_aur;
