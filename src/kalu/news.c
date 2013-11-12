@@ -3,7 +3,7 @@
  *
  * news.c
  * Copyright (C) 2012-2013 Olivier Brunel <i.am.jack.mail@gmail.com>
- * 
+ *
  * This file is part of kalu.
  *
  * kalu is free software: you can redistribute it and/or modify it under the

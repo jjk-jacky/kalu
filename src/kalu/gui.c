@@ -1022,6 +1022,9 @@ process_click_action (on_click_t on_click)
         case DO_EXIT:
             menu_quit_cb (NULL, NULL);
             break;
+        case DO_NOTHING:
+        case DO_SAME_AS_ACTIVE: /* not possible, silence warning */
+            break;
     }
 }
 

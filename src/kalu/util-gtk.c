@@ -77,7 +77,7 @@ new_confirm (
     if (NULL == submessage)
     {
         dialog = gtk_message_dialog_new_with_markup (
-                GTK_WINDOW(window),
+                GTK_WINDOW (window),
                 GTK_DIALOG_MODAL | GTK_DIALOG_DESTROY_WITH_PARENT,
                 GTK_MESSAGE_QUESTION,
                 GTK_BUTTONS_NONE,
@@ -87,24 +87,23 @@ new_confirm (
     else
     {
         dialog = gtk_message_dialog_new (
-                GTK_WINDOW(window),
+                GTK_WINDOW (window),
                 GTK_DIALOG_MODAL | GTK_DIALOG_DESTROY_WITH_PARENT,
                 GTK_MESSAGE_QUESTION,
                 GTK_BUTTONS_NONE,
                 "%s",
                 message);
         gtk_message_dialog_format_secondary_markup (
-                GTK_MESSAGE_DIALOG(dialog),
+                GTK_MESSAGE_DIALOG (dialog),
                 "%s",
                 submessage);
     }
 
-    gtk_window_set_decorated (GTK_WINDOW(dialog), FALSE);
-    gtk_window_set_skip_taskbar_hint (GTK_WINDOW(dialog), TRUE);
-    gtk_window_set_skip_pager_hint (GTK_WINDOW(dialog), TRUE);
+    gtk_window_set_decorated (GTK_WINDOW (dialog), FALSE);
+    gtk_window_set_skip_taskbar_hint (GTK_WINDOW (dialog), TRUE);
+    gtk_window_set_skip_pager_hint (GTK_WINDOW (dialog), TRUE);
 
-    button = gtk_dialog_add_button(
-            GTK_DIALOG(dialog),
+    button = gtk_dialog_add_button (GTK_DIALOG (dialog),
             (NULL == btn_no_label) ? GTK_STOCK_NO : btn_no_label,
             GTK_RESPONSE_NO);
     image = gtk_image_new_from_stock (
@@ -114,14 +113,13 @@ new_confirm (
     if (config->force_images)
         gtk_button_set_always_show_image ((GtkButton *) button, TRUE);
 
-    button = gtk_dialog_add_button(
-            GTK_DIALOG(dialog),
+    button = gtk_dialog_add_button (GTK_DIALOG (dialog),
             (NULL == btn_yes_label) ? GTK_STOCK_YES : btn_yes_label,
             GTK_RESPONSE_YES);
     image = gtk_image_new_from_stock (
             (NULL == btn_yes_image) ? GTK_STOCK_YES : btn_yes_image,
             GTK_ICON_SIZE_MENU);
-    gtk_button_set_image( GTK_BUTTON(button), image);
+    gtk_button_set_image (GTK_BUTTON (button), image);
     if (config->force_images)
         gtk_button_set_always_show_image ((GtkButton *) button, TRUE);
 
@@ -163,7 +161,7 @@ show_error (const gchar *message, const gchar *submessage, GtkWindow *parent)
                 GTK_MESSAGE_ERROR,
                 GTK_BUTTONS_OK,
                 NULL);
-        gtk_message_dialog_set_markup (GTK_MESSAGE_DIALOG(dialog), message);
+        gtk_message_dialog_set_markup (GTK_MESSAGE_DIALOG (dialog), message);
     }
     else
     {
@@ -175,14 +173,14 @@ show_error (const gchar *message, const gchar *submessage, GtkWindow *parent)
                 "%s",
                 message);
         gtk_message_dialog_format_secondary_markup (
-                GTK_MESSAGE_DIALOG(dialog),
+                GTK_MESSAGE_DIALOG (dialog),
                 "%s",
                 submessage);
     }
 
-    gtk_window_set_decorated (GTK_WINDOW(dialog), FALSE);
-    gtk_window_set_skip_taskbar_hint (GTK_WINDOW(dialog), TRUE);
-    gtk_window_set_skip_pager_hint (GTK_WINDOW(dialog), TRUE);
+    gtk_window_set_decorated (GTK_WINDOW (dialog), FALSE);
+    gtk_window_set_skip_taskbar_hint (GTK_WINDOW (dialog), TRUE);
+    gtk_window_set_skip_pager_hint (GTK_WINDOW (dialog), TRUE);
 
     g_signal_connect (G_OBJECT (dialog), "response",
             G_CALLBACK (gtk_widget_destroy), NULL);

@@ -247,6 +247,7 @@ notify_updates (
         else
         {
             kalu_package_t *pkg = i->data;
+            int j;
 
             net_size = (int) (pkg->new_size - pkg->old_size);
             dsize += pkg->dl_size;
@@ -300,7 +301,7 @@ notify_updates (
             free (replacements[3]->value);
             free (replacements[4]->value);
             free (replacements[5]->value);
-            for (int j = 0; j < 7; ++j)
+            for (j = 0; j < 7; ++j)
                 free (replacements[j]);
 
             debug ("-> %s %s -> %s [dl=%d; ins=%d]",
@@ -992,10 +993,10 @@ open_fifo (struct fifo *fifo)
 static gboolean
 read_fifo (struct fifo *fifo)
 {
-    gsize len;
+    gssize len;
 
 again:
-    len = read (fifo->fd, fifo->b, 127 - (fifo->b - fifo->buf));
+    len = read (fifo->fd, fifo->b, 127 - (gsize) (fifo->b - fifo->buf));
 
     if (len < 0)
     {
@@ -1028,7 +1029,7 @@ repeat:
             process_fifo_command (fifo->buf);
             if (fifo->b + len > s + 1)
             {
-                memmove (fifo->buf, s + 1, fifo->b + len - s - 1);
+                memmove (fifo->buf, s + 1, (gsize) (fifo->b + len - s - 1));
                 len = fifo->b + len - s - 1;
                 fifo->b = fifo->buf;
                 goto repeat;
