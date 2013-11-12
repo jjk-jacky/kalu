@@ -111,6 +111,9 @@ if ! DISABLE_GUI
 logodir = $(datadir)/pixmaps
 logo_DATA = kalu.png
 
+hicolordir = $(datadir)/icons/hicolor/48x48/apps
+hicolor_DATA = kalu.png
+
 desktopdir = /usr/share/applications
 dist_desktop_DATA = misc/kalu.desktop
 endif
