@@ -1238,15 +1238,15 @@ set_status_icon (gboolean active)
 {
     if (active)
     {
-        gtk_status_icon_set_from_stock (icon, (kalpm_state.is_paused)
-                ? "kalu-logo-paused"
-                : "kalu-logo");
+        gtk_status_icon_set_from_icon_name (icon, (kalpm_state.is_paused)
+                ? "kalu-paused"
+                : "kalu");
     }
     else
     {
-        gtk_status_icon_set_from_stock (icon, (kalpm_state.is_paused)
-                ? "kalu-logo-gray-paused"
-                : "kalu-logo-gray");
+        gtk_status_icon_set_from_icon_name (icon, (kalpm_state.is_paused)
+                ? "kalu-gray-paused"
+                : "kalu-gray");
     }
     /* do NOT get called back */
     return FALSE;

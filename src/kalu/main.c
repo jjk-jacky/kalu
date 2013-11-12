@@ -1076,12 +1076,8 @@ main (int argc, char *argv[])
     GError          *error = NULL;
 #ifndef DISABLE_GUI
     GtkIconTheme    *icon_theme;
-    GInputStream    *stream;
-    GtkIconFactory  *factory;
-    GtkIconSet      *iconset;
     GdkPixbuf       *pixbuf;
     GdkPixbuf       *pixbuf_kalu;
-    GdkPixbuf       *pixbuf_gray;
     struct fifo      fifo = { .fd = -1, .name = NULL };
     gint             r;
 #endif
@@ -1293,64 +1289,77 @@ main (int argc, char *argv[])
         open_fifo (&fifo);
     }
 
-    /* icon stuff: so we'll be able to use "kalu-logo" from stock, and it will
-     * handle multiple size/resize as well as graying out (e.g. on unsensitive
-     * widgets) automatically.
-     * We load from icon theme so users can easily specify icons (putting files
-     * in ~/.local/share/icons) for each of the 4 icons. */
+    /* icon stuff: we use 4 icons - "kalu", "kalu-paused", "kalu-gray" and
+     * "kalu-gray-paused" - from the theme.
+     * Using icon name allows user to easily specify icons (putting files in
+     * ~/.local/share/icons) for each of the 4 icons. Because we need them all,
+     * we ensure they all exists, and if not create them.
+     * "kalu" will come from kalu's binary
+     * "kalu-paused" comes from "kalu" w/ added bars
+     * "kalu-gray" comes from "kalu" but in gray
+     * "kaly-gray-paused" comes from "kalu-gray" w/ added bars */
+
     icon_theme = gtk_icon_theme_get_default ();
-    factory = gtk_icon_factory_new ();
-    /* kalu-logo */
-    pixbuf_kalu = gtk_icon_theme_load_icon (icon_theme, "kalu", 48, 0, NULL);
-    if (!pixbuf_kalu)
+    pixbuf_kalu = NULL;
+
+    /* kalu */
+    if (!gtk_icon_theme_has_icon (icon_theme, "kalu"))
     {
+        GInputStream *stream;
+
         /* fallback to inline logo */
-        debug ("Failed to load icon 'kalu' -- fallback to inline logo");
+        debug ("No icon 'kalu' in theme -- load inline logo");
         stream = g_memory_input_stream_new_from_data (
                 &_binary_kalu_logo_start,
                 (gssize) &_binary_kalu_logo_size,
                 NULL);
         pixbuf_kalu = gdk_pixbuf_new_from_stream (stream, NULL, NULL);
         g_object_unref (G_OBJECT (stream));
-    }
-    iconset = gtk_icon_set_new_from_pixbuf (pixbuf_kalu);
-    gtk_icon_factory_add (factory, "kalu-logo", iconset);
-    /* add paused version */
-    pixbuf = gtk_icon_theme_load_icon (icon_theme, "kalu-paused", 48, 0, NULL);
-    if (!pixbuf)
-    {
-        debug ("Failed to load icon 'kalu-paused' -- creating it");
-        pixbuf = get_paused_pixbuf (pixbuf_kalu);
-    }
-    iconset = gtk_icon_set_new_from_pixbuf (pixbuf);
-    g_object_unref (G_OBJECT (pixbuf));
-    gtk_icon_factory_add (factory, "kalu-logo-paused", iconset);
-    /* kalu-logo-gray */
-    pixbuf_gray = gtk_icon_theme_load_icon (icon_theme, "kalu-gray", 48, 0, NULL);
-    if (!pixbuf_gray)
-    {
-        debug ("Failed to load icon 'kalu-gray' -- creating it");
-        pixbuf_gray = get_gray_pixbuf (pixbuf_kalu);
-    }
-    iconset = gtk_icon_set_new_from_pixbuf (pixbuf_gray);
-    gtk_icon_factory_add (factory, "kalu-logo-gray", iconset);
-    /* add paused version */
-    pixbuf = gtk_icon_theme_load_icon (icon_theme, "kalu-gray-paused", 48, 0, NULL);
-    if (!pixbuf)
-    {
-        debug ("Failed to load icon 'kalu-gray-paused' -- creating it");
-        pixbuf = get_paused_pixbuf (pixbuf_gray);
-    }
-    iconset = gtk_icon_set_new_from_pixbuf (pixbuf);
-    g_object_unref (G_OBJECT (pixbuf));
-    gtk_icon_factory_add (factory, "kalu-logo-gray-paused", iconset);
-    /* free pixbufs */
-    g_object_unref (G_OBJECT (pixbuf_kalu));
-    g_object_unref (G_OBJECT (pixbuf_gray));
-    /* add it all */
-    gtk_icon_factory_add_default (factory);
 
-    icon = gtk_status_icon_new_from_stock ("kalu-logo-gray");
+        gtk_icon_theme_add_builtin_icon ("kalu", 48, pixbuf_kalu);
+    }
+
+    /* kalu-paused */
+    if (!gtk_icon_theme_has_icon (icon_theme, "kalu-paused"))
+    {
+        if (!pixbuf_kalu)
+            pixbuf_kalu = gtk_icon_theme_load_icon (icon_theme, "kalu", 48, 0, NULL);
+
+        debug ("No icon 'kalu-paused' -- creating it");
+        pixbuf = get_paused_pixbuf (pixbuf_kalu);
+        gtk_icon_theme_add_builtin_icon ("kalu-paused", 48, pixbuf);
+        g_object_unref (pixbuf);
+    }
+
+    /* kalu-gray */
+    if (!gtk_icon_theme_has_icon (icon_theme, "kalu-gray"))
+    {
+        if (!pixbuf_kalu)
+            pixbuf_kalu = gtk_icon_theme_load_icon (icon_theme, "kalu", 48, 0, NULL);
+
+        debug ("No icon 'kalu-gray' -- creating it");
+        pixbuf = get_gray_pixbuf (pixbuf_kalu);
+        gtk_icon_theme_add_builtin_icon ("kalu-gray", 48, pixbuf);
+        g_object_unref (pixbuf);
+    }
+
+    if (pixbuf_kalu)
+        g_object_unref (pixbuf_kalu);
+
+    /* kalu-gray-paused */
+    if (!gtk_icon_theme_has_icon (icon_theme, "kalu-gray-paused"))
+    {
+        pixbuf_kalu = gtk_icon_theme_load_icon (icon_theme, "kalu-gray", 48, 0, NULL);
+
+        debug ("No icon 'kalu-gray-paused' -- creating it");
+        pixbuf = get_paused_pixbuf (pixbuf_kalu);
+        gtk_icon_theme_add_builtin_icon ("kalu-gray-paused", 48, pixbuf);
+        g_object_unref (pixbuf);
+        g_object_unref (pixbuf_kalu);
+    }
+
+    /* create systray icon */
+    icon = gtk_status_icon_new_from_icon_name ("kalu-gray");
     gtk_status_icon_set_name (icon, "kalu");
     gtk_status_icon_set_title (icon, "kalu");
     gtk_status_icon_set_tooltip_text (icon, "kalu");

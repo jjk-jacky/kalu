@@ -1096,7 +1096,7 @@ on_select_provider (KaluUpdater *kupdater _UNUSED_, const gchar *pkg, alpm_list_
     button = gtk_dialog_add_button (GTK_DIALOG (dialog), _("Abort"), 0);
     /* button Use selected provider */
     GtkWidget *image;
-    image = gtk_image_new_from_stock (GTK_STOCK_APPLY, GTK_ICON_SIZE_BUTTON);
+    image = gtk_image_new_from_icon_name ("gtk-apply", GTK_ICON_SIZE_MENU);
     button = gtk_button_new_with_label (_("Use selected provider"));
     gtk_button_set_image (GTK_BUTTON (button), image);
     gtk_widget_set_sensitive (button, FALSE);
@@ -2321,12 +2321,7 @@ updater_run (const gchar *conffile, alpm_list_t *cmdline_post)
     gtk_container_set_border_width (GTK_CONTAINER (window), 0);
     gtk_window_set_has_resize_grip (GTK_WINDOW (window), FALSE);
     /* icon */
-    GtkWidget *image;
-    GdkPixbuf *pixbuf;
-    pixbuf = gtk_widget_render_icon_pixbuf (window, "kalu-logo",
-            GTK_ICON_SIZE_DIALOG);
-    gtk_window_set_icon (GTK_WINDOW (window), pixbuf);
-    g_object_unref (pixbuf);
+    gtk_window_set_icon_name (GTK_WINDOW (window), "kalu");
 
     /* ensure minimum size */
     gint w, h;
@@ -2581,13 +2576,13 @@ updater_run (const gchar *conffile, alpm_list_t *cmdline_post)
     gtk_box_pack_start (GTK_BOX (vbox), hbox, FALSE, FALSE, 0);
     gtk_widget_show (hbox);
 
-    GtkWidget *button;
+    GtkWidget *button, *image;
     if (!run_simulation)
     {
         /* Upgrade system */
         button = gtk_button_new_with_mnemonic (_("_Upgrade system..."));
         updater->btn_sysupgrade = button;
-        image = gtk_image_new_from_stock ("kalu-logo", GTK_ICON_SIZE_BUTTON);
+        image = gtk_image_new_from_icon_name ("kalu", GTK_ICON_SIZE_MENU);
         gtk_button_set_image (GTK_BUTTON (button), image);
         gtk_widget_set_sensitive (button, FALSE);
         gtk_box_pack_end (GTK_BOX (hbox), button, FALSE, FALSE, 2);
@@ -2599,7 +2594,9 @@ updater_run (const gchar *conffile, alpm_list_t *cmdline_post)
     }
 
     /* Close */
-    button = gtk_button_new_from_stock (GTK_STOCK_CLOSE);
+    button = gtk_button_new_with_mnemonic (_("_Close"));
+    image = gtk_image_new_from_icon_name ("window-close", GTK_ICON_SIZE_MENU);
+    gtk_button_set_image (GTK_BUTTON (button), image);
     updater->btn_close = button;
     gtk_widget_set_sensitive (button, FALSE);
     gtk_box_pack_end (GTK_BOX (hbox), button, FALSE, FALSE, 2);
@@ -2614,7 +2611,7 @@ updater_run (const gchar *conffile, alpm_list_t *cmdline_post)
         /* Re-run simulation (to ask questions again) */
         button = gtk_button_new_with_mnemonic (_("_Rerun simulation..."));
         updater->btn_sysupgrade = button;
-        image = gtk_image_new_from_stock (GTK_STOCK_REFRESH, GTK_ICON_SIZE_BUTTON);
+        image = gtk_image_new_from_icon_name ("view-refresh", GTK_ICON_SIZE_MENU);
         gtk_button_set_image (GTK_BUTTON (button), image);
         gtk_widget_set_sensitive (button, FALSE);
         gtk_box_pack_end (GTK_BOX (hbox), button, FALSE, FALSE, 2);

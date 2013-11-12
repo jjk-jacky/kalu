@@ -104,20 +104,20 @@ new_confirm (
     gtk_window_set_skip_pager_hint (GTK_WINDOW (dialog), TRUE);
 
     button = gtk_dialog_add_button (GTK_DIALOG (dialog),
-            (NULL == btn_no_label) ? GTK_STOCK_NO : btn_no_label,
+            (NULL == btn_no_label) ? _("No") : btn_no_label,
             GTK_RESPONSE_NO);
-    image = gtk_image_new_from_stock (
-            (NULL == btn_no_image) ? GTK_STOCK_NO : btn_no_image,
+    image = gtk_image_new_from_icon_name (
+            (NULL == btn_no_image) ? "gtk-no" : btn_no_image,
             GTK_ICON_SIZE_MENU);
     gtk_button_set_image( GTK_BUTTON(button), image);
     if (config->force_images)
         gtk_button_set_always_show_image ((GtkButton *) button, TRUE);
 
     button = gtk_dialog_add_button (GTK_DIALOG (dialog),
-            (NULL == btn_yes_label) ? GTK_STOCK_YES : btn_yes_label,
+            (NULL == btn_yes_label) ? _("Yes") : btn_yes_label,
             GTK_RESPONSE_YES);
-    image = gtk_image_new_from_stock (
-            (NULL == btn_yes_image) ? GTK_STOCK_YES : btn_yes_image,
+    image = gtk_image_new_from_icon_name (
+            (NULL == btn_yes_image) ? "gtk-yes" : btn_yes_image,
             GTK_ICON_SIZE_MENU);
     gtk_button_set_image (GTK_BUTTON (button), image);
     if (config->force_images)
@@ -218,8 +218,8 @@ new_notification (const gchar *summary, const gchar *text)
             w = gtk_label_new (NULL);
             g_object_ref_sink (w);
             debug ("new notification: using kalu's icon (small)");
-            pixbuf = gtk_widget_render_icon_pixbuf (w, "kalu-logo",
-                    GTK_ICON_SIZE_BUTTON);
+            pixbuf = gtk_icon_theme_load_icon (gtk_icon_theme_get_default (),
+                    "kalu", 20, 0, NULL);
         }
         notify_notification_set_image_from_pixbuf (notification, pixbuf);
         g_object_unref (pixbuf);

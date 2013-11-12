@@ -1360,7 +1360,7 @@ add_list (GtkWidget     *grid,
     gtk_widget_show (vbox_tb);
 
     /* button Add */
-    image = gtk_image_new_from_stock (GTK_STOCK_ADD, GTK_ICON_SIZE_MENU);
+    image = gtk_image_new_from_icon_name ("list-add", GTK_ICON_SIZE_MENU);
     button = gtk_button_new ();
     gtk_button_set_image (GTK_BUTTON (button), image);
     gtk_widget_set_tooltip_text (button, tooltip_add);
@@ -1369,7 +1369,7 @@ add_list (GtkWidget     *grid,
             G_CALLBACK (btn_add_cb), (gpointer) tree);
     gtk_widget_show (button);
     /* button Edit */
-    image = gtk_image_new_from_stock (GTK_STOCK_EDIT, GTK_ICON_SIZE_MENU);
+    image = gtk_image_new_from_icon_name ("gtk-edit", GTK_ICON_SIZE_MENU);
     button = gtk_button_new ();
     g_object_set_data (G_OBJECT (tree), "btn-edit", (gpointer) button);
     gtk_button_set_image (GTK_BUTTON (button), image);
@@ -1379,7 +1379,7 @@ add_list (GtkWidget     *grid,
             G_CALLBACK (btn_edit_cb), (gpointer) tree);
     gtk_widget_show (button);
     /* button Remove */
-    image = gtk_image_new_from_stock (GTK_STOCK_REMOVE, GTK_ICON_SIZE_MENU);
+    image = gtk_image_new_from_icon_name ("list-remove", GTK_ICON_SIZE_MENU);
     button = gtk_button_new ();
     g_object_set_data (G_OBJECT (tree), "btn-remove", (gpointer) button);
     gtk_button_set_image (GTK_BUTTON (button), image);
@@ -1563,11 +1563,7 @@ show_prefs (void)
     /* add to list of open windows */
     add_open_window (window);
     /* icon */
-    GdkPixbuf *pixbuf;
-    pixbuf = gtk_widget_render_icon_pixbuf (window, "kalu-logo",
-            GTK_ICON_SIZE_DIALOG);
-    gtk_window_set_icon (GTK_WINDOW (window), pixbuf);
-    g_object_unref (pixbuf);
+    gtk_window_set_icon_name (GTK_WINDOW (window), "kalu");
 
     /* vbox */
     GtkWidget *vbox;
@@ -2238,8 +2234,8 @@ show_prefs (void)
     gtk_widget_show (hbox);
 
     GtkWidget *image;
-    button = gtk_button_new_with_label (_("Save preferences"));
-    image = gtk_image_new_from_stock (GTK_STOCK_SAVE, GTK_ICON_SIZE_MENU);
+    button = gtk_button_new_with_mnemonic (_("_Save preferences"));
+    image = gtk_image_new_from_icon_name ("document-save", GTK_ICON_SIZE_MENU);
     gtk_button_set_image (GTK_BUTTON (button), image);
     gtk_box_pack_end (GTK_BOX (hbox), button, FALSE, FALSE, 4);
     gtk_widget_set_tooltip_text (button, _("Apply and save preferences"));
@@ -2249,7 +2245,9 @@ show_prefs (void)
         gtk_button_set_always_show_image ((GtkButton *) button, TRUE);
     gtk_widget_show (button);
 
-    button = gtk_button_new_from_stock (GTK_STOCK_CLOSE);
+    button = gtk_button_new_with_mnemonic (_("_Close"));
+    image = gtk_image_new_from_icon_name ("window-close", GTK_ICON_SIZE_MENU);
+    gtk_button_set_image (GTK_BUTTON (button), image);
     gtk_box_pack_end (GTK_BOX (hbox), button, FALSE, FALSE, 0);
     g_signal_connect_swapped (G_OBJECT (button), "clicked",
             G_CALLBACK (gtk_widget_destroy), (gpointer) window);

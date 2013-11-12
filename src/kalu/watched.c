@@ -690,12 +690,7 @@ watched_new_window (w_type_t type)
     /* add to list of open windows */
     add_open_window (window);
     /* icon */
-    GdkPixbuf *pixbuf;
-    pixbuf = gtk_widget_render_icon_pixbuf (window,
-            "kalu-logo",
-            GTK_ICON_SIZE_DIALOG);
-    gtk_window_set_icon (GTK_WINDOW (window), pixbuf);
-    g_object_unref (pixbuf);
+    gtk_window_set_icon_name (GTK_WINDOW (window), "kalu");
 
     /* ensure minimum size */
     gint w, h;
@@ -723,7 +718,8 @@ watched_new_window (w_type_t type)
         gtk_widget_show (toolbar);
 
         /* button: Add */
-        tb_item = gtk_tool_button_new_from_stock (GTK_STOCK_ADD);
+        tb_item = gtk_tool_button_new (NULL, NULL);
+        gtk_tool_button_set_icon_name (GTK_TOOL_BUTTON (tb_item), "list-add");
         gtk_widget_set_tooltip_text (GTK_WIDGET (tb_item),
                 _("Add a new package"));
         g_signal_connect (G_OBJECT (tb_item), "clicked",
@@ -731,7 +727,8 @@ watched_new_window (w_type_t type)
         gtk_toolbar_insert (GTK_TOOLBAR (toolbar), tb_item, -1);
         gtk_widget_show (GTK_WIDGET (tb_item));
         /* button: Edit */
-        tb_item = gtk_tool_button_new_from_stock (GTK_STOCK_EDIT);
+        tb_item = gtk_tool_button_new (NULL, NULL);
+        gtk_tool_button_set_icon_name (GTK_TOOL_BUTTON (tb_item), "gtk-edit");
         gtk_widget_set_tooltip_text (GTK_WIDGET (tb_item),
                 _("Edit selected package"));
         gtk_widget_set_sensitive (GTK_WIDGET (tb_item), FALSE);
@@ -740,7 +737,8 @@ watched_new_window (w_type_t type)
         gtk_toolbar_insert (GTK_TOOLBAR (toolbar), tb_item, -1);
         gtk_widget_show (GTK_WIDGET (tb_item));
         /* button: Remove */
-        tb_item = gtk_tool_button_new_from_stock (GTK_STOCK_REMOVE);
+        tb_item = gtk_tool_button_new (NULL, NULL);
+        gtk_tool_button_set_icon_name (GTK_TOOL_BUTTON (tb_item), "list-remove");
         gtk_widget_set_tooltip_text (GTK_WIDGET (tb_item),
                 _("Remove selected package"));
         gtk_widget_set_sensitive (GTK_WIDGET (tb_item), FALSE);
@@ -753,7 +751,8 @@ watched_new_window (w_type_t type)
         gtk_toolbar_insert (GTK_TOOLBAR (toolbar), tb_item, -1);
         gtk_widget_show (GTK_WIDGET (tb_item));
         /* button: Reload from memory */
-        tb_item = gtk_tool_button_new_from_stock (GTK_STOCK_UNDO);
+        tb_item = gtk_tool_button_new (NULL, NULL);
+        gtk_tool_button_set_icon_name (GTK_TOOL_BUTTON (tb_item), "edit-undo");
         g_object_set_data (G_OBJECT (tb_item),
                 "is-aur",
                 GINT_TO_POINTER (is_aur));
@@ -764,7 +763,8 @@ watched_new_window (w_type_t type)
         gtk_toolbar_insert (GTK_TOOLBAR (toolbar), tb_item, -1);
         gtk_widget_show (GTK_WIDGET (tb_item));
         /* button: Reload from disk */
-        tb_item = gtk_tool_button_new_from_stock (GTK_STOCK_REFRESH);
+        tb_item = gtk_tool_button_new (NULL, NULL);
+        gtk_tool_button_set_icon_name (GTK_TOOL_BUTTON (tb_item), "view-refresh");
         g_object_set_data (G_OBJECT (tb_item),
                 "is-aur",
                 GINT_TO_POINTER (is_aur));
@@ -913,8 +913,8 @@ watched_new_window (w_type_t type)
     if (is_update)
     {
         /* Apply */
-        button = gtk_button_new_with_label (_("Mark as seen"));
-        image = gtk_image_new_from_stock (GTK_STOCK_APPLY, GTK_ICON_SIZE_MENU);
+        button = gtk_button_new_with_mnemonic (_("_Mark as seen"));
+        image = gtk_image_new_from_icon_name ("gtk-apply", GTK_ICON_SIZE_MENU);
         gtk_button_set_image (GTK_BUTTON (button), image);
         gtk_box_pack_end (GTK_BOX (hbox), button, FALSE, FALSE, 4);
         gtk_widget_set_tooltip_text (button,
@@ -926,8 +926,8 @@ watched_new_window (w_type_t type)
     else
     {
         /* Save */
-        button = gtk_button_new_with_label (_("Save list"));
-        image = gtk_image_new_from_stock (GTK_STOCK_SAVE, GTK_ICON_SIZE_MENU);
+        button = gtk_button_new_with_mnemonic (_("_Save list"));
+        image = gtk_image_new_from_icon_name ("document-save", GTK_ICON_SIZE_MENU);
         gtk_button_set_image (GTK_BUTTON (button), image);
         gtk_box_pack_end (GTK_BOX (hbox), button, FALSE, FALSE, 4);
         gtk_widget_set_tooltip_text (button,
@@ -939,7 +939,9 @@ watched_new_window (w_type_t type)
     if (config->force_images)
         gtk_button_set_always_show_image ((GtkButton *) button, TRUE);
     /* Close */
-    button = gtk_button_new_from_stock (GTK_STOCK_CLOSE);
+    button = gtk_button_new_with_mnemonic (_("_Close"));
+    image = gtk_image_new_from_icon_name ("window-close", GTK_ICON_SIZE_MENU);
+    gtk_button_set_image (GTK_BUTTON (button), image);
     gtk_box_pack_end (GTK_BOX (hbox), button, FALSE, FALSE, 2);
     g_signal_connect (G_OBJECT (button), "clicked",
             G_CALLBACK (btn_close_cb), (gpointer) type);

@@ -1167,11 +1167,7 @@ new_window (gboolean only_updates, GtkWidget **window, GtkWidget **textview)
     /* add to list of open windows */
     add_open_window (*window);
     /* icon */
-    GdkPixbuf *pixbuf;
-    pixbuf = gtk_widget_render_icon_pixbuf (*window, "kalu-logo",
-            GTK_ICON_SIZE_DIALOG);
-    gtk_window_set_icon (GTK_WINDOW (*window), pixbuf);
-    g_object_unref (pixbuf);
+    gtk_window_set_icon_name (GTK_WINDOW (*window), "kalu");
 
     /* everything in a vbox */
     GtkWidget *vbox;
@@ -1228,8 +1224,8 @@ new_window (gboolean only_updates, GtkWidget **window, GtkWidget **textview)
         g_object_set_data (G_OBJECT (*window), "lists", lists);
 
         /* Mark read */
-        button = gtk_button_new_with_label (_("Mark as read"));
-        image = gtk_image_new_from_stock (GTK_STOCK_APPLY, GTK_ICON_SIZE_MENU);
+        button = gtk_button_new_with_mnemonic (_("_Mark as read"));
+        image = gtk_image_new_from_icon_name ("gtk-apply", GTK_ICON_SIZE_MENU);
         gtk_button_set_image (GTK_BUTTON (button), image);
         gtk_box_pack_end (GTK_BOX (hbox), button, FALSE, FALSE, 4);
         gtk_widget_set_tooltip_text (button, _("Mark checked news as read"));
@@ -1241,7 +1237,9 @@ new_window (gboolean only_updates, GtkWidget **window, GtkWidget **textview)
     }
 
     /* Close */
-    button = gtk_button_new_from_stock (GTK_STOCK_CLOSE);
+    button = gtk_button_new_with_mnemonic (_("_Close"));
+    image = gtk_image_new_from_icon_name ("window-close", GTK_ICON_SIZE_MENU);
+    gtk_button_set_image (GTK_BUTTON (button), image);
     gtk_box_pack_end (GTK_BOX (hbox), button, FALSE, FALSE, 2);
     g_signal_connect (G_OBJECT (button), "clicked",
             G_CALLBACK (btn_close_cb), (gpointer) *window);
