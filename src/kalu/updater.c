@@ -2588,8 +2588,7 @@ updater_run (const gchar *conffile, alpm_list_t *cmdline_post)
         gtk_box_pack_end (GTK_BOX (hbox), button, FALSE, FALSE, 2);
         g_signal_connect (G_OBJECT (button), "clicked",
                 G_CALLBACK (btn_sysupgrade_cb), NULL);
-        if (config->force_images)
-            gtk_button_set_always_show_image ((GtkButton *) button, TRUE);
+        gtk_button_set_always_show_image ((GtkButton *) button, TRUE);
         gtk_widget_show (button);
     }
 
@@ -2602,8 +2601,7 @@ updater_run (const gchar *conffile, alpm_list_t *cmdline_post)
     gtk_box_pack_end (GTK_BOX (hbox), button, FALSE, FALSE, 2);
     g_signal_connect (G_OBJECT (button), "clicked",
             G_CALLBACK (btn_close_cb), NULL);
-    if (config->force_images)
-        gtk_button_set_always_show_image ((GtkButton *) button, TRUE);
+    gtk_button_set_always_show_image ((GtkButton *) button, TRUE);
     gtk_widget_show (button);
 
     if (run_simulation)
@@ -2617,8 +2615,7 @@ updater_run (const gchar *conffile, alpm_list_t *cmdline_post)
         gtk_box_pack_end (GTK_BOX (hbox), button, FALSE, FALSE, 2);
         g_signal_connect (G_OBJECT (button), "clicked",
                 G_CALLBACK (btn_rerun_cb), NULL);
-        if (config->force_images)
-            gtk_button_set_always_show_image ((GtkButton *) button, TRUE);
+        gtk_button_set_always_show_image ((GtkButton *) button, TRUE);
         gtk_widget_show (button);
     }
 

@@ -1231,8 +1231,7 @@ new_window (gboolean only_updates, GtkWidget **window, GtkWidget **textview)
         gtk_widget_set_tooltip_text (button, _("Mark checked news as read"));
         g_signal_connect (G_OBJECT (button), "clicked",
                 G_CALLBACK (btn_mark_cb), (gpointer) *window);
-        if (config->force_images)
-            gtk_button_set_always_show_image ((GtkButton *) button, TRUE);
+        gtk_button_set_always_show_image ((GtkButton *) button, TRUE);
         gtk_widget_show (button);
     }
 
@@ -1243,8 +1242,7 @@ new_window (gboolean only_updates, GtkWidget **window, GtkWidget **textview)
     gtk_box_pack_end (GTK_BOX (hbox), button, FALSE, FALSE, 2);
     g_signal_connect (G_OBJECT (button), "clicked",
             G_CALLBACK (btn_close_cb), (gpointer) *window);
-    if (config->force_images)
-        gtk_button_set_always_show_image ((GtkButton *) button, TRUE);
+    gtk_button_set_always_show_image ((GtkButton *) button, TRUE);
     gtk_widget_show (button);
 }
 

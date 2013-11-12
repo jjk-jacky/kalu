@@ -2241,8 +2241,7 @@ show_prefs (void)
     gtk_widget_set_tooltip_text (button, _("Apply and save preferences"));
     g_signal_connect (G_OBJECT (button), "clicked",
             G_CALLBACK (btn_save_cb), NULL);
-    if (config->force_images)
-        gtk_button_set_always_show_image ((GtkButton *) button, TRUE);
+    gtk_button_set_always_show_image ((GtkButton *) button, TRUE);
     gtk_widget_show (button);
 
     button = gtk_button_new_with_mnemonic (_("_Close"));
@@ -2251,8 +2250,7 @@ show_prefs (void)
     gtk_box_pack_end (GTK_BOX (hbox), button, FALSE, FALSE, 0);
     g_signal_connect_swapped (G_OBJECT (button), "clicked",
             G_CALLBACK (gtk_widget_destroy), (gpointer) window);
-    if (config->force_images)
-        gtk_button_set_always_show_image ((GtkButton *) button, TRUE);
+    gtk_button_set_always_show_image ((GtkButton *) button, TRUE);
     gtk_widget_show (button);
 
     /* signals */

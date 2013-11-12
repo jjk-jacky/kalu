@@ -936,8 +936,7 @@ watched_new_window (w_type_t type)
                 G_CALLBACK (btn_save_cb), GINT_TO_POINTER (is_aur));
         gtk_widget_show (button);
     }
-    if (config->force_images)
-        gtk_button_set_always_show_image ((GtkButton *) button, TRUE);
+    gtk_button_set_always_show_image ((GtkButton *) button, TRUE);
     /* Close */
     button = gtk_button_new_with_mnemonic (_("_Close"));
     image = gtk_image_new_from_icon_name ("window-close", GTK_ICON_SIZE_MENU);
@@ -945,8 +944,7 @@ watched_new_window (w_type_t type)
     gtk_box_pack_end (GTK_BOX (hbox), button, FALSE, FALSE, 2);
     g_signal_connect (G_OBJECT (button), "clicked",
             G_CALLBACK (btn_close_cb), (gpointer) type);
-    if (config->force_images)
-        gtk_button_set_always_show_image ((GtkButton *) button, TRUE);
+    gtk_button_set_always_show_image ((GtkButton *) button, TRUE);
     gtk_widget_show (button);
 
     /* signals */

@@ -110,8 +110,7 @@ new_confirm (
             (NULL == btn_no_image) ? "gtk-no" : btn_no_image,
             GTK_ICON_SIZE_MENU);
     gtk_button_set_image( GTK_BUTTON(button), image);
-    if (config->force_images)
-        gtk_button_set_always_show_image ((GtkButton *) button, TRUE);
+    gtk_button_set_always_show_image ((GtkButton *) button, TRUE);
 
     button = gtk_dialog_add_button (GTK_DIALOG (dialog),
             (NULL == btn_yes_label) ? _("Yes") : btn_yes_label,
@@ -120,8 +119,7 @@ new_confirm (
             (NULL == btn_yes_image) ? "gtk-yes" : btn_yes_image,
             GTK_ICON_SIZE_MENU);
     gtk_button_set_image (GTK_BUTTON (button), image);
-    if (config->force_images)
-        gtk_button_set_always_show_image ((GtkButton *) button, TRUE);
+    gtk_button_set_always_show_image ((GtkButton *) button, TRUE);
 
     return dialog;
 }
