@@ -652,6 +652,32 @@ on_event_scriptlet (KaluUpdater *kupdater _UNUSED_, const gchar *msg)
 }
 
 static void
+on_event_pacnew_created (KaluUpdater *kupdater _UNUSED_,
+                         gboolean from_noupgrade _UNUSED_, const gchar *pkg,
+                         const gchar *old_version, const gchar *new_version _UNUSED_,
+                         const gchar *file)
+{
+    add_log (LOGTYPE_WARNING, _("Warning: %s installed as %s.pacnew\n"),
+            file, file);
+}
+
+static void
+on_event_pacsave_created (KaluUpdater *kupdater _UNUSED_, const gchar *pkg _UNUSED_,
+                          const gchar *version _UNUSED_, const gchar *file)
+{
+    add_log (LOGTYPE_WARNING, _("Warning: %s saved as %s.pacsave\n"),
+            file, file);
+}
+
+static void
+on_event_pacorig_created (KaluUpdater *kupdater _UNUSED_, const gchar *pkg _UNUSED_,
+                          const gchar *version _UNUSED_, const gchar *file)
+{
+    add_log (LOGTYPE_WARNING, _("Warning: %s saved as %s.pacorig\n"),
+            file, file);
+}
+
+static void
 on_event_delta_generating (KaluUpdater *kupdater _UNUSED_, const gchar *delta,
                            const gchar *dest)
 {
@@ -1969,6 +1995,18 @@ updater_new_cb (GObject *source _UNUSED_, GAsyncResult *res,
     g_signal_connect (kalu_updater,
             "event-scriptlet",
             G_CALLBACK (on_event_scriptlet),
+            NULL);
+    g_signal_connect (kalu_updater,
+            "event-pacnew-created",
+            G_CALLBACK (on_event_pacnew_created),
+            NULL);
+    g_signal_connect (kalu_updater,
+            "event-pacsave-created",
+            G_CALLBACK (on_event_pacsave_created),
+            NULL);
+    g_signal_connect (kalu_updater,
+            "event-pacorig-created",
+            G_CALLBACK (on_event_pacorig_created),
             NULL);
     g_signal_connect (kalu_updater,
             "event-delta-generating",

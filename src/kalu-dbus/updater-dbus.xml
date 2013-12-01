@@ -128,6 +128,23 @@
     <signal name='EventScriptlet'>
       <arg type='s' name='msg' />
     </signal>
+    <signal name='EventPacnewCreated'>
+        <arg type='i' name='from_noupgrade' />
+        <arg type='s' name='pkg' />
+        <arg type='s' name='old_version' />
+        <arg type='s' name='new_version' />
+        <arg type='s' name='file' />
+    </signal>
+    <signal name='EventPacsaveCreated'>
+        <arg type='s' name='pkg' />
+        <arg type='s' name='version' />
+        <arg type='s' name='file' />
+    </signal>
+    <signal name='EventPacorigCreated'>
+        <arg type='s' name='pkg' />
+        <arg type='s' name='version' />
+        <arg type='s' name='file' />
+    </signal>
     <signal name='EventDeltaGenerating'>
       <arg type='s' name='delta' />
       <arg type='s' name='dest' />
