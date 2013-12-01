@@ -203,22 +203,27 @@ error:
 }
 
 static void
-log_cb (alpm_loglevel_t level, const char *fmt, va_list args)
+event_cb (alpm_event_log_t *event)
 {
     gchar *s;
     gsize l;
 
-    if (!fmt || *fmt == '\0')
+    if (event->type != ALPM_EVENT_LOG)
     {
         return;
     }
 
-    if (config->is_debug == 2 && (level & (ALPM_LOG_DEBUG | ALPM_LOG_FUNCTION)))
+    if (!event->fmt || *event->fmt == '\0')
     {
         return;
     }
 
-    s = g_strdup_vprintf (fmt, args);
+    if (config->is_debug == 2 && (event->level & (ALPM_LOG_DEBUG | ALPM_LOG_FUNCTION)))
+    {
+        return;
+    }
+
+    s = g_strdup_vprintf (event->fmt, event->args);
     l = strlen (s);
     if (s[--l] == '\n')
         s[l] = '\0';
@@ -300,7 +305,7 @@ kalu_alpm_load (kalu_simul_t *simulation, const gchar *conffile, GError **error)
     else
 #endif
     if (config->is_debug > 1)
-        alpm_option_set_logcb (alpm->handle, log_cb);
+        alpm_option_set_eventcb (alpm->handle, (alpm_cb_event) event_cb);
 
     /* now we need to add dbs */
     alpm_list_t *i;

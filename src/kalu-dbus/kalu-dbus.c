@@ -221,158 +221,171 @@ make_optstring (alpm_depend_t *optdep)
 
 /* callback to handle messages/notifications from libalpm transactions */
 static void
-event_cb (alpm_event_t event, void *data1, void *data2)
+event_cb (alpm_event_t *event)
 {
-    if (event == ALPM_EVENT_ADD_DONE)
+    if (event->type == ALPM_EVENT_PACKAGE_OPERATION_DONE)
     {
-        alpm_logaction (handle, PREFIX, "installed %s (%s)\n",
-                alpm_pkg_get_name (data1),
-                alpm_pkg_get_version (data1));
-
-        /* computing optional dependencies */
-        GVariantBuilder *builder;
-        alpm_list_t *i, *optdeps = alpm_pkg_get_optdepends (data1);
-
-        builder = g_variant_builder_new (G_VARIANT_TYPE ("as"));
-        FOR_LIST (i, optdeps)
+        alpm_event_package_operation_t *e = (alpm_event_package_operation_t *) event;
+        switch (e->operation)
         {
-            g_variant_builder_add (builder, "s", make_optstring (i->data));
+            case ALPM_PACKAGE_UPGRADE:
+                {
+                    /* computing new optional dependencies */
+                    GVariantBuilder *builder;
+                    alpm_list_t *old = alpm_pkg_get_optdepends (e->oldpkg);
+                    alpm_list_t *new = alpm_pkg_get_optdepends (e->newpkg);
+                    alpm_list_t *i, *optdeps;
+                    optdeps = alpm_list_diff (new, old, (alpm_list_fn_cmp) depend_cmp);
+
+                    builder = g_variant_builder_new (G_VARIANT_TYPE ("as"));
+                    FOR_LIST (i, optdeps)
+                    {
+                        g_variant_builder_add (builder, "s", make_optstring (i->data));
+                    }
+
+                    emit_signal ("EventUpgraded", "sssas",
+                            alpm_pkg_get_name (e->newpkg),
+                            alpm_pkg_get_version (e->oldpkg),
+                            alpm_pkg_get_version (e->newpkg),
+                            builder);
+                    g_variant_builder_unref (builder);
+                    alpm_list_free (optdeps);
+                }
+                break;
+
+            case ALPM_PACKAGE_INSTALL:
+                {
+                    /* computing optional dependencies */
+                    GVariantBuilder *builder;
+                    alpm_list_t *i, *optdeps = alpm_pkg_get_optdepends (e->newpkg);
+
+                    builder = g_variant_builder_new (G_VARIANT_TYPE ("as"));
+                    FOR_LIST (i, optdeps)
+                    {
+                        g_variant_builder_add (builder, "s", make_optstring (i->data));
+                    }
+
+                    emit_signal ("EventInstalled", "ssas",
+                            alpm_pkg_get_name (e->newpkg),
+                            alpm_pkg_get_version (e->newpkg),
+                            builder);
+                    g_variant_builder_unref (builder);
+                }
+                break;
+
+            case ALPM_PACKAGE_REMOVE:
+                emit_signal ("EventRemoved", "ss",
+                        alpm_pkg_get_name (e->oldpkg),
+                        alpm_pkg_get_version (e->oldpkg));
+                break;
+
+            case ALPM_PACKAGE_REINSTALL:
+                emit_signal ("EventReinstalled", "ss",
+                        alpm_pkg_get_name (e->newpkg),
+                        alpm_pkg_get_version (e->newpkg));
+                break;
+
+            case ALPM_PACKAGE_DOWNGRADE:
+                {
+                    /* computing new optional dependencies */
+                    GVariantBuilder *builder;
+                    alpm_list_t *old = alpm_pkg_get_optdepends (e->oldpkg);
+                    alpm_list_t *new = alpm_pkg_get_optdepends (e->newpkg);
+                    alpm_list_t *i, *optdeps;
+                    optdeps = alpm_list_diff (new, old, (alpm_list_fn_cmp) depend_cmp);
+
+                    builder = g_variant_builder_new (G_VARIANT_TYPE ("as"));
+                    FOR_LIST (i, optdeps)
+                    {
+                        g_variant_builder_add (builder, "s", make_optstring (i->data));
+                    }
+
+                    emit_signal ("EventDowngraded", "sssas",
+                            alpm_pkg_get_name (e->newpkg),
+                            alpm_pkg_get_version (e->oldpkg),
+                            alpm_pkg_get_version (e->newpkg),
+                            builder);
+                    g_variant_builder_unref (builder);
+                    alpm_list_free (optdeps);
+                }
+                break;
         }
-
-        emit_signal ("EventInstalled", "ssas",
-                alpm_pkg_get_name (data1),
-                alpm_pkg_get_version (data1),
-                builder);
-        g_variant_builder_unref (builder);
     }
-    else if (event == ALPM_EVENT_REINSTALL_DONE)
+    else if (event->type == ALPM_EVENT_OPTDEP_REMOVAL)
     {
-        alpm_logaction (handle, PREFIX, "reinstalled %s (%s)\n",
-                alpm_pkg_get_name (data1),
-                alpm_pkg_get_version (data1));
-
-        emit_signal ("EventReinstalled", "ss",
-                alpm_pkg_get_name (data1),
-                alpm_pkg_get_version (data1));
-    }
-    else if (event == ALPM_EVENT_REMOVE_DONE)
-    {
-        alpm_logaction (handle, PREFIX, "removed %s (%s)\n",
-                alpm_pkg_get_name (data1),
-                alpm_pkg_get_version (data1));
-        emit_signal ("EventRemoved", "ss",
-                alpm_pkg_get_name (data1),
-                alpm_pkg_get_version (data1));
-    }
-    else if (event == ALPM_EVENT_UPGRADE_DONE)
-    {
-        alpm_logaction (handle, PREFIX, "upgraded %s (%s -> %s)\n",
-                alpm_pkg_get_name (data1),
-                alpm_pkg_get_version (data2),
-                alpm_pkg_get_version (data1));
-
-        /* computing new optional dependencies */
-        GVariantBuilder *builder;
-        alpm_list_t *old = alpm_pkg_get_optdepends (data2);
-        alpm_list_t *new = alpm_pkg_get_optdepends (data1);
-        alpm_list_t *i, *optdeps;
-        optdeps = alpm_list_diff (new, old, (alpm_list_fn_cmp) depend_cmp);
-
-        builder = g_variant_builder_new (G_VARIANT_TYPE ("as"));
-        FOR_LIST (i, optdeps)
-        {
-            g_variant_builder_add (builder, "s", make_optstring (i->data));
-        }
-
-        emit_signal ("EventUpgraded", "sssas",
-                alpm_pkg_get_name (data1),
-                alpm_pkg_get_version (data2),
-                alpm_pkg_get_version (data1),
-                builder);
-        g_variant_builder_unref (builder);
-        alpm_list_free (optdeps);
-    }
-    else if (event == ALPM_EVENT_DOWNGRADE_DONE)
-    {
-        alpm_logaction (handle, PREFIX, "downgraded %s (%s -> %s)\n",
-                alpm_pkg_get_name (data1),
-                alpm_pkg_get_version (data2),
-                alpm_pkg_get_version (data1));
-
-        /* computing new optional dependencies */
-        GVariantBuilder *builder;
-        alpm_list_t *old = alpm_pkg_get_optdepends (data2);
-        alpm_list_t *new = alpm_pkg_get_optdepends (data1);
-        alpm_list_t *i, *optdeps;
-        optdeps = alpm_list_diff (new, old, (alpm_list_fn_cmp) depend_cmp);
-
-        builder = g_variant_builder_new (G_VARIANT_TYPE ("as"));
-        FOR_LIST (i, optdeps)
-        {
-            g_variant_builder_add (builder, "s", make_optstring (i->data));
-        }
-
-        emit_signal ("EventDowngraded", "sssas",
-                alpm_pkg_get_name (data1),
-                alpm_pkg_get_version (data2),
-                alpm_pkg_get_version (data1),
-                builder);
-        g_variant_builder_unref (builder);
-        alpm_list_free (optdeps);
-    }
-    else if (event == ALPM_EVENT_OPTDEP_REMOVAL)
-    {
+        alpm_event_optdep_removal_t *e = (alpm_event_optdep_removal_t *) event;
         emit_signal ("EventOptdepRemoval", "ss",
-                alpm_pkg_get_name (data1),
-                alpm_dep_compute_string (data2));
+                alpm_pkg_get_name (e->pkg),
+                alpm_dep_compute_string (e->optdep));
     }
-    else if (event == ALPM_EVENT_RETRIEVE_START)
+    else if (event->type == ALPM_EVENT_RETRIEVE_START)
     {
         /* Retrieving packages */
         emit_signal ("Event", "i", EVENT_RETRIEVING_PKGS);
     }
-    else if (event == ALPM_EVENT_CHECKDEPS_START)
+    else if (event->type == ALPM_EVENT_CHECKDEPS_START)
     {
         /* checking dependencies */
         emit_signal ("Event", "i", EVENT_CHECKING_DEPS);
     }
-    else if (event == ALPM_EVENT_RESOLVEDEPS_START)
+    else if (event->type == ALPM_EVENT_RESOLVEDEPS_START)
     {
         /* resolving dependencies */
         emit_signal ("Event", "i", EVENT_RESOLVING_DEPS);
     }
-    else if (event == ALPM_EVENT_INTERCONFLICTS_START)
+    else if (event->type == ALPM_EVENT_INTERCONFLICTS_START)
     {
         /* looking for inter-conflicts */
         emit_signal ("Event", "i", EVENT_INTERCONFLICTS);
     }
-    else if (event == ALPM_EVENT_SCRIPTLET_INFO)
+    else if (event->type == ALPM_EVENT_SCRIPTLET_INFO)
     {
-        emit_signal ("EventScriptlet", "s", data1);
+        emit_signal ("EventScriptlet", "s",
+                ((alpm_event_scriptlet_info_t *) event)->line);
     }
-    else if (event == ALPM_EVENT_KEY_DOWNLOAD_START)
+    else if (event->type == ALPM_EVENT_LOG)
+    {
+        alpm_event_log_t *e = (alpm_event_log_t *) event;
+
+        if (!e->fmt || *e->fmt == '\0')
+        {
+            return;
+        }
+
+        if (e->level & (ALPM_LOG_DEBUG | ALPM_LOG_FUNCTION))
+        {
+            return;
+        }
+
+        gchar *s = g_strdup_vprintf (e->fmt, e->args);
+        emit_signal ("Log", "is", (gint) e->level, s);
+        g_free (s);
+    }
+    else if (event->type == ALPM_EVENT_KEY_DOWNLOAD_START)
     {
         emit_signal ("Event", "i", EVENT_KEY_DOWNLOAD);
     }
-    else if (event == ALPM_EVENT_DELTA_INTEGRITY_START)
+    else if (event->type == ALPM_EVENT_DELTA_INTEGRITY_START)
     {
         /* checking delta integrity */
         emit_signal ("Event", "i", EVENT_DELTA_INTEGRITY);
     }
-    else if (event == ALPM_EVENT_DELTA_PATCHES_START)
+    else if (event->type == ALPM_EVENT_DELTA_PATCHES_START)
     {
         /* applying deltas */
         emit_signal ("Event", "i", EVENT_DELTA_PATCHES);
     }
-    else if (event == ALPM_EVENT_DELTA_PATCH_START)
+    else if (event->type == ALPM_EVENT_DELTA_PATCH_START)
     {
-        emit_signal ("EventDeltaGenerating", "ss", data2, data1);
+        alpm_event_delta_patch_t *e = (alpm_event_delta_patch_t *) event;
+        emit_signal ("EventDeltaGenerating", "ss",
+                e->delta->delta, e->delta->to);
     }
-    else if (event == ALPM_EVENT_DELTA_PATCH_DONE)
+    else if (event->type == ALPM_EVENT_DELTA_PATCH_DONE)
     {
         emit_signal ("Event", "i", EVENT_DELTA_PATCH_DONE);
     }
-    else if (event == ALPM_EVENT_DELTA_PATCH_FAILED)
+    else if (event->type == ALPM_EVENT_DELTA_PATCH_FAILED)
     {
         emit_signal ("Event", "i", EVENT_DELTA_PATCH_FAILED);
     }
@@ -442,25 +455,6 @@ dl_progress_cb (const char *filename, off_t _xfered, off_t _total)
     guint xfered = (guint) _xfered;
     guint total  = (guint) _total;
     emit_signal ("Downloading", "suu", filename, xfered, total);
-}
-
-/* callback to handle notifications from the library */
-static void
-log_cb (alpm_loglevel_t level, const char *fmt, va_list args)
-{
-    if (!fmt || *fmt == '\0')
-    {
-        return;
-    }
-
-    if (level & ALPM_LOG_DEBUG || level & ALPM_LOG_FUNCTION)
-    {
-        return;
-    }
-
-    gchar *s = g_strdup_vprintf (fmt, args);
-    emit_signal ("Log", "is", (gint) level, s);
-    g_free (s);
 }
 
 /* callback to handle questions from libalpm */
@@ -745,7 +739,6 @@ init_alpm (GVariant *parameters)
     }
 
     /* set callbacks, that we'll turn into signals */
-    alpm_option_set_logcb (handle, log_cb);
     alpm_option_set_dlcb (handle, dl_progress_cb);
     alpm_option_set_eventcb (handle, event_cb);
     alpm_option_set_questioncb (handle, question_cb);
