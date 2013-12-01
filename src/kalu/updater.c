@@ -131,6 +131,20 @@ typedef enum {
     STEP_KEYRING,
 } steps_t;
 
+enum
+{
+    PACNEW = 1,
+    PACORIG
+};
+
+struct pacfile
+{
+    guint which;
+    gchar *pkg;
+    gchar *oldver;
+    gchar *file;
+};
+
 typedef struct _updater_t {
     GtkWidget *window;
     GtkWidget *lbl_main;
@@ -169,6 +183,8 @@ typedef struct _updater_t {
     KaluUpdater *kupdater;
 
     alpm_list_t *cmdline_post;
+
+    GArray *pacfile;
 } updater_t;
 
 static updater_t *updater = NULL;
@@ -776,11 +792,41 @@ on_event_scriptlet (KaluUpdater *kupdater _UNUSED_, const gchar *msg)
 }
 
 static void
+add_pacfile (guint which, const gchar *pkg, const gchar *old_version,
+             const gchar *oldfile)
+{
+    struct pacfile pf = { 0, };
+    gchar buf[255], *b = buf;
+    gint len;
+
+    if (!updater->pacfile)
+        updater->pacfile = g_array_new (FALSE, FALSE, sizeof (struct pacfile));
+
+    pf.which = which;
+    pf.pkg = g_strdup (pkg);
+    pf.oldver = g_strdup (old_version);
+    len = snprintf (buf, 255, "%s.%s",
+            oldfile, (which == PACNEW) ? "pacnew" : "pacorig");
+    if (G_UNLIKELY (len >= 255))
+    {
+        b = g_strdup_printf ("%s.%s",
+                oldfile, (which == PACNEW) ? "pacnew" : "pacorig");
+    }
+    pf.file = g_shell_quote (b);
+    if (G_UNLIKELY (b != buf))
+    {
+        g_free (b);
+    }
+    g_array_append_val (updater->pacfile, pf);
+}
+
+static void
 on_event_pacnew_created (KaluUpdater *kupdater _UNUSED_,
                          gboolean from_noupgrade _UNUSED_, const gchar *pkg,
                          const gchar *old_version, const gchar *new_version _UNUSED_,
                          const gchar *file)
 {
+    add_pacfile (PACNEW, pkg, old_version, file);
     add_log (LOGTYPE_WARNING, _("Warning: %s installed as %s.pacnew\n"),
             file, file);
 }
@@ -797,6 +843,7 @@ static void
 on_event_pacorig_created (KaluUpdater *kupdater _UNUSED_, const gchar *pkg _UNUSED_,
                           const gchar *version _UNUSED_, const gchar *file)
 {
+    add_pacfile (PACORIG, NULL, NULL, file);
     add_log (LOGTYPE_WARNING, _("Warning: %s saved as %s.pacorig\n"),
             file, file);
 }
@@ -1619,22 +1666,55 @@ updater_sysupgrade_cb (KaluUpdater *kupdater _UNUSED_, const gchar *errmsg)
             /* construct list of "upgraded" packages */
             GtkTreeIter   iter;
             GtkTreeModel *model = GTK_TREE_MODEL (updater->store);
-            GString      *string;
+            GString      *str_packages;
+            GString      *str_pacfiles;
             char         *s;
 
-            string = g_string_sized_new (255);
+            str_packages = g_string_sized_new (255);
             gtk_tree_model_get_iter_first (model, &iter);
             do
             {
                 gtk_tree_model_get (model, &iter, UCOL_PACKAGE, &s, -1);
-                string = g_string_append (string, s);
-                string = g_string_append_c (string, ' ');
+                str_packages = g_string_append (str_packages, s);
+                str_packages = g_string_append_c (str_packages, ' ');
             } while (gtk_tree_model_iter_next (model, &iter));
+            if (G_LIKELY (str_packages->len > 0))
+                g_string_truncate (str_packages, str_packages->len - 1);
+
+            if (!updater->pacfile || updater->pacfile->len == 0)
+                str_pacfiles = NULL;
+            else
+            {
+                guint n;
+
+                str_pacfiles = g_string_new (NULL);
+                for (n = 0; n < updater->pacfile->len; ++n)
+                {
+                    struct pacfile *pf;
+
+                    pf = &g_array_index (updater->pacfile, struct pacfile, n);
+                    g_string_append (str_pacfiles, pf->file);
+                    g_string_append_c (str_pacfiles, ' ');
+                    if (pf->which == PACNEW)
+                    {
+                        g_string_append (str_pacfiles, pf->pkg);
+                        g_string_append_c (str_pacfiles, '-');
+                        g_string_append (str_pacfiles, pf->oldver);
+                        g_string_append_c (str_pacfiles, ' ');
+                    }
+                }
+                g_string_truncate (str_pacfiles, str_pacfiles->len - 1);
+            }
 
             /* start */
             FOR_LIST (i, cmdlines)
             {
-                s = strreplace (i->data, "$PACKAGES", string->str);
+                char *ss;
+                s  = strreplace (i->data, "$PACKAGES", str_packages->str);
+                ss = strreplace (s, "$PACFILES",
+                        (str_pacfiles) ? str_pacfiles->str : "");
+                g_free (s);
+                s = ss;
 
                 add_log (LOGTYPE_NORMAL, _("Starting: '%s' .."), s);
                 if (!g_spawn_command_line_async (s, &error))
@@ -1653,7 +1733,9 @@ updater_sysupgrade_cb (KaluUpdater *kupdater _UNUSED_, const gchar *errmsg)
             }
 
             alpm_list_free (cmdlines);
-            g_string_free (string, TRUE);
+            g_string_free (str_packages, TRUE);
+            if (str_pacfiles)
+                g_string_free (str_pacfiles, TRUE);
         }
     }
 }
@@ -2257,6 +2339,16 @@ window_delete_event_cb (GtkWidget *window _UNUSED_, GdkEvent *event _UNUSED_,
 }
 
 static void
+free_pacfile (struct pacfile *pf)
+{
+    if (!pf)
+        return;
+    g_free (pf->file);
+    g_free (pf->pkg);
+    g_free (pf->oldver);
+}
+
+static void
 window_destroy_cb (GtkWidget *window _UNUSED_, gpointer data _UNUSED_)
 {
     if (NULL != updater->step_data)
@@ -2269,6 +2361,12 @@ window_destroy_cb (GtkWidget *window _UNUSED_, gpointer data _UNUSED_)
     {
         g_object_unref (updater->kupdater);
         updater->kupdater = NULL;
+    }
+
+    if (updater->pacfile)
+    {
+        g_array_set_clear_func (updater->pacfile, (GDestroyNotify) free_pacfile);
+        g_array_free (updater->pacfile, TRUE);
     }
 
     free (updater);

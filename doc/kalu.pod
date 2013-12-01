@@ -460,6 +460,20 @@ You can use B<$PACKAGES> in the command line, which will be replaced by the
 list of all packages involved in the sysupgrade (i.e. packages upgraded, as well
 as those added or removed, for instance when a package is replaced by another one).
 
+You can also use B<$PACFILES> in the command line, which will be replaced by the
+list of all I<.pacnew> and I<.pacorig> files created during the sysupgrade.
+
+For I<.pacorig> files, the full /path/to/filename will be specified; For
+I<.pacnew> files it will also be followed by an extra parameter consisting of
+the package name & old version.
+
+For example, if I</etc/pacman.conf.pacnew> was installed during the upgrade,
+while upgrading from 4.1.2-3 to 4.2.0-1 then two parameters will be specified:
+    /etc/pacman.conf.pacnew pacman-4.1.2-3
+
+The idea here is that this can allow you to e.g. go look in pacman's cache for
+the old version of the file, and perform a 3-way merge.
+
 =item I<Ask confirmation before starting anything>
 
 =item ConfirmPostSysUpgrade = 0|1
