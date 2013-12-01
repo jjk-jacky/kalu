@@ -106,7 +106,7 @@ struct _KaluUpdaterClass
                                      const gchar        *delta,
                                      const gchar        *dest);
 
-    void (*event_optdep_required)   (KaluUpdater        *kupdater,
+    void (*event_optdep_removal)    (KaluUpdater        *kupdater,
                                      const gchar        *pkg,
                                      const gchar        *optdep);
 
@@ -174,7 +174,7 @@ enum
   SIGNAL_EVENT_DELTA_GENERATING,
   SIGNAL_EVENT_RETRIEVING_PKGS,
   SIGNAL_EVENT_SCRIPTLET,
-  SIGNAL_EVENT_OPTDEP_REQUIRED,
+  SIGNAL_EVENT_OPTDEP_REMOVAL,
   SIGNAL_PROGRESS,
   /* questions */
   SIGNAL_INSTALL_IGNOREPKG,
@@ -626,12 +626,12 @@ kalu_updater_g_signal (GDBusProxy   *proxy,
         free (delta);
         free (dest);
     }
-    else if (g_strcmp0 (signal_name, "EventOptdepRequired") == 0)
+    else if (g_strcmp0 (signal_name, "EventOptdepRemoval") == 0)
     {
         gchar *pkg, *optdep;
 
         g_variant_get (parameters, "(ss)", &pkg, &optdep);
-        g_signal_emit (kupdater, signals[SIGNAL_EVENT_OPTDEP_REQUIRED], 0,
+        g_signal_emit (kupdater, signals[SIGNAL_EVENT_OPTDEP_REMOVAL], 0,
                 pkg, optdep);
         free (pkg);
         free (optdep);
@@ -967,11 +967,11 @@ kalu_updater_class_init (KaluUpdaterClass *klass)
             1,
             G_TYPE_STRING);
 
-    signals[SIGNAL_EVENT_OPTDEP_REQUIRED] = g_signal_new (
-            "event-optdep-required",
+    signals[SIGNAL_EVENT_OPTDEP_REMOVAL] = g_signal_new (
+            "event-optdep-removal",
             KALU_TYPE_UPDATER,
             G_SIGNAL_RUN_LAST,
-            G_STRUCT_OFFSET (KaluUpdaterClass, event_optdep_required),
+            G_STRUCT_OFFSET (KaluUpdaterClass, event_optdep_removal),
             NULL,
             NULL,
             g_cclosure_user_marshal_VOID__STRING_STRING,

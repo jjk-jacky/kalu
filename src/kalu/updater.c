@@ -650,7 +650,7 @@ on_event_delta_generating (KaluUpdater *kupdater _UNUSED_, const gchar *delta,
 }
 
 static void
-on_event_optdep_required (KaluUpdater *kupdzter _UNUSED_, const gchar *pkg,
+on_event_optdep_removal (KaluUpdater *kupdater _UNUSED_, const gchar *pkg,
                           const gchar *optdep)
 {
     add_log (LOGTYPE_INFO, _("%s optionally requires %s\n"), pkg, optdep);
@@ -1970,8 +1970,8 @@ updater_new_cb (GObject *source _UNUSED_, GAsyncResult *res,
             G_CALLBACK (on_event_delta_generating),
             NULL);
     g_signal_connect (kalu_updater,
-            "event-optdep-required",
-            G_CALLBACK (on_event_optdep_required),
+            "event-optdep-removal",
+            G_CALLBACK (on_event_optdep_removal),
             NULL);
     g_signal_connect (kalu_updater,
             "progress",

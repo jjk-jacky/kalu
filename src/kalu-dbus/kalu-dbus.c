@@ -320,9 +320,9 @@ event_cb (alpm_event_t event, void *data1, void *data2)
         g_variant_builder_unref (builder);
         alpm_list_free (optdeps);
     }
-    else if (event == ALPM_EVENT_OPTDEP_REQUIRED)
+    else if (event == ALPM_EVENT_OPTDEP_REMOVAL)
     {
-        emit_signal ("EventOptdepRequired", "ss",
+        emit_signal ("EventOptdepRemoval", "ss",
                 alpm_pkg_get_name (data1),
                 alpm_dep_compute_string (data2));
     }

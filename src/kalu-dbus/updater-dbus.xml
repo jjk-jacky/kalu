@@ -132,7 +132,7 @@
       <arg type='s' name='delta' />
       <arg type='s' name='dest' />
     </signal>
-    <signal name='EventOptdepRequired'>
+    <signal name='EventOptdepRemoval'>
         <arg type='s' name='pkg' />
         <arg type='s' name='optdep' />
     </signal>
