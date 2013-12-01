@@ -461,6 +461,13 @@ on_event (KaluUpdater *kupdater _UNUSED_, event_t event)
         case EVENT_RETRIEVING_PKGS:
             msg = _("Downloading packages...");
             break;
+        case EVENT_RETRIEVING_PKGS_DONE:
+        case EVENT_RETRIEVING_PKGS_FAILED:
+            if (updater->step == STEP_DOWNLOADING)
+            {
+                updater->pctg_done += updater->pctg_download;
+            }
+            break;
         case EVENT_CHECKING_DEPS:
             msg = _("Checking dependencies...");
             break;
@@ -488,7 +495,10 @@ on_event (KaluUpdater *kupdater _UNUSED_, event_t event)
         default:
             return;
     }
-    add_log (LOGTYPE_NORMAL, "%s\n", msg);
+    if (msg)
+    {
+        add_log (LOGTYPE_NORMAL, "%s\n", msg);
+    }
     if (updater->step == STEP_NONE)
     {
         gtk_label_set_text (GTK_LABEL (updater->lbl_action), msg);
@@ -709,11 +719,6 @@ on_progress (KaluUpdater *kupdater _UNUSED_, event_t event, const gchar *pkg,
         {
             free (updater->step_data);
             updater->step_data = NULL;
-        }
-        /* because there's no clear event when all downloads are done */
-        if (updater->step == STEP_DOWNLOADING)
-        {
-            updater->pctg_done += updater->pctg_download;
         }
         updater->step = step;
         gtk_label_set_text (GTK_LABEL (updater->lbl_action), msg);

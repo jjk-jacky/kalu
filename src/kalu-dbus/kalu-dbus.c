@@ -323,6 +323,16 @@ event_cb (alpm_event_t *event)
         /* Retrieving packages */
         emit_signal ("Event", "i", EVENT_RETRIEVING_PKGS);
     }
+    else if (event->type == ALPM_EVENT_RETRIEVE_DONE)
+    {
+        /* Retrieving packages */
+        emit_signal ("Event", "i", EVENT_RETRIEVING_PKGS_DONE);
+    }
+    else if (event->type == ALPM_EVENT_RETRIEVE_FAILED)
+    {
+        /* Retrieving packages */
+        emit_signal ("Event", "i", EVENT_RETRIEVING_PKGS_FAILED);
+    }
     else if (event->type == ALPM_EVENT_CHECKDEPS_START)
     {
         /* checking dependencies */
