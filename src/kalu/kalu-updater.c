@@ -99,6 +99,15 @@ struct _KaluUpdaterClass
                                      const gchar        *new_version,
                                      alpm_list_t        *newoptdeps);
 
+    void (*event_pkgdownload_start) (KaluUpdater        *kupdater,
+                                     const gchar        *file);
+
+    void (*event_pkgdownload_done)  (KaluUpdater        *kupdater,
+                                     const gchar        *file);
+
+    void (*event_pkgdownload_failed)(KaluUpdater        *kupdater,
+                                     const gchar        *file);
+
     void (*event_scriptlet)         (KaluUpdater        *kupdater,
                                      const gchar        *msg);
 
@@ -192,6 +201,9 @@ enum
   SIGNAL_EVENT_RETRIEVING_PKGS,
   SIGNAL_EVENT_RETRIEVING_PKGS_DONE,
   SIGNAL_EVENT_RETRIEVING_PKGS_FAILED,
+  SIGNAL_EVENT_PKGDOWNLOAD_START,
+  SIGNAL_EVENT_PKGDOWNLOAD_DONE,
+  SIGNAL_EVENT_PKGDOWNLOAD_FAILED,
   SIGNAL_EVENT_SCRIPTLET,
   SIGNAL_EVENT_OPTDEP_REMOVAL,
   SIGNAL_EVENT_PACNEW_CREATED,
@@ -630,6 +642,33 @@ kalu_updater_g_signal (GDBusProxy   *proxy,
                 repo);
         free (repo);
     }
+    else if (g_strcmp0 (signal_name, "EventPkgdownloadStart") == 0)
+    {
+        gchar *file;
+
+        g_variant_get (parameters, "(s)", &file);
+        g_signal_emit (kupdater, signals[SIGNAL_EVENT_PKGDOWNLOAD_START], 0,
+                file);
+        free (file);
+    }
+    else if (g_strcmp0 (signal_name, "EventPkgdownloadDone") == 0)
+    {
+        gchar *file;
+
+        g_variant_get (parameters, "(s)", &file);
+        g_signal_emit (kupdater, signals[SIGNAL_EVENT_PKGDOWNLOAD_DONE], 0,
+                file);
+        free (file);
+    }
+    else if (g_strcmp0 (signal_name, "EventPkgdownloadFailed") == 0)
+    {
+        gchar *file;
+
+        g_variant_get (parameters, "(s)", &file);
+        g_signal_emit (kupdater, signals[SIGNAL_EVENT_PKGDOWNLOAD_FAILED], 0,
+                file);
+        free (file);
+    }
     else if (g_strcmp0 (signal_name, "EventScriptlet") == 0)
     {
         gchar *msg;
@@ -1022,6 +1061,42 @@ kalu_updater_class_init (KaluUpdaterClass *klass)
             G_TYPE_STRING,
             G_TYPE_STRING,
             G_TYPE_POINTER);
+
+    signals[SIGNAL_EVENT_PKGDOWNLOAD_START] = g_signal_new (
+            "event-pkgdownload-start",
+            KALU_TYPE_UPDATER,
+            G_SIGNAL_RUN_LAST,
+            G_STRUCT_OFFSET (KaluUpdaterClass, event_pkgdownload_start),
+            NULL,
+            NULL,
+            g_cclosure_marshal_VOID__STRING,
+            G_TYPE_NONE,
+            1,
+            G_TYPE_STRING);
+
+    signals[SIGNAL_EVENT_PKGDOWNLOAD_DONE] = g_signal_new (
+            "event-pkgdownload-done",
+            KALU_TYPE_UPDATER,
+            G_SIGNAL_RUN_LAST,
+            G_STRUCT_OFFSET (KaluUpdaterClass, event_pkgdownload_done),
+            NULL,
+            NULL,
+            g_cclosure_marshal_VOID__STRING,
+            G_TYPE_NONE,
+            1,
+            G_TYPE_STRING);
+
+    signals[SIGNAL_EVENT_PKGDOWNLOAD_FAILED] = g_signal_new (
+            "event-pkgdownload-failed",
+            KALU_TYPE_UPDATER,
+            G_SIGNAL_RUN_LAST,
+            G_STRUCT_OFFSET (KaluUpdaterClass, event_pkgdownload_failed),
+            NULL,
+            NULL,
+            g_cclosure_marshal_VOID__STRING,
+            G_TYPE_NONE,
+            1,
+            G_TYPE_STRING);
 
     signals[SIGNAL_EVENT_SCRIPTLET] = g_signal_new (
             "event-scriptlet",

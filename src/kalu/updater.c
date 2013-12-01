@@ -74,6 +74,7 @@ enum {
     UCOL_DL_IS_ACTIVE,
     UCOL_INST_IS_ACTIVE,
     UCOL_DL_IS_DONE,
+    UCOL_DL_IS_DONE_COLOR,
     UCOL_INST_IS_DONE,
     UCOL_PCTG,
     NB_UCOL
@@ -643,6 +644,129 @@ on_event_downgraded (KaluUpdater *kupdater _UNUSED_, const gchar *pkg,
             add_log (LOGTYPE_INFO, "- %s\n", (const char *) i->data);
         }
     }
+}
+
+static void
+on_event_pkgdownload_start (KaluUpdater *kupdater _UNUSED_, const gchar *filename)
+
+{
+    if (updater->step == STEP_USER_CONFIRMED)
+    {
+        /* adding "Downloading packages" to the log is done on corresponding event */
+        gtk_label_set_text (GTK_LABEL (updater->lbl_action),
+                _("Downloading packages..."));
+        gtk_progress_bar_set_fraction (
+                GTK_PROGRESS_BAR (updater->pbar_action), 0.0);
+        gtk_widget_show (updater->lbl_action);
+        gtk_widget_show (updater->pbar_action);
+        updater->step = STEP_DOWNLOADING;
+        updater->step_done = 0;
+        updater->step_data = new0 (pkg_iter_t, 1);
+    }
+    else if (G_UNLIKELY (updater->step != STEP_DOWNLOADING))
+    {
+        debug ("on_pkgdownload_start: invalid step: %d", updater->step);
+        return;
+    }
+
+    /* first, we need to find the package we're dealing with */
+    pkg_iter_t *pkg_iter = updater->step_data;
+    gchar *pkg, *s;
+
+    free (pkg_iter->filename);
+    pkg_iter->filename = NULL;
+
+    /* remove -arch.pkg.tar.xz from filename, to only have package-version */
+    pkg = strdup (filename);
+    if (NULL == (s = strrchr (pkg, '-')))
+    {
+        free (pkg);
+        debug ("on_download: invalid filename: %s", filename);
+        return;
+    }
+    *s = '\0';
+
+    /* locate pkg in tree */
+    pkg_iter->iter = get_iter_for_pkg (pkg, TRUE);
+    if (pkg_iter->iter == NULL)
+    {
+        free (pkg);
+        debug ("on_download: unable to find iter for %s", pkg);
+        return;
+    }
+    free (pkg);
+    pkg_iter->filename = strdup (filename);
+
+    /* make sure it's visible */
+    gtk_tree_view_scroll_to_cell (GTK_TREE_VIEW (updater->list),
+            gtk_tree_model_get_path (
+                GTK_TREE_MODEL (updater->store),
+                pkg_iter->iter),
+            NULL,
+            FALSE,
+            0,
+            0);
+
+    /* pkg progress */
+    gtk_list_store_set (updater->store, pkg_iter->iter,
+            UCOL_PCTG,          0.0,
+            UCOL_DL_IS_ACTIVE,  TRUE,
+            UCOL_DL_IS_DONE,    FALSE,
+            -1);
+}
+
+static void
+on_event_pkgdownload_done (KaluUpdater *kupdater _UNUSED_,
+                           const gchar *file _UNUSED_)
+
+{
+    if (G_UNLIKELY (updater->step != STEP_DOWNLOADING))
+    {
+        debug ("on_pkgdownload_done: invalid step: %d", updater->step);
+        return;
+    }
+
+    pkg_iter_t *pkg_iter = updater->step_data;
+
+    /* pkg progress */
+    gtk_list_store_set (updater->store, pkg_iter->iter,
+            UCOL_DL_IS_ACTIVE,      FALSE,
+            UCOL_DL_IS_DONE,        TRUE,
+            UCOL_DL_IS_DONE_COLOR,  config->color_info,
+            -1);
+
+    /* free */
+    free (pkg_iter->filename);
+    pkg_iter->filename = NULL;
+    free (pkg_iter->iter);
+    pkg_iter->iter = NULL;
+}
+
+static void
+on_event_pkgdownload_failed (KaluUpdater *kupdater _UNUSED_,
+                             const gchar *file _UNUSED_)
+
+{
+    if (G_UNLIKELY (updater->step != STEP_DOWNLOADING))
+    {
+        debug ("on_pkgdownload_failed: invalid step: %d", updater->step);
+        return;
+    }
+
+    pkg_iter_t *pkg_iter = updater->step_data;
+
+    /* pkg progress */
+    gtk_list_store_set (updater->store, pkg_iter->iter,
+            UCOL_DL_IS_ACTIVE,      FALSE,
+            UCOL_DL_IS_DONE,        TRUE,
+            UCOL_DL_IS_DONE_COLOR,  config->color_error,
+            -1);
+
+    /* free */
+    free (pkg_iter->filename);
+    pkg_iter->filename = NULL;
+    free (pkg_iter->iter);
+    pkg_iter->iter = NULL;
 }
 
 static void
@@ -1248,69 +1372,22 @@ on_download (KaluUpdater *kupdater _UNUSED_, const gchar *filename,
             }
             break;
 
-        case STEP_USER_CONFIRMED:
-            /* adding "Downloading packages" to the log is done on corresponding event */
-            gtk_label_set_text (GTK_LABEL (updater->lbl_action),
-                    _("Downloading packages..."));
-            gtk_progress_bar_set_fraction (
-                    GTK_PROGRESS_BAR (updater->pbar_action), 0.0);
-            gtk_widget_show (updater->lbl_action);
-            gtk_widget_show (updater->pbar_action);
-            updater->step = STEP_DOWNLOADING;
-            updater->step_done = 0;
-            updater->step_data = new0 (pkg_iter_t, 1);
-            /* fall through */
         case STEP_DOWNLOADING:
             {
                 /* first, we need to find the package we're dealing with */
                 double      pctg     = (double) xfered / total;
                 pkg_iter_t *pkg_iter = updater->step_data;
 
-                if (g_strcmp0 (filename, pkg_iter->filename) != 0)
+                if (G_UNLIKELY (g_strcmp0 (filename, pkg_iter->filename) != 0))
                 {
-                    gchar *pkg, *s;
-
-                    /* remove -arch.pkg.tar.xz from filename, to only have package-version */
-                    pkg = strdup (filename);
-                    if (NULL == (s = strrchr (pkg, '-')))
-                    {
-                        free (pkg);
-                        debug ("on_download: invalid filename: %s", filename);
-                        return;
-                    }
-                    *s = '\0';
-
-                    /* locate pkg in tree */
-                    pkg_iter->iter = get_iter_for_pkg (pkg, TRUE);
-                    if (pkg_iter->iter == NULL)
-                    {
-                        free (pkg);
-                        debug ("on_download: unable to find iter for %s", pkg);
-                        return;
-                    }
-                    free (pkg);
-                    if (pkg_iter->filename != NULL)
-                    {
-                        free (pkg_iter->filename);
-                    }
-                    pkg_iter->filename = strdup (filename);
-
-                    /* make sure it's visible */
-                    gtk_tree_view_scroll_to_cell (GTK_TREE_VIEW (updater->list),
-                            gtk_tree_model_get_path (
-                                GTK_TREE_MODEL (updater->store),
-                                pkg_iter->iter),
-                            NULL,
-                            FALSE,
-                            0,
-                            0);
+                    debug ("on_download: invalid iter, expected '%s', got '%s'",
+                            filename, pkg_iter->filename);
+                    return;
                 }
 
                 /* pkg progress */
                 gtk_list_store_set (updater->store, pkg_iter->iter,
                         UCOL_PCTG,          pctg,
-                        UCOL_DL_IS_ACTIVE,  (xfered < total),
-                        UCOL_DL_IS_DONE,    xfered == total,
                         -1);
 
                 if (updater->total_dl > 0)
@@ -1330,11 +1407,6 @@ on_download (KaluUpdater *kupdater _UNUSED_, const gchar *filename,
                 if (xfered == total)
                 {
                     updater->step_done += total;
-                    /* free */
-                    free (pkg_iter->filename);
-                    pkg_iter->filename = NULL;
-                    free (pkg_iter->iter);
-                    pkg_iter->iter = NULL;
                 }
             }
             break;
@@ -1662,6 +1734,7 @@ updater_get_packages_cb (KaluUpdater *kupdater _UNUSED_, const gchar *errmsg,
                 UCOL_DL_IS_ACTIVE,      FALSE,
                 UCOL_INST_IS_ACTIVE,    FALSE,
                 UCOL_DL_IS_DONE,        k_pkg->dl_size == 0,
+                UCOL_DL_IS_DONE_COLOR,  (k_pkg->dl_size == 0) ? config->color_info : NULL,
                 UCOL_INST_IS_DONE,      FALSE,
                 UCOL_PCTG,              0.0,
                 -1);
@@ -1991,6 +2064,18 @@ updater_new_cb (GObject *source _UNUSED_, GAsyncResult *res,
     g_signal_connect (kalu_updater,
             "event-downgraded",
             G_CALLBACK (on_event_downgraded),
+            NULL);
+    g_signal_connect (kalu_updater,
+            "event-pkgdownload-start",
+            G_CALLBACK (on_event_pkgdownload_start),
+            NULL);
+    g_signal_connect (kalu_updater,
+            "event-pkgdownload-done",
+            G_CALLBACK (on_event_pkgdownload_done),
+            NULL);
+    g_signal_connect (kalu_updater,
+            "event-pkgdownload-failed",
+            G_CALLBACK (on_event_pkgdownload_failed),
             NULL);
     g_signal_connect (kalu_updater,
             "event-scriptlet",
@@ -2439,20 +2524,21 @@ updater_run (const gchar *conffile, alpm_list_t *cmdline_post)
     /* store for the list */
     GtkListStore *store;
     store = gtk_list_store_new (NB_UCOL,
-            G_TYPE_STRING,  /* repo */
-            G_TYPE_STRING,  /* pkg */
-            G_TYPE_STRING,  /* desc */
-            G_TYPE_STRING,  /* old version */
-            G_TYPE_STRING,  /* new version */
-            G_TYPE_UINT,    /* dl size */
-            G_TYPE_UINT,    /* old (inst) size */
-            G_TYPE_UINT,    /* new (inst) size */
-            G_TYPE_INT,     /* net size */
-            G_TYPE_BOOLEAN, /* dl is active */
-            G_TYPE_BOOLEAN, /* inst in active */
-            G_TYPE_BOOLEAN, /* dl is done */
-            G_TYPE_BOOLEAN, /* inst in done */
-            G_TYPE_DOUBLE   /* pctg done */
+            G_TYPE_STRING,  /* UCOL_REPO */
+            G_TYPE_STRING,  /* UCOL_PACKAGE */
+            G_TYPE_STRING,  /* UCOL_DESC */
+            G_TYPE_STRING,  /* UCOL_OLD */
+            G_TYPE_STRING,  /* UCOL_NEW */
+            G_TYPE_UINT,    /* UCOL_DL_SIZE */
+            G_TYPE_UINT,    /* UCOL_OLD_SIZE */
+            G_TYPE_UINT,    /* UCOL_NEW_SIZE */
+            G_TYPE_INT,     /* UCOL_NET_SIZE */
+            G_TYPE_BOOLEAN, /* UCOL_DL_IS_ACTIVE */
+            G_TYPE_BOOLEAN, /* UCOL_INST_IS_ACTIVE */
+            G_TYPE_BOOLEAN, /* UCOL_DL_IS_DONE */
+            G_TYPE_STRING,  /* UCOL_DL_IS_DONE_COLOR */
+            G_TYPE_BOOLEAN, /* UCOL_INST_IS_DONE */
+            G_TYPE_DOUBLE   /* UCOL_PCTG */
             );
     updater->store = store;
 
@@ -2526,11 +2612,12 @@ updater_run (const gchar *conffile, alpm_list_t *cmdline_post)
     gtk_tree_view_append_column (GTK_TREE_VIEW (list), column);
     /* column: Download size */
     renderer_lbl = gtk_cell_renderer_text_new ();
-    g_object_set (renderer_lbl, "foreground", config->color_info, NULL);
     renderer_pbar = gtk_cell_renderer_progress_new ();
     column = gtk_tree_view_column_new_with_attributes (
             _c("column", "Download"),
             renderer_lbl,
+            "foreground",
+            UCOL_DL_IS_DONE_COLOR,
             "foreground-set",
             UCOL_DL_IS_DONE,
             NULL);

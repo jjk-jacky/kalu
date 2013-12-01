@@ -125,6 +125,15 @@
       <arg type='s'  name='new_version' />
       <arg type='as' name='newoptdeps' />
     </signal>
+    <signal name='EventPkgdownloadStart'>
+        <arg type='s' name='file' />
+    </signal>
+    <signal name='EventPkgdownloadDone'>
+        <arg type='s' name='file' />
+    </signal>
+    <signal name='EventPkgdownloadFailed'>
+        <arg type='s' name='file' />
+    </signal>
     <signal name='EventScriptlet'>
       <arg type='s' name='msg' />
     </signal>

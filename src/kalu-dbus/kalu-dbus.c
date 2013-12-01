@@ -318,6 +318,21 @@ event_cb (alpm_event_t *event)
                 alpm_pkg_get_name (e->pkg),
                 alpm_dep_compute_string (e->optdep));
     }
+    else if (event->type == ALPM_EVENT_PKGDOWNLOAD_START)
+    {
+        emit_signal ("EventPkgdownloadStart", "s",
+                ((alpm_event_pkgdownload_t *) event)->file);
+    }
+    else if (event->type == ALPM_EVENT_PKGDOWNLOAD_DONE)
+    {
+        emit_signal ("EventPkgdownloadDone", "s",
+                ((alpm_event_pkgdownload_t *) event)->file);
+    }
+    else if (event->type == ALPM_EVENT_PKGDOWNLOAD_FAILED)
+    {
+        emit_signal ("EventPkgdownloadFailed", "s",
+                ((alpm_event_pkgdownload_t *) event)->file);
+    }
     else if (event->type == ALPM_EVENT_RETRIEVE_START)
     {
         /* Retrieving packages */
