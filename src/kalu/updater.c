@@ -452,7 +452,7 @@ on_total_download (KaluUpdater *kupdater _UNUSED_, guint total)
 static void
 on_event (KaluUpdater *kupdater _UNUSED_, event_t event)
 {
-    const gchar *msg;
+    const gchar *msg = NULL;
     switch (event)
     {
         case EVENT_RETRIEVING_PKGS:

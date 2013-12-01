@@ -3,7 +3,7 @@
  *
  * kalu-updater.c
  * Copyright (C) 2012-2013 Olivier Brunel <i.am.jack.mail@gmail.com>
- * 
+ *
  * This file is part of kalu.
  *
  * kalu is free software: you can redistribute it and/or modify it under the
@@ -279,8 +279,9 @@ kalu_updater_init (KaluUpdater *kupdater)
         {NULL, FALSE, NULL, NULL}
     };
     size_t count = sizeof (mc) / sizeof (mc[0]);
+    size_t i;
     kupdater->priv->method_callbacks = new0 (method_callback_t, count);
-    for (size_t i = 0; i < count; ++i)
+    for (i = 0; i < count; ++i)
     {
         kupdater->priv->method_callbacks[i] =  mc[i];
     }
