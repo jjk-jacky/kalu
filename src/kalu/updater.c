@@ -1907,7 +1907,6 @@ updater_new_cb (GObject *source _UNUSED_, GAsyncResult *res,
                 error->message);
         g_clear_error (&error);
         free_pacman_config (pac_conf);
-        gtk_widget_destroy (updater->window);
         return;
     }
     add_log (LOGTYPE_UNIMPORTANT, _(" ok \n"));
@@ -2651,7 +2650,6 @@ updater_run (const gchar *conffile, alpm_list_t *cmdline_post)
                     conffile, error->message);
             g_clear_error (&error);
             free_pacman_config (pac_conf);
-            gtk_widget_destroy (window);
             return;
         }
         add_log (LOGTYPE_UNIMPORTANT, _(" ok\n"));
@@ -2662,7 +2660,6 @@ updater_run (const gchar *conffile, alpm_list_t *cmdline_post)
         {
             _show_error (_("No databases defined"), NULL);
             free_pacman_config (pac_conf);
-            gtk_widget_destroy (window);
             return;
         }
 
@@ -2697,7 +2694,6 @@ updater_run (const gchar *conffile, alpm_list_t *cmdline_post)
             _show_error (_("Failed to initialize simulation"),
                     err->message);
             g_clear_error (&err);
-            gtk_widget_destroy (window);
             return;
         }
         gtk_progress_bar_set_fraction (GTK_PROGRESS_BAR (updater->pbar_main), 0.42);
@@ -2712,7 +2708,8 @@ updater_run (const gchar *conffile, alpm_list_t *cmdline_post)
             _show_error (_("Failed to synchronize databases"),
                     err->message);
             g_clear_error (&err);
-            gtk_widget_destroy (window);
+            /* to not try to free it */
+            updater->step_data = NULL;
             return;
         }
         updater->step_data = NULL;
