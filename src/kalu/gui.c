@@ -265,16 +265,39 @@ notif_run_simulation (NotifyNotification  *notification,
 void
 action_upgrade (NotifyNotification *notification, const char *action, gchar *_cmdline)
 {
-    /* we need to strdup cmdline because it will be free-d when notification
-     * is destroyed, which won't happen until this function is done, however it
-     * could happen before the other thread (run_cmdline) starts ! */
-    char *cmdline = (_cmdline) ? strdup (_cmdline) : NULL;
+    /* action can be "do_updates" or "do_updates_aur" -- In the former case,
+     * _cmdline is NULL, in the later case, it might contain the cmdline to run
+     * (with $PACKAGES replaces with the list of packages to update) */
+    gboolean do_updates = streq (action, "do_updates");
+    gchar *cmdline;
 
+    if (kalpm_state.is_busy)
+    {
+        if (do_updates)
+            show_error (_("Cannot upgrade system: kalu is busy"),
+                    _("kalu cannot upgrade the system while it is busy "
+                        "(e.g. checking/upgrading the system).\n"
+                        "Please wait until kalu isn't busy anymore and try again."),
+                    NULL);
+        else
+            show_error (_("Cannot launch AUR upgrade: kalu is busy"),
+                    _("kalu cannot launch AUR upgrade while it is busy "
+                        "(e.g. checking/upgrading the system).\n"
+                        "Please wait until kalu isn't busy anymore and try again."),
+                    NULL);
+        /* restore if hidden */
+        notify_notification_show (notification, NULL);
+        return;
+    }
+
+    /* we need to strdup cmdline because it will be free-d when notification
+     * is destroyed, while we need it up to the other thread (run_cmdline) */
+    cmdline = (_cmdline) ? strdup (_cmdline) : NULL;
     notify_notification_close (notification, NULL);
 
     if (!cmdline)
     {
-        if (streq ("do_updates", action))
+        if (do_updates)
         {
 #ifndef DISABLE_UPDATER
             if (config->action == UPGRADE_ACTION_KALU)
@@ -289,7 +312,7 @@ action_upgrade (NotifyNotification *notification, const char *action, gchar *_cm
             }
 #endif
         }
-        else /* if (strcmp ("do_updates_aur", action) == 0) */
+        else
         {
             cmdline = config->cmdline_aur;
         }
