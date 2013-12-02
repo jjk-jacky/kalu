@@ -254,7 +254,7 @@ _show_error (const gchar *msg, const gchar *fmt, ...)
         va_end (args);
     }
 
-    add_log (LOGTYPE_ERROR, _("Error: %s: %s"), msg, buffer);
+    add_log (LOGTYPE_ERROR, _("Error: %s: %s\n"), msg, buffer);
 
     gtk_label_set_markup (GTK_LABEL (updater->lbl_main), buf);
     gtk_widget_hide (updater->pbar_main);
@@ -642,7 +642,7 @@ static void
 on_event_delta_generating (KaluUpdater *kupdater _UNUSED_, const gchar *delta,
                            const gchar *dest)
 {
-    add_log (LOGTYPE_NORMAL, _("Using delta %s to generate %s..."),
+    add_log (LOGTYPE_NORMAL, _("Using delta %s to generate %s...\n"),
             delta, dest);
 }
 
@@ -650,7 +650,7 @@ static void
 on_event_optdep_required (KaluUpdater *kupdzter _UNUSED_, const gchar *pkg,
                           const gchar *optdep)
 {
-    add_log (LOGTYPE_INFO, _("%s optionally requires %s"), pkg, optdep);
+    add_log (LOGTYPE_INFO, _("%s optionally requires %s\n"), pkg, optdep);
 }
 
 static void
