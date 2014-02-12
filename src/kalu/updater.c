@@ -1684,6 +1684,9 @@ updater_get_packages_cb (KaluUpdater *kupdater _UNUSED_, const gchar *errmsg,
         snprintf (buffer, 255,
                 _("Download:\t%s\nInstall:\t\t%s\nNet:\t\t\t%s"),
                 dl_buf, inst_buf, net_buf);
+        add_log (LOGTYPE_NORMAL,
+                _("Download: %s - Install: %s - Net: %s\n"),
+                dl_buf, inst_buf, net_buf);
     }
     else
     {
@@ -1697,6 +1700,9 @@ updater_get_packages_cb (KaluUpdater *kupdater _UNUSED_, const gchar *errmsg,
 
         snprintf (buffer, 255,
                 _("Install:\t\t%s\nNet:\t\t\t%s"),
+                inst_buf, net_buf);
+        add_log (LOGTYPE_NORMAL,
+                _("Install: %s - Net: %s\n"),
                 inst_buf, net_buf);
     }
     gtk_label_set_markup (GTK_LABEL (updater->lbl_action), buffer);
