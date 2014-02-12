@@ -1,8 +1,8 @@
 /**
- * kalu - Copyright (C) 2012-2013 Olivier Brunel
+ * kalu - Copyright (C) 2012-2014 Olivier Brunel
  *
  * imagemenuitem.c
- * Copyright (C) 2013 Olivier Brunel <jjk@jjacky.com>
+ * Copyright (C) 2014 Olivier Brunel <jjk@jjacky.com>
  *
  * This file is part of kalu.
  *
@@ -21,7 +21,7 @@
  */
 
 /**
- * imagemenuitem.c from Donnatella
+ * imagemenuitem.c from Donnatella -- http://jjacky.com/donnatella
  */
 
 #include <config.h>

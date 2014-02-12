@@ -906,7 +906,7 @@ suggest features on its GitHub repository, available at L<https://github.com/jjk
 
 =over
 
-=item Olivier Brunel <i.am.jack.mail AT gmail DOT com>
+=item Olivier Brunel <jjk AT jjacky DOT com>
 
 =item Dave Gamble
 

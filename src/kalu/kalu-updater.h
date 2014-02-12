@@ -1,9 +1,9 @@
 /**
- * kalu - Copyright (C) 2012-2013 Olivier Brunel
+ * kalu - Copyright (C) 2012-2014 Olivier Brunel
  *
  * kalu-updater.h
- * Copyright (C) 2012 Olivier Brunel <i.am.jack.mail@gmail.com>
- * 
+ * Copyright (C) 2012-2014 Olivier Brunel <jjk@jjacky.com>
+ *
  * This file is part of kalu.
  *
  * kalu is free software: you can redistribute it and/or modify it under the
