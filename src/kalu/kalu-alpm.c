@@ -635,17 +635,18 @@ kalu_alpm_has_updates_watched (alpm_list_t **packages, alpm_list_t *watched,
 
     FOR_LIST (i, watched)
     {
+        alpm_pkg_t *pkg = NULL;
         watched_package_t *w_pkg = i->data;
+        kalu_package_t *package;
+
         FOR_LIST (j, sync_dbs)
         {
-            alpm_pkg_t *pkg;
             pkg = alpm_db_get_pkg ((alpm_db_t *) j->data, w_pkg->name);
             if (pkg)
             {
                 if (alpm_pkg_vercmp (alpm_pkg_get_version (pkg),
                             w_pkg->version) > 0)
                 {
-                    kalu_package_t *package;
                     package = new0 (kalu_package_t, 1);
 
                     package->name = strdup (alpm_pkg_get_name (pkg));
@@ -661,6 +662,21 @@ kalu_alpm_has_updates_watched (alpm_list_t **packages, alpm_list_t *watched,
                 }
                 break;
             }
+        }
+
+        if (!pkg)
+        {
+            package = new0 (kalu_package_t, 1);
+
+            package->name = strdup (w_pkg->name);
+            package->desc = strdup (_("<package not found>"));
+            package->old_version = strdup (w_pkg->version);
+            package->new_version = strdup ("-");
+            package->dl_size = 0;
+            package->new_size = 0;
+
+            *packages = alpm_list_add (*packages, package);
+            debug ("watched package not found: %s", package->name);
         }
     }
 

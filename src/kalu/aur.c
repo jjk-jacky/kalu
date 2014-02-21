@@ -133,7 +133,7 @@ aur_has_updates (alpm_list_t **packages,
         }
 
         /* fill list of not found packages */
-        if (not_found)
+        if (not_found || is_watched)
         {
             list_nf = alpm_list_add (list_nf, i->data);
         }
@@ -259,7 +259,7 @@ aur_has_updates (alpm_list_t **packages,
                     return FALSE;
                 }
                 /* remove from list of not found packages */
-                if (not_found)
+                if (list_nf)
                 {
                     struct {
                         gboolean is_watched;
@@ -294,8 +294,9 @@ aur_has_updates (alpm_list_t **packages,
     }
     FREELIST (urls);
 
-    /* turn not_found into a list of kalu_package_t as it should be */
-    if (not_found)
+    /* turn not_found into a list of kalu_package_t as it should be, or add them
+     * to packages (if not_found is NULL, i.e. is_watched is TRUE) */
+    if (list_nf)
     {
         FOR_LIST (i, list_nf)
         {
@@ -306,7 +307,9 @@ aur_has_updates (alpm_list_t **packages,
                 watched_package_t *wp = i->data;
 
                 kpkg->name = strdup (wp->name);
+                kpkg->desc = strdup (_("<package not found>"));
                 kpkg->old_version = strdup (wp->version);
+                kpkg->new_version = strdup ("-");
             }
             else
             {
@@ -317,8 +320,16 @@ aur_has_updates (alpm_list_t **packages,
                 kpkg->old_version = strdup (alpm_pkg_get_version (p));
             }
 
-            debug ("adding to not found: package %s", kpkg->name);
-            *not_found = alpm_list_add (*not_found, kpkg);
+            if (not_found)
+            {
+                debug ("adding to not found: package %s", kpkg->name);
+                *not_found = alpm_list_add (*not_found, kpkg);
+            }
+            else
+            {
+                debug ("not found: %s", kpkg->name);
+                *packages = alpm_list_add (*packages, kpkg);
+            }
         }
         alpm_list_free (list_nf);
     }

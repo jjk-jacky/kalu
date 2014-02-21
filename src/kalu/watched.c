@@ -39,6 +39,7 @@
 #include "gui.h" /* show_notif() */
 
 enum {
+    WCOL_CAN_UPD,
     WCOL_UPD,
     WCOL_NAME,
     WCOL_OLD_VERSION,
@@ -785,6 +786,7 @@ watched_new_window (w_type_t type)
     /* store for the list */
     GtkListStore *store;
     store = gtk_list_store_new (WCOL_NB,
+            G_TYPE_BOOLEAN,     /* can upd */
             G_TYPE_BOOLEAN,     /* upd (mark watched) */
             G_TYPE_STRING,      /* pkg */
             G_TYPE_STRING,      /* old version */
@@ -820,6 +822,7 @@ watched_new_window (w_type_t type)
         column = gtk_tree_view_column_new_with_attributes (
                 _c("column", "Update"),
                 renderer,
+                "activatable", WCOL_CAN_UPD,
                 "active", WCOL_UPD,
                 NULL);
         g_object_set (renderer, "activatable", TRUE, NULL);
@@ -1007,9 +1010,12 @@ watched_update (alpm_list_t *packages, gboolean is_aur)
     FOR_LIST (i, packages)
     {
         kalu_package_t *pkg = i->data;
+        gboolean can_upd = !streq (pkg->new_version, "-");
+
         gtk_list_store_append (store, &iter);
         gtk_list_store_set (store, &iter,
-                WCOL_UPD,           TRUE,
+                WCOL_CAN_UPD,       can_upd,
+                WCOL_UPD,           can_upd,
                 WCOL_NAME,          strdup (pkg->name),
                 WCOL_OLD_VERSION,   strdup (pkg->old_version),
                 WCOL_NEW_VERSION,   strdup (pkg->new_version),
