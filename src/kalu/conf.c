@@ -1259,7 +1259,8 @@ parse_config_file (const char       *file,
                 w_pkg->name = strdup (key);
                 w_pkg->version = strdup (value);
                 *list = alpm_list_add (*list, w_pkg);
-                debug ("config: watched (aur) packages: added %s %s",
+                debug ("config: watched%s packages: added %s %s",
+                        (conf_file == CONF_FILE_WATCHED) ? "" : " AUR",
                         w_pkg->name, w_pkg->version);
             }
         }
