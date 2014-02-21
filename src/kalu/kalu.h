@@ -82,7 +82,9 @@ typedef enum {
     CHECK_WATCHED       = (1 << 1),
     CHECK_AUR           = (1 << 2),
     CHECK_WATCHED_AUR   = (1 << 3),
-    CHECK_NEWS          = (1 << 4)
+    CHECK_NEWS          = (1 << 4),
+
+    _CHECK_AUR_NOT_FOUND = (1 << 7)
 } check_t;
 
 typedef enum {
@@ -152,6 +154,7 @@ typedef struct _config_t {
     templates_t     *tpl_upgrades;
     templates_t     *tpl_watched;
     templates_t     *tpl_aur;
+    templates_t     *tpl_aur_not_found;
     templates_t     *tpl_watched_aur;
     templates_t     *tpl_news;
 
@@ -205,6 +208,7 @@ typedef struct _kalpm_state_t {
     gint        nb_upgrades;
     gint        nb_watched;
     gint        nb_aur;
+    gint        nb_aur_not_found;
     gint        nb_watched_aur;
     gint        nb_news;
 } kalpm_state_t;

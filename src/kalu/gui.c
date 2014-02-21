@@ -1213,6 +1213,13 @@ icon_query_tooltip_cb (GtkWidget *icon _UNUSED_, gint x _UNUSED_, gint y _UNUSED
                     (long unsigned int) kalpm_state.nb_aur),
                 kalpm_state.nb_aur);
     }
+    if (kalpm_state.nb_aur_not_found > 0)
+    {
+        addstr (_n( "\n1 package not found in AUR",
+                    "\n%d packages not found in AUR",
+                    (long unsigned int) kalpm_state.nb_aur_not_found),
+                kalpm_state.nb_aur_not_found);
+    }
     if (kalpm_state.nb_watched_aur > 0)
     {
         addstr (_n( "\n1 watched AUR package updated",
@@ -1269,6 +1276,11 @@ set_kalpm_nb (check_t type, gint nb, gboolean update_icon)
         kalpm_state.nb_aur = nb;
     }
 
+    if (type & _CHECK_AUR_NOT_FOUND)
+    {
+        kalpm_state.nb_aur_not_found = nb;
+    }
+
     if (type & CHECK_WATCHED_AUR)
     {
         kalpm_state.nb_watched_aur = nb;
@@ -1290,8 +1302,8 @@ set_kalpm_nb (check_t type, gint nb, gboolean update_icon)
          * change the status icon. so, this will make sure the call to
          * set_status_icon happens in the main thread */
         gboolean active = (nb_upgrades + kalpm_state.nb_watched
-                + kalpm_state.nb_aur + kalpm_state.nb_watched_aur
-                + kalpm_state.nb_news > 0);
+                + kalpm_state.nb_aur + + kalpm_state.nb_aur_not_found
+                + kalpm_state.nb_watched_aur + kalpm_state.nb_news > 0);
         g_main_context_invoke (NULL,
                 (GSourceFunc) set_status_icon,
                 GINT_TO_POINTER (active));

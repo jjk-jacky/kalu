@@ -25,6 +25,7 @@
 
 gboolean
 aur_has_updates (alpm_list_t **packages,
+                 alpm_list_t **not_found,
                  alpm_list_t *aur_pkgs,
                  gboolean is_watched,
                  GError **error);

@@ -199,6 +199,10 @@ notify_updates (
     {
         tt = config->tpl_news;
     }
+    else /* _CHECK_AUR_NOT_FOUND */
+    {
+        tt = config->tpl_aur_not_found;
+    }
     /* set the templates to use */
     template.title = (tt && tt->title) ? tt->title : t->title;
     template.package = (tt && tt->package) ? tt->package : t->package;
@@ -402,7 +406,7 @@ notify_updates (
     {
         notif->data = xml_news;
     }
-    else
+    else if (!(type & _CHECK_AUR_NOT_FOUND))
     {
         /* CHECK_UPGRADES, CHECK_WATCHED & CHECK_WATCHED_AUR all use packages */
         notif->data = packages;
@@ -427,19 +431,20 @@ kalu_check_work (gboolean is_auto)
     alpm_list_t *packages;
     alpm_list_t *aur_pkgs;
     gchar       *xml_news;
-    gboolean     got_something  = FALSE;
-    gint         nb_syncdbs     = -1;
+    gboolean     got_something      = FALSE;
+    gint         nb_syncdbs         = -1;
 #ifndef DISABLE_GUI
-    gint         nb_upgrades    = -1;
-    gint         nb_watched     = -1;
-    gint         nb_aur         = -1;
-    gint         nb_watched_aur = -1;
-    gint         nb_news        = -1;
+    gint         nb_upgrades        = -1;
+    gint         nb_watched         = -1;
+    gint         nb_aur             = -1;
+    gint         nb_aur_not_found   = -1;
+    gint         nb_watched_aur     = -1;
+    gint         nb_news            = -1;
 #endif /* DISABLE_GUI */
-    unsigned int checks         = (is_auto)
+    unsigned int checks             = (is_auto)
         ? config->checks_auto
         : config->checks_manual;
-    gboolean     show_it        = (is_auto) ? config->auto_notifs : TRUE;
+    gboolean     show_it            = (is_auto) ? config->auto_notifs : TRUE;
 
 #ifndef DISABLE_GUI
     /* drop the list of last notifs, since we'll be making up a new one */
@@ -643,8 +648,10 @@ kalu_check_work (gboolean is_auto)
             aur_pkgs = NULL;
             if (kalu_alpm_has_foreign (&aur_pkgs, config->aur_ignore, &error))
             {
+                alpm_list_t *not_found = NULL;
+
                 packages = NULL;
-                if (aur_has_updates (&packages, aur_pkgs, FALSE, &error))
+                if (aur_has_updates (&packages, &not_found, aur_pkgs, FALSE, &error))
                 {
                     got_something = TRUE;
 #ifndef DISABLE_GUI
@@ -652,11 +659,29 @@ kalu_check_work (gboolean is_auto)
 #endif
                     notify_updates (packages, CHECK_AUR, NULL, show_it);
                     FREE_PACKAGE_LIST (packages);
+                    if (not_found)
+                    {
+#ifndef DISABLE_GUI
+                        nb_aur_not_found = (gint) alpm_list_count (not_found);
+#endif
+                        notify_updates (not_found, _CHECK_AUR_NOT_FOUND, NULL, show_it);
+                        FREE_PACKAGE_LIST (not_found);
+                    }
                 }
 #ifndef DISABLE_GUI
                 else if (error == NULL)
                 {
                     nb_aur = 0;
+                    if (not_found)
+                    {
+                        nb_aur_not_found = (gint) alpm_list_count (not_found);
+                        notify_updates (not_found, _CHECK_AUR_NOT_FOUND, NULL, show_it);
+                        FREE_PACKAGE_LIST (not_found);
+                    }
+                    else
+                    {
+                        nb_aur_not_found = 0;
+                    }
                 }
                 else
 #else
@@ -674,7 +699,7 @@ kalu_check_work (gboolean is_auto)
 #ifndef DISABLE_GUI
             else if (error == NULL)
             {
-                nb_aur = 0;
+                nb_aur = nb_aur_not_found = 0;
             }
             else
 #else
@@ -692,6 +717,10 @@ kalu_check_work (gboolean is_auto)
                 {
                     set_kalpm_nb (CHECK_AUR, nb_aur, FALSE);
                 }
+                if (nb_aur_not_found >= 0)
+                {
+                    set_kalpm_nb (_CHECK_AUR_NOT_FOUND, nb_aur_not_found, FALSE);
+                }
 #endif
         }
 
@@ -701,7 +730,7 @@ kalu_check_work (gboolean is_auto)
     if (checks & CHECK_WATCHED_AUR && config->watched_aur /* NULL if not watched aur pkgs */)
     {
         packages = NULL;
-        if (aur_has_updates (&packages, config->watched_aur, TRUE, &error))
+        if (aur_has_updates (&packages, NULL, config->watched_aur, TRUE, &error))
         {
             got_something = TRUE;
 #ifndef DISABLE_GUI
@@ -1193,6 +1222,10 @@ main (int argc, char *argv[])
     config->tpl_aur = new0 (templates_t, 1);
     config->tpl_aur->title = strdup (_("AUR: $NB packages updated"));
     config->tpl_aur->package = strdup ("- <b>$PKG</b> $OLD > <b>$NEW</b>");
+
+    config->tpl_aur_not_found = new0 (templates_t, 1);
+    config->tpl_aur_not_found->title = strdup (_("$NB packages not found in AUR"));
+    config->tpl_aur_not_found->package = strdup (_("- <b>$PKG</b> ($OLD)"));
 
     config->tpl_watched_aur = new0 (templates_t, 1);
     config->tpl_watched_aur->title = strdup (_("AUR: $NB watched packages updated"));

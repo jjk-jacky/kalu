@@ -1199,6 +1199,10 @@ parse_config_file (const char       *file,
                 {
                     t = config->tpl_aur;
                 }
+                else if (streq ("template-aur-not-found", section))
+                {
+                    t = config->tpl_aur_not_found;
+                }
                 else if (streq ("template-watched-aur", section))
                 {
                     t = config->tpl_watched_aur;

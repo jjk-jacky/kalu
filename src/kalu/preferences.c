@@ -94,6 +94,9 @@ static GtkListStore *aur_ignore_store       = NULL;
 static GtkWidget *aur_title_entry           = NULL;
 static GtkWidget *aur_package_entry         = NULL;
 static GtkWidget *aur_sep_entry             = NULL;
+static GtkWidget *aur_nf_title_entry        = NULL;
+static GtkWidget *aur_nf_package_entry      = NULL;
+static GtkWidget *aur_nf_sep_entry          = NULL;
 /* Watched */
 static GtkWidget *watched_aur_title_entry   = NULL;
 static GtkWidget *watched_aur_package_entry = NULL;
@@ -409,6 +412,10 @@ refresh_tpl_widgets (void)
     refresh_entry_text (aur_package_entry, tpl_upgrades, package);
     refresh_entry_text (aur_sep_entry, tpl_upgrades, sep);
 
+    refresh_entry_text (aur_nf_title_entry, tpl_upgrades, title);
+    refresh_entry_text (aur_nf_package_entry, tpl_upgrades, package);
+    refresh_entry_text (aur_nf_sep_entry, tpl_upgrades, sep);
+
     /* watched-aur: falls back to aur first, then upgrades */
     refresh_entry_text_watched_aur (watched_aur_title_entry, title);
     refresh_entry_text_watched_aur (watched_aur_package_entry, package);
@@ -595,7 +602,10 @@ add_template (GtkWidget    *grid,
     /* notification template */
     label = gtk_label_new (NULL);
     gtk_widget_set_size_request (label, 420, -1);
-    gtk_label_set_markup (GTK_LABEL (label), _("<b>Notification template</b>"));
+    if (type & _CHECK_AUR_NOT_FOUND)
+        gtk_label_set_markup (GTK_LABEL (label), _("<b>When packages are not found:</b>"));
+    else
+        gtk_label_set_markup (GTK_LABEL (label), _("<b>Notification template</b>"));
     gtk_widget_set_margin_top (label, 15);
     gtk_grid_attach (GTK_GRID (grid), label, 0, top, 4, 1);
     gtk_widget_show (label);
@@ -632,19 +642,25 @@ add_template (GtkWidget    *grid,
 
     *package_entry = gtk_entry_new ();
     /* set tooltip */
-    tooltip = g_strconcat (
+    if (type & CHECK_NEWS)
+        tooltip = g_strconcat (
             _("The following variables are available :"),
-            (type & CHECK_NEWS)
-            ? _("\n- <b>$NEWS</b> : the news title")
-            : _("\n- <b>$PKG</b> : package name"
-                "\n- <b>$OLD</b> : old/current version number"
-                "\n- <b>$NEW</b> : new version number"),
-            (type & (CHECK_UPGRADES | CHECK_WATCHED))
-            ? _("\n- <b>$DL</b> : download size"
-                "\n- <b>$INS</b> : installed size"
-                "\n- <b>$NET</b> : net (post-install difference) size")
-            : NULL,
+            _("\n- <b>$NEWS</b> : the news title"),
             NULL);
+    else
+    {
+        tooltip = g_strconcat (
+            _("The following variables are available :"),
+            _("\n- <b>$PKG</b> : package name"),
+            _("\n- <b>$OLD</b> : old/current version number"),
+            (type & _CHECK_AUR_NOT_FOUND) ? NULL
+            : _("\n- <b>$NEW</b> : new version number"),
+            (!(type & (CHECK_UPGRADES | CHECK_WATCHED)))
+            ? NULL : _("\n- <b>$DL</b> : download size"),
+            _("\n- <b>$INS</b> : installed size"),
+            _("\n- <b>$NET</b> : net (post-install difference) size"),
+            NULL);
+    }
     gtk_widget_set_tooltip_markup (*package_entry, tooltip);
     g_free (tooltip);
     /* set value if any, else unsensitive */
@@ -811,6 +827,7 @@ btn_save_cb (GtkButton *button _UNUSED_, gpointer data _UNUSED_)
     new_config.tpl_upgrades     = new0 (templates_t, 1);
     new_config.tpl_watched      = new0 (templates_t, 1);
     new_config.tpl_aur          = new0 (templates_t, 1);
+    new_config.tpl_aur_not_found= new0 (templates_t, 1);
     new_config.tpl_watched_aur  = new0 (templates_t, 1);
     new_config.tpl_news         = new0 (templates_t, 1);
     new_config.aur_ignore       = NULL;
@@ -1202,6 +1219,30 @@ btn_save_cb (GtkButton *button _UNUSED_, gpointer data _UNUSED_)
             "Separator",
             4);
 
+    /* AUR Not Found */
+    has_tpl = FALSE;
+    tpl_field (tpl_aur_not_found,
+            title,
+            "aur-not-found",
+            "Title",
+            aur_nf_title_entry,
+            "Title",
+            4);
+    tpl_field (tpl_aur_not_found,
+            package,
+            "aur-not-found",
+            "Package",
+            aur_nf_package_entry,
+            "Package",
+            4);
+    tpl_field (tpl_aur_not_found,
+            sep,
+            "aur-not-found",
+            "Sep",
+            aur_nf_sep_entry,
+            "Separator",
+            4);
+
     /* Watched AUR */
     has_tpl = FALSE;
     tpl_field (tpl_watched_aur,
@@ -1288,6 +1329,7 @@ btn_save_cb (GtkButton *button _UNUSED_, gpointer data _UNUSED_)
     free_tpl (config->tpl_upgrades);
     free_tpl (config->tpl_watched);
     free_tpl (config->tpl_aur);
+    free_tpl (config->tpl_aur_not_found);
     free_tpl (config->tpl_watched_aur);
     free_tpl (config->tpl_news);
     FREELIST (config->aur_ignore);
@@ -1316,6 +1358,7 @@ clean_on_error:
     free_tpl (new_config.tpl_upgrades);
     free_tpl (new_config.tpl_watched);
     free_tpl (new_config.tpl_aur);
+    free_tpl (new_config.tpl_aur_not_found);
     free_tpl (new_config.tpl_watched_aur);
     free_tpl (new_config.tpl_news);
     if (new_config.aur_ignore)
@@ -2166,6 +2209,14 @@ show_prefs (void)
             &aur_sep_entry,
             config->tpl_aur,
             CHECK_AUR);
+    top += 3; /* for template above */
+    ++top;
+    add_template (grid, top,
+            &aur_nf_title_entry,
+            &aur_nf_package_entry,
+            &aur_nf_sep_entry,
+            config->tpl_aur_not_found,
+            _CHECK_AUR_NOT_FOUND);
 
     /* add page */
     gtk_widget_show (grid);

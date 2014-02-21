@@ -66,6 +66,24 @@ get_pkg_from_list (const char *pkgname, alpm_list_t *pkgs, gboolean is_watched)
     return NULL;
 }
 
+static gint
+find_nf (gpointer data, gpointer _find_data)
+{
+    struct {
+        gboolean is_watched;
+        const gchar *pkgname;
+    } *find_data = _find_data;
+
+    if (find_data->is_watched)
+    {
+        return strcmp (((watched_package_t *) data)->name, find_data->pkgname);
+    }
+    else
+    {
+        return strcmp (alpm_pkg_get_name ((alpm_pkg_t *) data), find_data->pkgname);
+    }
+}
+
 #define add(str)    do {                            \
     len = snprintf (s, (size_t) max, "%s", str);    \
     max -= len;                                     \
@@ -73,11 +91,13 @@ get_pkg_from_list (const char *pkgname, alpm_list_t *pkgs, gboolean is_watched)
 } while (0)
 gboolean
 aur_has_updates (alpm_list_t **packages,
+                 alpm_list_t **not_found,
                  alpm_list_t *aur_pkgs,
                  gboolean is_watched,
                  GError **error)
 {
     alpm_list_t *urls = NULL, *i;
+    alpm_list_t *list_nf = NULL;
     char buf[MAX_URL_LENGTH + 1], *s;
     int max, len;
     int len_prefix = (int) strlen (AUR_URL_PREFIX_PKG);
@@ -110,6 +130,12 @@ aur_has_updates (alpm_list_t **packages,
         else
         {
             pkgname = alpm_pkg_get_name ((alpm_pkg_t *) i->data);
+        }
+
+        /* fill list of not found packages */
+        if (not_found)
+        {
+            list_nf = alpm_list_add (list_nf, i->data);
         }
 
         /* make sure we can at least add the prefix */
@@ -187,6 +213,7 @@ aur_has_updates (alpm_list_t **packages,
             g_propagate_error (error, local_err);
             FREELIST (urls);
             FREE_PACKAGE_LIST (*packages);
+            alpm_list_free (list_nf);
             return FALSE;
         }
 
@@ -200,6 +227,7 @@ aur_has_updates (alpm_list_t **packages,
                     _("Invalid JSON response from the AUR"));
             FREELIST (urls);
             FREE_PACKAGE_LIST (*packages);
+            alpm_list_free (list_nf);
             free (data);
             return FALSE;
         }
@@ -225,9 +253,20 @@ aur_has_updates (alpm_list_t **packages,
                             pkgname);
                     FREELIST (urls);
                     FREE_PACKAGE_LIST (*packages);
+                    alpm_list_free (list_nf);
                     free (data);
                     cJSON_Delete (json);
                     return FALSE;
+                }
+                /* remove from list of not found packages */
+                if (not_found)
+                {
+                    struct {
+                        gboolean is_watched;
+                        const gchar *pkgname;
+                    } find_data = { is_watched, pkgname };
+                    list_nf = alpm_list_remove (list_nf, &find_data,
+                            (alpm_list_fn_cmp) find_nf, NULL);
                 }
                 if (is_watched)
                 {
@@ -254,6 +293,35 @@ aur_has_updates (alpm_list_t **packages,
         free (data);
     }
     FREELIST (urls);
+
+    /* turn not_found into a list of kalu_package_t as it should be */
+    if (not_found)
+    {
+        FOR_LIST (i, list_nf)
+        {
+            kpkg = new0 (kalu_package_t, 1);
+
+            if (is_watched)
+            {
+                watched_package_t *wp = i->data;
+
+                kpkg->name = strdup (wp->name);
+                kpkg->old_version = strdup (wp->version);
+            }
+            else
+            {
+                alpm_pkg_t *p = i->data;
+
+                kpkg->name = strdup (alpm_pkg_get_name (p));
+                kpkg->desc = strdup (alpm_pkg_get_desc (p));
+                kpkg->old_version = strdup (alpm_pkg_get_version (p));
+            }
+
+            debug ("adding to not found: package %s", kpkg->name);
+            *not_found = alpm_list_add (*not_found, kpkg);
+        }
+        alpm_list_free (list_nf);
+    }
 
     return (*packages != NULL);
 }

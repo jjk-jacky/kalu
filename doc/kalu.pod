@@ -99,6 +99,11 @@ in any repo, or what you'd have from running `pacman -Qm`) and check to see
 if they are available in the AUR. If so, it will check whether the AUR
 version is more recent than the one installed.
 
+You can of course specify a list of packages to ignore, so as not to check the
+AUR for packages you know won't be found. kalu will also notify you of any
+packages not found in the AUR, to alert you that a package might have been
+renamed/removed.
+
 =item B<* Watched AUR packages>
 
 Just as with "official" packages, you can maintain a list of non-installed
@@ -618,6 +623,35 @@ not want to be notified), simply add their names to this list.
 =item B<$OLD>  : the version number of the currently installed version
 
 =item B<$NET>  : the version number of the version available in the AUR
+
+=back
+
+=item Separator
+
+No variables available.
+
+=back
+
+
+=item I<When packages are not found:>
+
+=over
+
+=item Title
+
+=over
+
+=item B<$NB>  : the number of packages
+
+=back
+
+=item Package
+
+=over
+
+=item B<$PKG>  : the name of the package
+
+=item B<$OLD>  : the version number of the currently installed version
 
 =back
 
