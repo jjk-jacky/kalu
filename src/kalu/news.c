@@ -459,6 +459,18 @@ parse_to_buffer (GtkTextBuffer *buffer, const gchar *text, gsize text_len)
             }
 
         }
+        else if (streq (start + 1, "strong"))
+        {
+            *start = '\0';
+            insert_text_with_tags ();
+            tags = alpm_list_add (tags, (void *) "bold");
+        }
+        else if (streq (start + 1, "/strong"))
+        {
+            *start = '\0';
+            insert_text_with_tags ();
+            tags = alpm_list_remove_str (tags, "bold", NULL);
+        }
         else if (streq (start + 1, "b"))
         {
             *start = '\0';
