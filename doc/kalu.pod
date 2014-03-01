@@ -315,6 +315,8 @@ selecting a file to load it from.
 
 If loading the icon fails, kalu will silently fall back to using it own icon.
 
+=item I<Size of the icon used on notifications>
+
 =item NotificationIconSize = I<size>
 
 Specify the size of the icon used on notifications. The size must be a number
