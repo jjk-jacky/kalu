@@ -17,9 +17,15 @@ AM_SILENT_RULES([yes])
 m4_ifdef([AM_PROG_AR], [AM_PROG_AR])
 
 # Checks for programs.
+AC_PROG_CXX
+AC_PROG_AWK
 AC_PROG_CC_C99
+AC_PROG_CPP
 AC_PROG_INSTALL
 AC_PROG_LN_S
+AC_PROG_MAKE_SET
+AC_PROG_RANLIB
+
 AM_PROG_CC_C_O
 
 LT_INIT
@@ -121,7 +127,7 @@ AS_IF([test "x$with_gui" = "xyes"], [
 PKG_CHECK_MODULES(LIBCURL, [libcurl], , AC_MSG_ERROR([libcurl is required]))
 
 # Checks for header files.
-AC_CHECK_HEADERS([fcntl.h float.h limits.h stdlib.h string.h unistd.h utime.h])
+AC_CHECK_HEADERS([fcntl.h float.h libintl.h limits.h locale.h stdlib.h string.h unistd.h utime.h])
 
 # Checks for typedefs, structures, and compiler characteristics.
 AC_C_INLINE
@@ -131,7 +137,7 @@ AC_TYPE_SIZE_T
 # Checks for library functions.
 AC_FUNC_MALLOC
 AC_FUNC_REALLOC
-AC_CHECK_FUNCS([floor memmove memset mkdir pow rmdir strchr strdup strerror strrchr strstr uname utime])
+AC_CHECK_FUNCS([floor memmove memset mkdir mkfifo pow rmdir select setenv setlocale strchr strdup strerror strrchr strstr uname utime])
 
 # Defines some constants
 AC_DEFINE_UNQUOTED([KALU_LOGO],
