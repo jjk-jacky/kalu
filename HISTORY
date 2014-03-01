@@ -1,4 +1,47 @@
 
+# 2014-03-02, v2.4.0
+
+- Add FIFO to send commands to kalu
+
+On start a FIFO named kalu_fifo_XXXX (where XXXX is kalu's process id) will be
+created under `$XDG_RUNTIME_DIR`. One can write to this FIFO to send commands to
+kalu, to e.g. run checks, start a sysupgrade, etc
+
+This allows to use kalu without the need to click its systray icon/menu, even
+from keyboard shortcuts.
+
+- Watched (AUR) packages: Include packages not found in results
+
+They have "package not found" as description, and "-" as new version.
+
+- Add a new notification for packages not found in AUR
+
+When checking the AUR, any and all packages not found will now be listed in an
+additionnal notification. This allows to catch e.g. when a package might have
+been renamed/removed.
+
+Note that such packages should be put on the ignore list, to avoid useless
+querying of the AUR.
+
+- Promote "sysupgrade simulation" a bit
+
+Make it possible to start a sysupgrade simulation from menu, clicks on the
+systray icon and via FIFO command
+
+- kalu updater: Add download/install/net sizes to kalu's log
+
+- Fix possibly trying to start a sysupgrade while busy
+
+- Update French translation
+
+- Remove config tweak ForceImages (Images are now always shown)
+
+- Add option (NotificationIconSize) to define the size of icons used on
+notifications
+
+- Some other fixes (see git log for details)
+
+
 # 2013-10-18, v2.3.0
 
 With contributions from Mickael FALCK.
