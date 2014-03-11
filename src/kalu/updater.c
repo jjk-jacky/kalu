@@ -2326,61 +2326,72 @@ dl_progress_cb (const gchar *filename, off_t xfered, off_t total)
 }
 
 static void
-question_cb (alpm_question_t event, void *data1, void *data2, void *data3, int *response)
+question_cb (alpm_question_t *question)
 {
-    const char *repo1, *pkg1;
-    const char *repo2, *pkg2;
     alpm_list_t *i, *l;
 
-    switch (event)
+    switch (question->type)
     {
         case ALPM_QUESTION_INSTALL_IGNOREPKG:
-            *response = on_install_ignorepkg (NULL, alpm_pkg_get_name (data1));
-            break;
+            {
+                alpm_question_install_ignorepkg_t *q = (alpm_question_install_ignorepkg_t *) question;
+                q->install = on_install_ignorepkg (NULL, alpm_pkg_get_name (q->pkg));
+                break;
+            }
 
         case ALPM_QUESTION_REPLACE_PKG:
-            repo1 = alpm_db_get_name (alpm_pkg_get_db (data1));
-            pkg1 = alpm_pkg_get_name (data1);
-            repo2 = (const char *) data3;
-            pkg2 = alpm_pkg_get_name (data2);
-            *response = on_replace_pkg (NULL, repo1, pkg1, repo2, pkg2);
-            break;
+            {
+                alpm_question_replace_t *q = (alpm_question_replace_t *) question;
+                q->replace = on_replace_pkg (NULL,
+                        alpm_db_get_name (alpm_pkg_get_db (q->oldpkg)),
+                        alpm_pkg_get_name (q->oldpkg),
+                        alpm_db_get_name (q->newdb),
+                        alpm_pkg_get_name (q->newpkg));
+                break;
+            }
 
         case ALPM_QUESTION_CONFLICT_PKG:
-            /* this time no pointers to alpm_pkt_t, it's all strings */
-            /* also, reason (data3) can be just same as data1 or data2...) */
             {
+                alpm_question_conflict_t *q = (alpm_question_conflict_t *) question;
                 const char *reason;
-                if (strcmp (data3, data1) == 0 || strcmp (data3, data2) == 0)
+                if (strcmp (q->conflict->reason->name, q->conflict->package1) == 0
+                        || strcmp (q->conflict->reason->name, q->conflict->package2) == 0)
                 {
                     reason = "";
                 }
                 else
                 {
-                    reason = (const char *) data3;
+                    reason = q->conflict->reason->name;
                 }
-                *response = on_conflict_pkg (NULL, data1, data2, reason);
+                q->remove = on_conflict_pkg (NULL,
+                        q->conflict->package1,
+                        q->conflict->package2,
+                        reason);
+                break;
             }
-            break;
 
         case ALPM_QUESTION_REMOVE_PKGS:
-            l = NULL;
-            FOR_LIST (i, data1)
             {
-                l = alpm_list_add (l, (gpointer) alpm_pkg_get_name (i->data));
-            }
+                alpm_question_remove_pkgs_t *q = (alpm_question_remove_pkgs_t *) question;
+                l = NULL;
+                FOR_LIST (i, q->packages)
+                {
+                    l = alpm_list_add (l, (gpointer) alpm_pkg_get_name (i->data));
+                }
 
-            *response = on_remove_pkgs (NULL, l);
-            alpm_list_free (l);
-            break;
+                q->skip = on_remove_pkgs (NULL, l);
+                alpm_list_free (l);
+                break;
+            }
 
         case ALPM_QUESTION_SELECT_PROVIDER:
             {
+                alpm_question_select_provider_t *q = (alpm_question_select_provider_t *) question;
                 /* creates a string like "foobar>=4.2" */
-                char *pkg = alpm_dep_compute_string ((alpm_depend_t *) data2);
+                char *pkg = alpm_dep_compute_string (q->depend);
 
                 l = NULL;
-                FOR_LIST (i, data1)
+                FOR_LIST (i, q->providers)
                 {
                     provider_t *provider;
 
@@ -2391,32 +2402,35 @@ question_cb (alpm_question_t event, void *data1, void *data2, void *data3, int *
                     l = alpm_list_add (l, provider);
                 }
 
-                *response = on_select_provider (NULL, pkg, l);
+                q->use_index = on_select_provider (NULL, pkg, l);
                 free (pkg);
                 FOR_LIST (i, l)
                 {
                     g_slice_free (provider_t, l->data);
                 }
                 alpm_list_free (l);
+                break;
             }
-            break;
 
         case ALPM_QUESTION_CORRUPTED_PKG:
-            *response = on_corrupted_pkg (NULL, data1, alpm_strerror (*(enum _alpm_errno_t *) data2));
-            break;
+            {
+                alpm_question_corrupted_t *q = (alpm_question_corrupted_t *) question;
+                q->remove = on_corrupted_pkg (NULL, q->filepath, alpm_strerror (q->reason));
+                break;
+            }
 
         case ALPM_QUESTION_IMPORT_KEY:
             {
-                alpm_pgpkey_t *key = data1;
+                alpm_question_import_key_t *q = (alpm_question_import_key_t *) question;
                 gchar created[12];
-                strftime (created, 12, "%Y-%m-%d", localtime (&key->created));
+                strftime (created, 12, "%Y-%m-%d", localtime (&q->key->created));
 
-                *response = on_import_key (NULL, key->fingerprint, key->uid, created);
+                q->import = on_import_key (NULL, q->key->fingerprint, q->key->uid, created);
+                break;
             }
-            break;
 
         default:
-            debug ("Received unknown question-event: %d", event);
+            debug ("Received unknown question: %d", question->type);
             return;
     }
 }

@@ -487,7 +487,7 @@ kalu_alpm_has_updates (alpm_list_t **packages, GError **error)
             case ALPM_ERR_PKG_INVALID_ARCH:
                 FOR_LIST (i, data)
                 {
-                    const char *pkg = i->data;
+                    char *pkg = i->data;
                     len -= snprintf (buf, 255,
                             _("- Package %s does not have a valid architecture\n"),
                             pkg);

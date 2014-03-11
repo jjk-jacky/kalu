@@ -511,72 +511,85 @@ log_cb (alpm_loglevel_t level, const char *fmt, va_list args)
 
 /* callback to handle questions from libalpm */
 static void
-question_cb (alpm_question_t event, void *data1, void *data2, void *data3, int *response)
+question_cb (alpm_question_t *question)
 {
-    const char *repo1, *pkg1;
-    const char *repo2, *pkg2;
     GVariantBuilder *builder;
     alpm_list_t *i;
 
-    debug ("question %d (%p -- %p -- %p)\n", event, data1, data2, data3);
+    debug ("question %d\n", question->type);
 
     if (choice != CHOICE_FREE)
     {
-        debug ("Received question (%d) while already busy", event);
+        debug ("Received question (%d) while already busy", question->type);
         return;
     }
     choice = CHOICE_WAITING;
 
-    switch (event)
+    switch (question->type)
     {
         case ALPM_QUESTION_INSTALL_IGNOREPKG:
-            emit_signal ("AskInstallIgnorePkg", "s", alpm_pkg_get_name (data1));
-            break;
+            {
+                alpm_question_install_ignorepkg_t *q = &question->install_ignorepkg;
+                emit_signal ("AskInstallIgnorePkg", "s", alpm_pkg_get_name (q->pkg));
+                break;
+            }
 
         case ALPM_QUESTION_REPLACE_PKG:
-            repo1 = alpm_db_get_name (alpm_pkg_get_db (data1));
-            pkg1 = alpm_pkg_get_name (data1);
-            repo2 = (const char *) data3;
-            pkg2 = alpm_pkg_get_name (data2);
-            emit_signal ("AskReplacePkg", "ssss", repo1, pkg1, repo2, pkg2);
-            break;
+            {
+                alpm_question_replace_t *q = &question->replace;
+                emit_signal ("AskReplacePkg", "ssss",
+                        alpm_db_get_name (alpm_pkg_get_db (q->oldpkg)),
+                        alpm_pkg_get_name (q->oldpkg),
+                        alpm_db_get_name (q->newdb),
+                        alpm_pkg_get_name (q->newpkg));
+                break;
+            }
 
         case ALPM_QUESTION_CONFLICT_PKG:
-            /* this time no pointers to alpm_pkt_t, it's all strings */
-            /* also, reason (data3) can be just same as data1 or data2...) */
             {
+                alpm_question_conflict_t *q = &question->conflict;
                 const char *reason;
-                if (strcmp (data3, data1) == 0 || strcmp (data3, data2) == 0)
+
+                if (strcmp (q->conflict->reason->name, q->conflict->package1) == 0
+                        || strcmp (q->conflict->reason->name, q->conflict->package2) == 0)
                 {
                     reason = "";
                 }
                 else
                 {
-                    reason = (const char *) data3;
+                    reason = q->conflict->reason->name;
                 }
-                emit_signal ("AskConflictPkg", "sss", data1, data2, reason);
+                emit_signal ("AskConflictPkg", "sss",
+                        q->conflict->package1,
+                        q->conflict->package2,
+                        reason);
+                break;
             }
-            break;
 
         case ALPM_QUESTION_REMOVE_PKGS:
-            builder = g_variant_builder_new (G_VARIANT_TYPE ("as"));
-            FOR_LIST (i, data1)
             {
-                g_variant_builder_add (builder, "s", alpm_pkg_get_name (i->data));
-            }
+                alpm_question_remove_pkgs_t *q = &question->remove_pkgs;
 
-            emit_signal ("AskRemovePkgs", "as", builder);
-            g_variant_builder_unref (builder);
-            break;
+                builder = g_variant_builder_new (G_VARIANT_TYPE ("as"));
+                FOR_LIST (i, q->packages)
+                {
+                    g_variant_builder_add (builder, "s", alpm_pkg_get_name (i->data));
+                }
+
+                emit_signal ("AskRemovePkgs", "as", builder);
+                g_variant_builder_unref (builder);
+                break;
+            }
 
         case ALPM_QUESTION_SELECT_PROVIDER:
             {
+                alpm_question_select_provider_t *q = &question->select_provider;
                 /* creates a string like "foobar>=4.2" */
-                char *pkg = alpm_dep_compute_string ((alpm_depend_t *) data2);
+                char *pkg = alpm_dep_compute_string (q->depend);
                 GVariantBuilder *builder2;
 
                 builder = g_variant_builder_new (G_VARIANT_TYPE ("aas"));
-                FOR_LIST (i, data1)
+                FOR_LIST (i, q->providers)
                 {
                     builder2 = g_variant_builder_new (G_VARIANT_TYPE ("as"));
                     /* repo */
@@ -597,30 +610,35 @@ question_cb (alpm_question_t event, void *data1, void *data2, void *data3, int *
                 emit_signal ("AskSelectProvider", "saas", pkg, builder);
                 free (pkg);
                 g_variant_builder_unref (builder);
+                break;
             }
-            break;
 
         case ALPM_QUESTION_CORRUPTED_PKG:
-            emit_signal ("AskCorruptedPkg", "ss", data1,
-                    alpm_strerror (*(enum _alpm_errno_t *) data2));
-            break;
+            {
+                alpm_question_corrupted_t *q = &question->corrupted;
+
+                emit_signal ("AskCorruptedPkg", "ss",
+                        q->filepath,
+                        alpm_strerror (q->reason));
+                break;
+            }
 
         case ALPM_QUESTION_IMPORT_KEY:
             {
-                alpm_pgpkey_t *key = data1;
+                alpm_question_import_key_t *q = &question->import_key;
                 gchar created[12];
-                strftime (created, 12, "%Y-%m-%d", localtime (&key->created));
+                strftime (created, 12, "%Y-%m-%d", localtime (&q->key->created));
 
                 emit_signal ("AskImportKey", "sss",
-                        key->fingerprint,
-                        key->uid,
+                        q->key->fingerprint,
+                        q->key->uid,
                         created);
+                break;
             }
-            break;
 
         default:
             choice = CHOICE_FREE;
-            debug ("Received unknown question-event: %d", event);
+            debug ("Received unknown question: %d", question->type);
             return;
     }
     /* wait for a choice -- happens when method Answer is called */
@@ -628,7 +646,7 @@ question_cb (alpm_question_t event, void *data1, void *data2, void *data3, int *
     {
         g_main_context_iteration (NULL, TRUE);
     }
-    *response = choice;
+    question->any.answer = choice;
     choice = CHOICE_FREE;
 }
 

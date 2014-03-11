@@ -33,8 +33,7 @@
 #ifndef DISABLE_UPDATER
 typedef struct {
     void (*dl_progress_cb) (const gchar *filename, off_t xfered, off_t total);
-    void (*question_cb) (alpm_question_t event, void *data1, void *data2,
-            void *data3, int *response);
+    void (*question_cb) (alpm_question_t *question);
     void (*log_cb) (alpm_loglevel_t level, const char *fmt, va_list args);
     void (*on_sync_dbs) (gpointer unused, gint nb);
     void (*on_sync_db_start) (gpointer unused, const gchar *name);
