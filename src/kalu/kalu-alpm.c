@@ -495,6 +495,7 @@ kalu_alpm_has_updates (alpm_list_t **packages, GError **error)
                     {
                         strncat (err, buf, (size_t) len);
                     }
+                    free (pkg);
                 }
                 break;
             case ALPM_ERR_UNSATISFIED_DEPS:
@@ -511,6 +512,7 @@ kalu_alpm_has_updates (alpm_list_t **packages, GError **error)
                         strncat (err, buf, (size_t) len);
                     }
                     free (depstring);
+                    alpm_depmissing_free (miss);
                 }
                 break;
             case ALPM_ERR_CONFLICTING_DEPS:
@@ -544,6 +546,7 @@ kalu_alpm_has_updates (alpm_list_t **packages, GError **error)
                         }
                         free (reason);
                     }
+                    alpm_conflict_free (conflict);
                 }
                 break;
             default:
@@ -613,10 +616,7 @@ kalu_alpm_has_updates (alpm_list_t **packages, GError **error)
 #endif
 
 cleanup:
-    if (data)
-    {
-        FREELIST (data);
-    }
+    alpm_list_free (data);
     trans_release (alpm, NULL);
 
     return (*packages != NULL);

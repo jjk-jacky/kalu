@@ -1059,6 +1059,7 @@ get_packages (GVariant *parameters)
                         (const char *) i->data);
                 details = alpm_list_add (details, strdup (buf));
                 len += strlen (buf);
+                free (i->data);
             }
         }
         else if (err == ALPM_ERR_UNSATISFIED_DEPS)
@@ -1074,6 +1075,7 @@ get_packages (GVariant *parameters)
                 free (depstring);
                 details = alpm_list_add (details, strdup (buf));
                 len += strlen (buf);
+                alpm_depmissing_free (miss);
             }
         }
         else if (err == ALPM_ERR_CONFLICTING_DEPS)
@@ -1100,6 +1102,7 @@ get_packages (GVariant *parameters)
                 }
                 details = alpm_list_add (details, strdup (buf));
                 len += strlen (buf);
+                alpm_conflict_free (conflict);
             }
         }
 
@@ -1126,11 +1129,11 @@ get_packages (GVariant *parameters)
                     alpm_strerror (err));
         }
 
-        FREELIST (alpm_data);
+        alpm_list_free (alpm_data);
         alpm_trans_release (handle);
         return FALSE;
     }
-    FREELIST (alpm_data);
+    alpm_list_free (alpm_data);
 
     alpm_list_t *pkgs;
     GVariantBuilder *builder;
@@ -1223,6 +1226,7 @@ sysupgrade (GVariant *parameters)
 
                 details = alpm_list_add (details, strdup (buf));
                 len += strlen (buf);
+                alpm_fileconflict_free (conflict);
             }
         }
         else if (  err == ALPM_ERR_PKG_INVALID
@@ -1237,6 +1241,7 @@ sysupgrade (GVariant *parameters)
                         (const char *) i->data);
                 details = alpm_list_add (details, strdup (buf));
                 len += strlen (buf);
+                free (i->data);
             }
         }
 
@@ -1263,7 +1268,7 @@ sysupgrade (GVariant *parameters)
                     alpm_strerror (err));
         }
 
-        FREELIST (alpm_data);
+        alpm_list_free (alpm_data);
         alpm_logaction (handle, PREFIX,
                 "Failed to commit sysupgrade transaction: %s\n",
                 alpm_strerror (err));
@@ -1271,7 +1276,7 @@ sysupgrade (GVariant *parameters)
         return FALSE;
     }
 
-    FREELIST (alpm_data);
+    alpm_list_free (alpm_data);
     alpm_trans_release (handle);
     alpm_logaction (handle, PREFIX, "sysupgrade completed\n");
     method_finished ("SysUpgrade");
