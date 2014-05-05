@@ -447,16 +447,18 @@ parse_to_buffer (GtkTextBuffer *buffer, const gchar *text, gsize text_len)
              * and whatnot, but that should be the case
              * Go through tags from last to first (first->prev is last) and
              * remove the first margin found */
-            for (i = tags;
-                    i && ((i->prev == tags && !i->next) || i->prev != tags);
-                    i = i->prev)
-            {
-                if (strncmp (i->data, "margin", 6) == 0)
+            if (tags)
+                for (i = tags->prev; i; i = i->prev)
                 {
-                    tags = alpm_list_remove_str (tags, i->data, NULL);
-                    break;
+                    if (strncmp (i->data, "margin", 6) == 0)
+                    {
+                        tags = alpm_list_remove_str (tags, i->data, NULL);
+                        break;
+                    }
+                    else if (!i->prev->next)
+                        /* i is the first element */
+                        break;
                 }
-            }
 
         }
         else if (streq (start + 1, "strong"))
