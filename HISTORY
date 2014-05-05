@@ -1,4 +1,9 @@
 
+# 2014-05-05, v2.4.1
+
+- Fix possible endless loop when showing news
+
+
 # 2014-03-02, v2.4.0
 
 - Add FIFO to send commands to kalu
