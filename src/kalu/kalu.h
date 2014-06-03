@@ -173,6 +173,12 @@ typedef struct _config_t {
 #ifndef DISABLE_GUI
     alpm_list_t     *last_notifs;
 #endif
+#ifndef DISABLE_UPDATER
+    char            *color_unimportant;
+    char            *color_info;
+    char            *color_warning;
+    char            *color_error;
+#endif
 } config_t;
 
 typedef struct _watched_package_t {

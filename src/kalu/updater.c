@@ -239,7 +239,8 @@ _show_error (const gchar *msg, const gchar *fmt, ...)
     va_list args;
     int len;
 
-    snprintf (buf, 255, "<big><b><span color=\"red\">%s</span></b></big>", msg);
+    snprintf (buf, 255, "<big><b><span color=\"%s\">%s</span></b></big>",
+            config->color_error, msg);
 
     buffer = bufmsg;
     va_start (args, fmt);
@@ -1428,6 +1429,7 @@ static void
 updater_sysupgrade_cb (KaluUpdater *kupdater _UNUSED_, const gchar *errmsg)
 {
     alpm_list_t *i;
+    gchar buf[128], *b = buf;
 
     gtk_widget_set_sensitive (updater->btn_close, TRUE);
 
@@ -1437,9 +1439,16 @@ updater_sysupgrade_cb (KaluUpdater *kupdater _UNUSED_, const gchar *errmsg)
         return;
     }
 
-    add_log (LOGTYPE_NORMAL, _("System upgrade complete.\n"));
-    gtk_label_set_markup (GTK_LABEL (updater->lbl_main),
-            _("<big><b><span color=\"blue\">System upgrade complete.</span></b></big>"));
+#define fmt "<big><b><span color=\"%s\">%s</span></b></big>"
+    add_log (LOGTYPE_NORMAL, _("System upgrade complete."));
+    add_log (LOGTYPE_NORMAL, "\n");
+    if (G_UNLIKELY (g_snprintf (buf, 128, fmt, config->color_info,
+                    _("System upgrade complete.")) >= 128))
+        b = g_strdup_printf (fmt, config->color_info, _("System upgrade complete."));
+    gtk_label_set_markup (GTK_LABEL (updater->lbl_main), b);
+    if (G_UNLIKELY (b != buf))
+        g_free (b);
+#undef fmt
     gtk_progress_bar_set_fraction (GTK_PROGRESS_BAR (updater->pbar_main), 1.0);
     gtk_widget_hide (updater->lbl_action);
     gtk_widget_hide (updater->pbar_action);
@@ -2469,7 +2478,7 @@ updater_run (const gchar *conffile, alpm_list_t *cmdline_post)
     gtk_tree_view_append_column (GTK_TREE_VIEW (list), column);
     /* column: Download size */
     renderer_lbl = gtk_cell_renderer_text_new ();
-    g_object_set (renderer_lbl, "foreground", "blue", NULL);
+    g_object_set (renderer_lbl, "foreground", config->color_info, NULL);
     renderer_pbar = gtk_cell_renderer_progress_new ();
     column = gtk_tree_view_column_new_with_attributes (
             _c("column", "Download"),
@@ -2489,7 +2498,7 @@ updater_run (const gchar *conffile, alpm_list_t *cmdline_post)
     gtk_tree_view_append_column (GTK_TREE_VIEW (list), column);
     /* column: Installed size */
     renderer_lbl = gtk_cell_renderer_text_new ();
-    g_object_set (renderer_lbl, "foreground", "blue", NULL);
+    g_object_set (renderer_lbl, "foreground", config->color_info, NULL);
     renderer_pbar = gtk_cell_renderer_progress_new ();
     column = gtk_tree_view_column_new_with_attributes (
             _c("column", "Installed"),
@@ -2551,16 +2560,16 @@ updater_run (const gchar *conffile, alpm_list_t *cmdline_post)
     updater->buffer = gtk_text_view_get_buffer (GTK_TEXT_VIEW (text_view));
     gtk_text_buffer_create_tag (updater->buffer, "normal", NULL);
     gtk_text_buffer_create_tag (updater->buffer, "unimportant",
-            "foreground",   "gray",
+            "foreground",   config->color_unimportant,
             NULL);
     gtk_text_buffer_create_tag (updater->buffer, "info",
-            "foreground",   "blue",
+            "foreground",   config->color_info,
             NULL);
     gtk_text_buffer_create_tag (updater->buffer, "warning",
-            "foreground",   "green",
+            "foreground",   config->color_warning,
             NULL);
     gtk_text_buffer_create_tag (updater->buffer, "error",
-            "foreground",   "red",
+            "foreground",   config->color_error,
             NULL);
     /* create mark at the end, where we'll insert stuff/scroll to */
     GtkTextIter iter;

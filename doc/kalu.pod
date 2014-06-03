@@ -828,6 +828,39 @@ This can be used to not add any buttons to notifications. Can be useful if your
 notification daemon decides to show notifications with action-buttons as
 non-expiring windows instead (e.g. I<notify-osd>).
 
+=item B<ColorUnimportant = COLOR>
+
+=item B<ColorInfo = COLOR>
+
+=item B<ColorWarning = COLOR>
+
+=item B<ColorError = COLOR>
+
+Allows you to define the colors used in kalu's system upgrade GUI. Those are
+used to color log messages of another level than NORMAL. B<ColorInfo> is also
+used on columns for download & install sizes, to indicate packages that have
+been downloaded/installed, as well as for completion message. B<ColorError> is
+also used similarly in case of e.g. download error for a package, or message of
+system upgrade failure.
+
+The value I<COLOR> will be parsed as a GdkRGBA color, and can therefore be
+either one of:
+
+- A standard name (Taken from the X11 rgb.txt file)
+
+- A hexadecimal value in the form "#rgb", "#rrggbb", "#rrrgggbbb" or
+  "#rrrrggggbbbb"
+
+- A RGB color in the form "rgb(r,g,b)" (In this case the color will have full
+  opacity)
+
+- A RGBA color in the form "rgba(r,g,b,a)"
+
+Where "r", "g", "b" and "a" are respectively the red, green, blue and alpha
+color values. In the last two cases, r g and b are either integers in the range
+0 to 255 or precentage values in the range 0% to 100%, and a is a floating point
+value in the range 0 to 1.
+
 =back
 
 =head1 SYSTEM UPGRADE

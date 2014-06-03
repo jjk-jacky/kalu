@@ -29,6 +29,10 @@
 #include <sys/utsname.h> /* uname */
 #include <errno.h>
 
+#ifndef DISABLE_UPDATER
+#include <gdk/gdk.h>        /* for parsing RGBA colors */
+#endif
+
 /* alpm */
 #include <alpm.h>
 #include <alpm_list.h>
@@ -1178,6 +1182,36 @@ parse_config_file (const char       *file,
                         continue;
                     }
                 }
+#ifndef DISABLE_UPDATER
+                else if (streq (key, "ColorUnimportant")
+                        || streq (key, "ColorInfo")
+                        || streq (key, "ColorWarning")
+                        || streq (key, "ColorError"))
+                {
+                    GdkRGBA rgba;
+                    gchar **cfg;
+
+                    if (!gdk_rgba_parse (&rgba, value))
+                    {
+                        add_error ("invalid value for %s: %s", key, value);
+                        continue;
+                    }
+
+                    if (streq (key, "ColorInfo"))
+                        cfg = &config->color_info;
+                    else if (streq (key, "ColorWarning"))
+                        cfg = &config->color_warning;
+                    else if (streq (key, "ColorError"))
+                        cfg = &config->color_error;
+                    else
+                        cfg = &config->color_unimportant;
+
+                    free (*cfg);
+                    *cfg = strdup (value);
+
+                    debug ("config: set %s to %s", key, value);
+                }
+#endif
                 else
                 {
                     add_error ("unknown option: %s", key);

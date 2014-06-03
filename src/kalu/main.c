@@ -1234,6 +1234,13 @@ main (int argc, char *argv[])
     config->tpl_news->title = strdup (_("$NB unread news"));
     config->tpl_news->package = strdup ("- $NEWS");
 
+#ifndef DISABLE_UPDATER
+    config->color_unimportant = strdup ("gray");
+    config->color_info = strdup ("blue");
+    config->color_warning = strdup ("green");
+    config->color_error = strdup ("red");
+#endif
+
 #ifndef DISABLE_GUI
     if (!is_cli)
     {

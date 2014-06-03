@@ -854,6 +854,26 @@ btn_save_cb (GtkButton *button _UNUSED_, gpointer data _UNUSED_)
         add_to_conf ("NotifButtons = 0\n");
     }
 
+#ifndef DISABLE_UPDATER
+    /* colors (no GUI) */
+    if (!streq (new_config.color_unimportant, "gray"))
+    {
+        add_to_conf ("ColorUnimportant = %s\n", new_config.color_unimportant);
+    }
+    if (!streq (new_config.color_info, "blue"))
+    {
+        add_to_conf ("ColorInfo = %s\n", new_config.color_info);
+    }
+    if (!streq (new_config.color_warning, "green"))
+    {
+        add_to_conf ("ColorWarning = %s\n", new_config.color_warning);
+    }
+    if (!streq (new_config.color_error, "red"))
+    {
+        add_to_conf ("ColorError = %s\n", new_config.color_error);
+    }
+#endif
+
     /* General */
     s = gtk_file_chooser_get_filename (GTK_FILE_CHOOSER (filechooser));
     if (NULL == s)
