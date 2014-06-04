@@ -848,8 +848,8 @@ either one of:
 
 - A standard name (Taken from the X11 rgb.txt file)
 
-- A hexadecimal value in the form "#rgb", "#rrggbb", "#rrrgggbbb" or
-  "#rrrrggggbbbb"
+- A hexadecimal value in the form ".rgb", ".rrggbb", ".rrrgggbbb" or
+  ".rrrrggggbbbb"
 
 - A RGB color in the form "rgb(r,g,b)" (In this case the color will have full
   opacity)

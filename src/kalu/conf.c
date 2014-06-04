@@ -1191,6 +1191,8 @@ parse_config_file (const char       *file,
                     GdkRGBA rgba;
                     gchar **cfg;
 
+                    if (*value == '.')
+                        *value = '#';
                     if (!gdk_rgba_parse (&rgba, value))
                     {
                         add_error ("invalid value for %s: %s", key, value);
