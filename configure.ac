@@ -47,6 +47,21 @@ AC_ARG_WITH([url-aur-prefix-pkg],
 		[set the prefix before each package for the AUR URL]),
 	[AUR_URL_PREFIX_PKG=$withval], [AUR_URL_PREFIX_PKG="&arg[[]]="])
 
+# Feature: KDE's StatusNotifierItem
+AC_ARG_ENABLE([status-notifier],
+	AC_HELP_STRING([--enable-status-notifier],
+		[enable support for KDE StatusNotifierItem]),
+	if test $enableval = "yes"; then
+		with_status_notifier=yes
+	elif test $enableval = "no"; then
+		with_status_notifier=no
+	else
+		AC_MSG_ERROR([Invalid value given to --enable-status-notifier; must be yes or no])
+	fi
+	,
+	with_status_notifier=no)
+AM_CONDITIONAL([ENABLE_STATUS_NOTIFIER], [test "x$with_status_notifier" = "xyes"])
+
 # Feature: GUI
 AC_ARG_ENABLE([gui],
 	AC_HELP_STRING([--disable-gui],
@@ -115,12 +130,21 @@ AS_IF([test "x$with_gui" = "xyes"], [
 
     # Checks for GTK+3
     PKG_CHECK_MODULES(GTK, [gtk+-3.0], , AC_MSG_ERROR([GTK+3 is required]))
+
+    AS_IF([test "x$with_status_notifier" = "xyes"], [
+           PKG_CHECK_MODULES(STATUS_NOTIFIER, [statusnotifier], ,
+                AC_MSG_ERROR([statusnotifier is required for StatusNotifierItem support]))
+           AC_DEFINE([ENABLE_STATUS_NOTIFIER], 1, [Enable StatusNotifierItem])
+    ])
 ], [
     AC_DEFINE([DISABLE_GUI], 1, [Disable GUI])
     AC_DEFINE([DISABLE_UPDATER], 1, [Disable kalu udpater])
     # No GTK, check for Glib
     PKG_CHECK_MODULES(GLIB2, [glib-2.0 gobject-2.0 gthread-2.0], ,
                       AC_MSG_ERROR([glib2 is required]))
+    AS_IF([test "x$with_status_notifier" = "xyes"], [
+           AC_MSG_ERROR([StatusNotifierItem support requires GUI])
+    ])
 ])
 
 # Check for libcurl
@@ -225,6 +249,7 @@ echo "
    prefix                   : ${prefix}
    GUI                      : ${with_gui}
    kalu's updater           : ${with_updater}
+   StatusNotifierItem       : ${with_status_notifier}
    group to not need auth   : ${GROUP}
    compiler warning flags   : ${WARNING_CFLAGS}
 

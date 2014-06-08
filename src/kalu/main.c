@@ -42,6 +42,11 @@
 /* curl */
 #include <curl/curl.h>
 
+/* statusnotifier */
+#ifdef ENABLE_STATUS_NOTIFIER
+#include <statusnotifier.h>
+#endif
+
 /* kalu */
 #include "kalu.h"
 #ifndef DISABLE_GUI
@@ -880,6 +885,10 @@ debug (const char *fmt, ...)
 }
 
 #ifndef DISABLE_GUI
+#ifdef ENABLE_STATUS_NOTIFIER
+extern StatusNotifier *sn;
+extern GdkPixbuf *sn_icon[NB_SN_ICONS];
+#endif
 extern GtkStatusIcon *icon;
 extern GPtrArray     *open_windows;
 
@@ -1103,6 +1112,65 @@ opt_debug (const gchar  *option _UNUSED_,
     ++config->is_debug;
     return TRUE;
 }
+
+static void
+create_status_icon (void)
+{
+    debug ("create GtkStatusIcon");
+    icon = gtk_status_icon_new_from_icon_name ("kalu-gray");
+    gtk_status_icon_set_name (icon, "kalu");
+    gtk_status_icon_set_title (icon, "kalu");
+    gtk_status_icon_set_tooltip_text (icon, "kalu");
+
+    g_signal_connect (G_OBJECT (icon), "query-tooltip",
+            G_CALLBACK (icon_query_tooltip_cb), NULL);
+    g_signal_connect (G_OBJECT (icon), "popup-menu",
+            G_CALLBACK (icon_popup_cb), NULL);
+    g_signal_connect (G_OBJECT (icon), "button-press-event",
+            G_CALLBACK (icon_press_cb), NULL);
+
+    gtk_status_icon_set_visible (icon, TRUE);
+}
+
+#ifdef ENABLE_STATUS_NOTIFIER
+static void
+sn_state_cb (void)
+{
+    if (status_notifier_get_state (sn) == STATUS_NOTIFIER_STATE_REGISTERED)
+    {
+        debug ("StatusNotifier registered");
+        if (icon)
+        {
+            debug ("removing GtkStatusIcon");
+            gtk_status_icon_set_visible (icon, FALSE);
+            g_object_unref (icon);
+            icon = NULL;
+        }
+    }
+}
+
+static void
+sn_reg_failed (StatusNotifier *_sn, GError *error)
+{
+    guint i;
+
+    debug ("StatusNotifier registration failed: %s", error->message);
+    if (status_notifier_get_state (sn) == STATUS_NOTIFIER_STATE_FAILED)
+    {
+        debug ("no possible recovery; destroy StatusNotifier");
+        g_object_unref (sn);
+        sn = NULL;
+        for (i = 0; i < NB_SN_ICONS; ++i)
+            if (sn_icon[i])
+            {
+                g_object_unref (sn_icon[i]);
+                sn_icon[i] = NULL;
+            }
+    }
+    /* fallback to systray */
+    create_status_icon ();
+}
+#endif
 
 int
 main (int argc, char *argv[])
@@ -1361,6 +1429,9 @@ main (int argc, char *argv[])
                 NULL);
         pixbuf_kalu = gdk_pixbuf_new_from_stream (stream, NULL, NULL);
         g_object_unref (G_OBJECT (stream));
+#ifdef ENABLE_STATUS_NOTIFIER
+        sn_icon[SN_ICON_KALU] = g_object_ref (pixbuf_kalu);
+#endif
 
         gtk_icon_theme_add_builtin_icon ("kalu", 48, pixbuf_kalu);
     }
@@ -1374,6 +1445,9 @@ main (int argc, char *argv[])
         debug ("No icon 'kalu-paused' -- creating it");
         pixbuf = get_paused_pixbuf (pixbuf_kalu);
         gtk_icon_theme_add_builtin_icon ("kalu-paused", 48, pixbuf);
+#ifdef ENABLE_STATUS_NOTIFIER
+        sn_icon[SN_ICON_KALU_PAUSED] = g_object_ref (pixbuf);
+#endif
         g_object_unref (pixbuf);
     }
 
@@ -1386,6 +1460,9 @@ main (int argc, char *argv[])
         debug ("No icon 'kalu-gray' -- creating it");
         pixbuf = get_gray_pixbuf (pixbuf_kalu);
         gtk_icon_theme_add_builtin_icon ("kalu-gray", 48, pixbuf);
+#ifdef ENABLE_STATUS_NOTIFIER
+        sn_icon[SN_ICON_KALU_GRAY] = g_object_ref (pixbuf);
+#endif
         g_object_unref (pixbuf);
     }
 
@@ -1400,24 +1477,45 @@ main (int argc, char *argv[])
         debug ("No icon 'kalu-gray-paused' -- creating it");
         pixbuf = get_paused_pixbuf (pixbuf_kalu);
         gtk_icon_theme_add_builtin_icon ("kalu-gray-paused", 48, pixbuf);
+#ifdef ENABLE_STATUS_NOTIFIER
+        sn_icon[SN_ICON_KALU_GRAY_PAUSED] = g_object_ref (pixbuf);
+#endif
         g_object_unref (pixbuf);
         g_object_unref (pixbuf_kalu);
     }
 
-    /* create systray icon */
-    icon = gtk_status_icon_new_from_icon_name ("kalu-gray");
-    gtk_status_icon_set_name (icon, "kalu");
-    gtk_status_icon_set_title (icon, "kalu");
-    gtk_status_icon_set_tooltip_text (icon, "kalu");
-
-    g_signal_connect (G_OBJECT (icon), "query-tooltip",
-            G_CALLBACK (icon_query_tooltip_cb), NULL);
-    g_signal_connect (G_OBJECT (icon), "popup-menu",
+#ifdef ENABLE_STATUS_NOTIFIER
+    debug ("create StatusNotifier");
+    sn = STATUS_NOTIFIER (g_object_new (TYPE_STATUS_NOTIFIER,
+            "id",               "kalu",
+            "title",            "kalu",
+            "tooltip-title",    "kalu",
+            NULL));
+    if (sn_icon[SN_ICON_KALU_GRAY])
+        g_object_set (G_OBJECT (sn),
+                "main-icon-pixbuf",     sn_icon[SN_ICON_KALU_GRAY],
+                "tooltip-icon-pixbuf",  sn_icon[SN_ICON_KALU_GRAY],
+                NULL);
+    else
+        g_object_set (G_OBJECT (sn),
+                "main-icon-name",       "kaly-gray",
+                "tooltip-icon-name",    "kaly-gray",
+                NULL);
+    g_signal_connect (G_OBJECT (sn), "notify::state",
+            G_CALLBACK (sn_state_cb), NULL);
+    g_signal_connect (G_OBJECT (sn), "registration-failed",
+            G_CALLBACK (sn_reg_failed), NULL);
+    g_signal_connect (G_OBJECT (sn), "context-menu",
             G_CALLBACK (icon_popup_cb), NULL);
-    g_signal_connect (G_OBJECT (icon), "button-press-event",
-            G_CALLBACK (icon_press_cb), NULL);
-
-    gtk_status_icon_set_visible (icon, TRUE);
+    g_signal_connect_swapped (G_OBJECT (sn), "activate",
+            G_CALLBACK (sn_cb), GUINT_TO_POINTER (SN_ACTIVATE));
+    g_signal_connect_swapped (G_OBJECT (sn), "secondary-activate",
+            G_CALLBACK (sn_cb), GUINT_TO_POINTER (SN_SECONDARY_ACTIVATE));
+    status_notifier_register (sn);
+#else
+    /* create systray icon */
+    create_status_icon ();
+#endif
 
     /* takes care of setting timeout_skip (if needed) and also triggers the
      * auto-checks (unless within skip period) */
@@ -1433,6 +1531,14 @@ eop:
     {
         notify_uninit ();
     }
+#ifdef ENABLE_STATUS_NOTIFIER
+    guint i;
+    for (i = 0; i < NB_SN_ICONS; ++i)
+        if (sn_icon[i])
+            g_object_unref (sn_icon[i]);
+    if (sn)
+        g_object_unref (sn);
+#endif
 #endif /* DISABLE_GUI */
     if (config->is_curl_init)
     {

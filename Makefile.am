@@ -85,6 +85,11 @@ kalu_CFLAGS += @GLIB2_CFLAGS@
 kalu_LDADD += @GLIB2_LIBS@
 endif
 
+if ENABLE_STATUS_NOTIFIER
+kalu_CFLAGS += @STATUS_NOTIFIER_CFLAGS@
+kalu_LDADD += @STATUS_NOTIFIER_LIBS@
+endif
+
 if ! DISABLE_UPDATER
 BUILT_SOURCES = \
 	src/kalu-dbus/updater-dbus.h

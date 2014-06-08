@@ -742,6 +742,9 @@ systray icon.
 You can define actions to be taken when kalu is active (i.e. not paused), and a
 different set of actions when it is paused.
 
+KDE users: See L<B<KDE STATUSNOTIFIERITEM SUPPORT>|/KDE STATUSNOTIFIERITEM SUPPORT>
+section below for more information.
+
 =over
 
 =item B<* Same as when active/not paused> ( SAME_AS_ACTIVE )
@@ -862,6 +865,45 @@ color values. In the last two cases, r g and b are either integers in the range
 value in the range 0 to 1.
 
 =back
+
+=head1 KDE STATUSNOTIFIERITEM SUPPORT
+
+Starting with Plasma Next, KDE doesn't support the XEmbed systray anymore[1] in
+favor of their own Status Notifier Specification[2].
+
+KDE users can enable StatusNotifierItem support in kalu by specifying the
+configure option I<--enable-status-notifier> which also adds an extra dependency
+on library statusnotifier[3], for easy support with GObject (GTK+) application.
+
+As a result, kalu will then use this new interface for its icon (only falling
+back to the systray if it isn't supported, e.g. no StatusNotifierWatcher is
+running/registered on the system).
+
+Using KDE's StatusNotifierItem interface, kalu doesn't show/handle the icon, the
+application acting as StatusNotifierHost does. As a result, kalu doesn't react
+to whatever click happen on the icon, but predefined methods being called.
+
+Specifically, kalu will respond to method B<Activate>, where the action assigned
+to click will be used, and B<SecondaryActivate>, where the action on middle
+click will be used. Those are likely to be corresponding to the same click
+events, though it's actually up to the StatusNotifierHost (i.e. the application
+showing and handling the icons).
+
+Additionally, kalu's menu will obviously be shown on method B<ContextMenu>,
+which is likely to be triggered on right-click.
+
+Also note that the tooltip will be different in its look (since handled by the
+StatusNotifierHost and not kalu) but also its content, since kalu doesn't know
+when it is shown (so it can only include the date/time of last check, not how
+long ago it was).
+
+=head2 References
+
+[1] http://blog.martin-graesslin.com/blog/2014/03/system-tray-in-plasma-next/
+
+[2] http://www.notmart.org/misc/statusnotifieritem/
+
+[3] http://jjacky.com/statusnotifier/
 
 =head1 SYSTEM UPGRADE
 

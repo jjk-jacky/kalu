@@ -53,6 +53,10 @@ static void notif_run_simulation (NotifyNotification  *notification,
 static void menu_check_cb (GtkMenuItem *item, gpointer data);
 static void menu_quit_cb (GtkMenuItem *item, gpointer data);
 static gboolean set_status_icon (gboolean active);
+#ifdef ENABLE_STATUS_NOTIFIER
+static void sn_upd_status (gboolean active);
+static void sn_refresh_tooltip (void);
+#endif
 
 extern kalpm_state_t kalpm_state;
 
@@ -569,6 +573,12 @@ set_pause (gboolean paused)
         set_status_icon (nb_upgrades + kalpm_state.nb_watched
                 + kalpm_state.nb_aur + kalpm_state.nb_watched_aur
                 + kalpm_state.nb_news > 0);
+#ifdef ENABLE_STATUS_NOTIFIER
+        sn_upd_status (nb_upgrades + kalpm_state.nb_watched
+                + kalpm_state.nb_aur + kalpm_state.nb_watched_aur
+                + kalpm_state.nb_news > 0);
+        sn_refresh_tooltip ();
+#endif
     }
     else
     {
@@ -733,8 +743,13 @@ menu_unmap_cb (GtkWidget *menu, GdkEvent *event _UNUSED_, gpointer data _UNUSED_
 }
 
 void
+#ifdef ENABLE_STATUS_NOTIFIER
+icon_popup_cb (StatusNotifier *_sn _UNUSED_, gint x _UNUSED_, gint y _UNUSED_,
+               gpointer data _UNUSED_)
+#else
 icon_popup_cb (GtkStatusIcon *_icon _UNUSED_, guint button, guint activate_time,
                gpointer data _UNUSED_)
+#endif
 {
     GtkWidget   *menu;
     GtkWidget   *item;
@@ -929,7 +944,13 @@ icon_popup_cb (GtkStatusIcon *_icon _UNUSED_, guint button, guint activate_time,
     g_signal_connect (G_OBJECT (menu), "unmap-event",
             G_CALLBACK (menu_unmap_cb), NULL);
 
-    gtk_menu_popup (GTK_MENU (menu), NULL, NULL, NULL, NULL, button, activate_time);
+    gtk_menu_popup (GTK_MENU (menu), NULL, NULL, NULL, NULL,
+#ifdef ENABLE_STATUS_NOTIFIER
+            0, gtk_get_current_event_time ()
+#else
+            button, activate_time
+#endif
+            );
 }
 
 void
@@ -1041,6 +1062,21 @@ icon_press_click (gpointer data _UNUSED_)
     return FALSE;
 }
 
+#ifdef ENABLE_STATUS_NOTIFIER
+void sn_cb (gpointer data)
+{
+    guint t = GPOINTER_TO_UINT (data);
+
+    if (t == SN_ACTIVATE)
+        icon_press_click (NULL);
+    else /* SN_SECONDARY_ACTIVATE */
+        process_click_action ((kalpm_state.is_paused
+                    && config->on_mdl_click_paused != DO_SAME_AS_ACTIVE)
+                ? config->on_mdl_click_paused
+                : config->on_mdl_click);
+}
+#endif
+
 gboolean
 icon_press_cb (GtkStatusIcon *icon _UNUSED_, GdkEventButton *event, gpointer data _UNUSED_)
 {
@@ -1093,85 +1129,107 @@ icon_press_cb (GtkStatusIcon *icon _UNUSED_, GdkEventButton *event, gpointer dat
 
 #undef process_click_action
 
+#ifdef ENABLE_STATUS_NOTIFIER
+StatusNotifier *sn = NULL;
+GdkPixbuf *sn_icon[NB_SN_ICONS] = { NULL, };
+#endif
+GtkStatusIcon *icon = NULL;
+
+
 #define addstr(...)     do {                        \
-    len = snprintf (s, (size_t) max, __VA_ARGS__);  \
-    max -= len;                                     \
+    len = snprintf (s, (size_t) *max, __VA_ARGS__); \
+    *max -= len;                                    \
     s += len;                                       \
 } while (0)
-gboolean
-icon_query_tooltip_cb (GtkWidget *icon _UNUSED_, gint x _UNUSED_, gint y _UNUSED_,
-                       gboolean keyboard_mode _UNUSED_, GtkTooltip *tooltip,
-                       gpointer data _UNUSED_)
+enum {
+    TT_FULL,
+    TT_TITLE,
+    TT_BODY
+};
+static void make_tooltip (gchar *s, gint *max, guint tt)
 {
-    GDateTime *current;
-    GTimeSpan timespan;
-    gchar buf[420], *s = buf;
-    gint max = 420, len;
+    gint len;
 
-    addstr ("[%s%s] ",
-            /* TRANSLATORS: This goes in kalu's systray tooltip. It usually
-             * just says "kalu" but will show this when paused, indicating that
-             * kalu is indeed in paused mode. */
-            (kalpm_state.is_paused) ? _("paused kalu") : "kalu",
-            (has_hidden_windows) ? " +" : "");
+    if (tt == TT_FULL || tt == TT_TITLE)
+    {
+        addstr ("[%s%s] ",
+                /* TRANSLATORS: This goes in kalu's systray tooltip. It usually
+                 * just says "kalu" but will show this when paused, indicating that
+                 * kalu is indeed in paused mode. */
+                (kalpm_state.is_paused) ? _("paused kalu") : "kalu",
+                (has_hidden_windows) ? " +" : "");
 
-    if (kalpm_state.is_busy)
-    {
-        addstr (_("Checking/updating in progress..."));
-        gtk_tooltip_set_text (tooltip, buf);
-        return TRUE;
-    }
-    else if (kalpm_state.last_check == NULL)
-    {
-        gtk_tooltip_set_text (tooltip, buf);
-        return TRUE;
+        if (kalpm_state.is_busy)
+        {
+            addstr (_("Checking/updating in progress..."));
+            return;
+        }
+        else if (kalpm_state.last_check == NULL)
+        {
+            return;
+        }
     }
 
-    current = g_date_time_new_now_local ();
-    timespan = g_date_time_difference (current, kalpm_state.last_check);
-    g_date_time_unref (current);
-
-    if (timespan < G_TIME_SPAN_MINUTE)
+    if (tt == TT_TITLE)
     {
-        addstr (_("Last checked just now"));
+        gchar *s_date;
+
+        s_date = g_date_time_format (kalpm_state.last_check, "%F %R");
+        addstr (_("Last checked on %s"), s_date);
+        g_free (s_date);
+        return;
     }
-    else
+    else if (tt == TT_FULL)
     {
-        gint days = 0, hours = 0, minutes = 0;
+        GDateTime *current;
+        GTimeSpan timespan;
 
-        if (timespan >= G_TIME_SPAN_DAY)
-        {
-            days = (gint) (timespan / G_TIME_SPAN_DAY);
-            timespan -= (days * G_TIME_SPAN_DAY);
-        }
-        if (timespan >= G_TIME_SPAN_HOUR)
-        {
-            hours = (gint) (timespan / G_TIME_SPAN_HOUR);
-            timespan -= (hours * G_TIME_SPAN_HOUR);
-        }
-        if (timespan >= G_TIME_SPAN_MINUTE)
-        {
-            minutes = (gint) (timespan / G_TIME_SPAN_MINUTE);
-            timespan -= (minutes * G_TIME_SPAN_MINUTE);
-        }
+        current = g_date_time_new_now_local ();
+        timespan = g_date_time_difference (current, kalpm_state.last_check);
+        g_date_time_unref (current);
 
-        /* TRANSLATORS: Constructing e.g. "Last checked 1 hour 23 minutes ago"
-         * by adding a string, the days/hours/minutes if apply, and a last
-         * string. (Make sure to end this first, and the days/hours/minutes
-         * strings with a space) */
-        addstr (_("Last checked "));
-        if (days > 0)
-            addstr (_n("1 day ", "%d days ", (long unsigned int) days),
-                    days);
-        if (hours > 0)
-            addstr (_n("1 hour ", "%d hours ", (long unsigned int) hours),
-                    hours);
-        if (minutes > 0)
-            addstr (_n("1 minute ", "%d minutes ", (long unsigned int) minutes),
-                    minutes);
-        /* TRANSLATORS: Ending the "Last checked 42 days ago" sentence. Use " "
-         * if it doesn't apply. */
-        addstr (_("ago"));
+        if (timespan < G_TIME_SPAN_MINUTE)
+        {
+            addstr (_("Last checked just now"));
+        }
+        else
+        {
+            gint days = 0, hours = 0, minutes = 0;
+
+            if (timespan >= G_TIME_SPAN_DAY)
+            {
+                days = (gint) (timespan / G_TIME_SPAN_DAY);
+                timespan -= (days * G_TIME_SPAN_DAY);
+            }
+            if (timespan >= G_TIME_SPAN_HOUR)
+            {
+                hours = (gint) (timespan / G_TIME_SPAN_HOUR);
+                timespan -= (hours * G_TIME_SPAN_HOUR);
+            }
+            if (timespan >= G_TIME_SPAN_MINUTE)
+            {
+                minutes = (gint) (timespan / G_TIME_SPAN_MINUTE);
+                timespan -= (minutes * G_TIME_SPAN_MINUTE);
+            }
+
+            /* TRANSLATORS: Constructing e.g. "Last checked 1 hour 23 minutes ago"
+             * by adding a string, the days/hours/minutes if apply, and a last
+             * string. (Make sure to end this first, and the days/hours/minutes
+             * strings with a space) */
+            addstr (_("Last checked "));
+            if (days > 0)
+                addstr (_n("1 day ", "%d days ", (long unsigned int) days),
+                        days);
+            if (hours > 0)
+                addstr (_n("1 hour ", "%d hours ", (long unsigned int) hours),
+                        hours);
+            if (minutes > 0)
+                addstr (_n("1 minute ", "%d minutes ", (long unsigned int) minutes),
+                        minutes);
+            /* TRANSLATORS: Ending the "Last checked 42 days ago" sentence. Use " "
+             * if it doesn't apply. */
+            addstr (_("ago"));
+        }
     }
 
     if (config->syncdbs_in_tooltip && kalpm_state.nb_syncdbs > 0)
@@ -1228,7 +1286,18 @@ icon_query_tooltip_cb (GtkWidget *icon _UNUSED_, gint x _UNUSED_, gint y _UNUSED
                     (long unsigned int) kalpm_state.nb_watched_aur),
                 kalpm_state.nb_watched_aur);
     }
+}
+#undef addstr
 
+gboolean
+icon_query_tooltip_cb (GtkWidget *icon _UNUSED_, gint x _UNUSED_, gint y _UNUSED_,
+                       gboolean keyboard_mode _UNUSED_, GtkTooltip *tooltip,
+                       gpointer data _UNUSED_)
+{
+    gchar buf[512];
+    gint max = 512;
+
+    make_tooltip (buf, &max, TT_FULL);
     if (max <= 0)
     {
         sprintf (buf, _("kalu: error setting tooltip"));
@@ -1236,21 +1305,66 @@ icon_query_tooltip_cb (GtkWidget *icon _UNUSED_, gint x _UNUSED_, gint y _UNUSED
     gtk_tooltip_set_text (tooltip, buf);
     return TRUE;
 }
-#undef addstr
-
-GtkStatusIcon *icon = NULL;
 
 static gboolean
 set_status_icon (gboolean active)
 {
     if (active)
     {
+#ifdef ENABLE_STATUS_NOTIFIER
+        if (sn)
+        {
+            guint i;
+            const gchar *s;
+
+            s = (kalpm_state.is_paused) ? "kalu-paused" : "kalu";
+            i = (kalpm_state.is_paused) ? SN_ICON_KALU_PAUSED : SN_ICON_KALU;
+            if (sn_icon[i])
+                g_object_set (G_OBJECT (sn),
+                        "main-icon-pixbuf",     sn_icon[i],
+                        "tooltip-icon-pixbuf",  sn_icon[i],
+                        NULL);
+            else
+                g_object_set (G_OBJECT (sn),
+                        "main-icon-name",       s,
+                        "tooltip-icon-name",    s,
+                        NULL);
+        }
+
+        /* in case both are set (i.e. sn is e.g. waiting for a host, while we
+         * use icon as fallback */
+        if (icon)
+#endif
         gtk_status_icon_set_from_icon_name (icon, (kalpm_state.is_paused)
                 ? "kalu-paused"
                 : "kalu");
     }
     else
     {
+#ifdef ENABLE_STATUS_NOTIFIER
+        if (sn)
+        {
+            guint i;
+            const gchar *s;
+
+            s = (kalpm_state.is_paused) ? "kalu-gray-paused" : "kalu-gray";
+            i = (kalpm_state.is_paused) ? SN_ICON_KALU_GRAY_PAUSED : SN_ICON_KALU_GRAY;
+            if (sn_icon[i])
+                g_object_set (G_OBJECT (sn),
+                        "main-icon-pixbuf",     sn_icon[i],
+                        "tooltip-icon-pixbuf",  sn_icon[i],
+                        NULL);
+            else
+                g_object_set (G_OBJECT (sn),
+                        "main-icon-name",       s,
+                        "tooltip-icon-name",    s,
+                        NULL);
+        }
+
+        /* in case both are set (i.e. sn is e.g. waiting for a host, while we
+         * use icon as fallback */
+        if (icon)
+#endif
         gtk_status_icon_set_from_icon_name (icon, (kalpm_state.is_paused)
                 ? "kalu-gray-paused"
                 : "kalu-gray");
@@ -1258,6 +1372,15 @@ set_status_icon (gboolean active)
     /* do NOT get called back */
     return FALSE;
 }
+
+#ifdef ENABLE_STATUS_NOTIFIER
+static void sn_upd_status (gboolean active)
+{
+    if (sn)
+        status_notifier_set_status (sn,
+                (active) ? STATUS_NOTIFIER_STATUS_ACTIVE : STATUS_NOTIFIER_STATUS_PASSIVE);
+}
+#endif
 
 void
 set_kalpm_nb (check_t type, gint nb, gboolean update_icon)
@@ -1308,6 +1431,9 @@ set_kalpm_nb (check_t type, gint nb, gboolean update_icon)
         g_main_context_invoke (NULL,
                 (GSourceFunc) set_status_icon,
                 GINT_TO_POINTER (active));
+#ifdef ENABLE_STATUS_NOTIFIER
+        sn_upd_status (active);
+#endif
     }
 }
 
@@ -1326,6 +1452,33 @@ switch_status_icon (void)
     /* keep timeout alive */
     return TRUE;
 }
+
+#ifdef ENABLE_STATUS_NOTIFIER
+static void sn_refresh_tooltip (void)
+{
+    gchar buf[512];
+    gint max = 512;
+
+    if (!sn)
+        return;
+
+    status_notifier_freeze_tooltip (sn);
+    make_tooltip (buf, &max, TT_TITLE);
+    if (max > 0)
+    {
+        status_notifier_set_tooltip_title (sn, buf);
+    }
+    max = 512;
+    /* in case there's nothing, else we would set the title as body */
+    buf[0] = '\0';
+    make_tooltip (buf, &max, TT_BODY);
+    if (max > 0)
+    {
+        status_notifier_set_tooltip_body (sn, buf);
+    }
+    status_notifier_thaw_tooltip (sn);
+}
+#endif
 
 void
 set_kalpm_busy (gboolean busy)
@@ -1389,6 +1542,10 @@ set_kalpm_busy (gboolean busy)
             debug ("state non-busy: next auto-checks in %d seconds", seconds);
         }
     }
+
+#ifdef ENABLE_STATUS_NOTIFIER
+    sn_refresh_tooltip ();
+#endif
 }
 
 void

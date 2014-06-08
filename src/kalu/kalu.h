@@ -111,6 +111,18 @@ enum {
     IPv6
 };
 
+#ifdef ENABLE_STATUS_NOTIFIER
+enum {
+    SN_ICON_KALU = 0,
+    SN_ICON_KALU_PAUSED,
+    SN_ICON_KALU_GRAY,
+    SN_ICON_KALU_GRAY_PAUSED,
+    NB_SN_ICONS
+};
+#define SN_ACTIVATE             1
+#define SN_SECONDARY_ACTIVATE   2
+#endif
+
 typedef struct _templates_t {
     char *title;
     char *package;

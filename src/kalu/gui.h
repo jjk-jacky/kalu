@@ -35,6 +35,11 @@
 /* notify */
 #include <libnotify/notify.h>
 
+/* statusnotifier */
+#ifdef ENABLE_STATUS_NOTIFIER
+#include <statusnotifier.h>
+#endif
+
 #define FREE_NOTIFS_LIST(p)                                                 \
             do                                                              \
             {                                                               \
@@ -69,8 +74,13 @@ gboolean is_pacman_conflicting (alpm_list_t *packages);
 void kalu_check (gboolean is_auto);
 gboolean kalu_auto_check (void);
 
+#ifdef ENABLE_STATUS_NOTIFIER
+void sn_cb (gpointer data);
+void icon_popup_cb (StatusNotifier *_sn, gint x, gint y, gpointer data);
+#else
 void icon_popup_cb (GtkStatusIcon *_icon, guint button, guint activate_time,
                gpointer data);
+#endif
 
 void add_open_window (gpointer window);
 void remove_open_window (gpointer window);

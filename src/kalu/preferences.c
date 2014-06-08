@@ -2320,6 +2320,20 @@ show_prefs (void)
     add_on_click_actions (&top, grid, CLICK_DBL, TRUE);
     add_on_click_actions (&top, grid, CLICK_MDL, TRUE);
 
+#ifdef ENABLE_STATUS_NOTIFIER
+    ++top;
+    label = gtk_label_new (NULL);
+    gtk_widget_set_margin_top (label, 42);
+    gtk_label_set_max_width_chars (GTK_LABEL (label), 80);
+    gtk_label_set_line_wrap (GTK_LABEL (label), TRUE);
+    gtk_label_set_markup (GTK_LABEL (label),
+            _("Using KDE's StatusNotifierItem interface, the action on click "
+                "will be mapped to Activate, the action on middle click mapped "
+                "to SecondaryActivate, the action on double click is unused."));
+    gtk_grid_attach (GTK_GRID (grid), label, 0, top, 2, 1);
+    gtk_widget_show (label);
+#endif
+
     /* add page */
     gtk_widget_show (grid);
     gtk_notebook_append_page (GTK_NOTEBOOK (notebook), grid, lbl_page);
