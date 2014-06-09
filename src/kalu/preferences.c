@@ -797,6 +797,16 @@ btn_manage_watched_cb (GtkButton *button _UNUSED_, gboolean is_aur)
         new_config.name = DO_NOTHING;                                       \
     }                                                                       \
 } while (0)
+#define add_color(val_name, cfg_name, def)              \
+    if (!streq (new_config.color_##val_name, def))      \
+    {                                                   \
+        if (*new_config.color_##val_name == '#')        \
+            *new_config.color_##val_name = '.';         \
+        add_to_conf ("Color" cfg_name " = %s\n",        \
+                new_config.color_##val_name);           \
+        if (*new_config.color_##val_name == '.')        \
+            *new_config.color_##val_name = '#';         \
+    }
 static void
 btn_save_cb (GtkButton *button _UNUSED_, gpointer data _UNUSED_)
 {
@@ -856,22 +866,10 @@ btn_save_cb (GtkButton *button _UNUSED_, gpointer data _UNUSED_)
 
 #ifndef DISABLE_UPDATER
     /* colors (no GUI) */
-    if (!streq (new_config.color_unimportant, "gray"))
-    {
-        add_to_conf ("ColorUnimportant = %s\n", new_config.color_unimportant);
-    }
-    if (!streq (new_config.color_info, "blue"))
-    {
-        add_to_conf ("ColorInfo = %s\n", new_config.color_info);
-    }
-    if (!streq (new_config.color_warning, "green"))
-    {
-        add_to_conf ("ColorWarning = %s\n", new_config.color_warning);
-    }
-    if (!streq (new_config.color_error, "red"))
-    {
-        add_to_conf ("ColorError = %s\n", new_config.color_error);
-    }
+    add_color (unimportant, "Unimportant", "gray");
+    add_color (info, "Info", "blue");
+    add_color (warning, "Warning", "green");
+    add_color (error, "Error", "red");
 #endif
 
     /* General */
