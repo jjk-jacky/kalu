@@ -44,7 +44,7 @@
       <arg type='s' name='name' />
     </signal>
     <signal name='GetPackagesFinished'>
-      <arg type='a(ssssuuu)' name='pkgs' />
+      <arg type='a(sssssuuu)' name='pkgs' />
     </signal>
     <signal name='Downloading'>
       <arg type='s' name='filename' />

@@ -1153,7 +1153,7 @@ get_packages (GVariant *parameters)
     alpm_db_t *localdb = alpm_get_localdb (handle);
     alpm_list_t *i;
 
-    builder = g_variant_builder_new (G_VARIANT_TYPE ("a(ssssuuu)"));
+    builder = g_variant_builder_new (G_VARIANT_TYPE ("a(sssssuuu)"));
 
     pkgs = alpm_trans_get_add (handle);
     FOR_LIST (i, pkgs)
@@ -1162,7 +1162,8 @@ get_packages (GVariant *parameters)
         const char *name     = alpm_pkg_get_name (pkg);
         alpm_pkg_t *localpkg = alpm_db_get_pkg (localdb, name);
 
-        g_variant_builder_add (builder, "(ssssuuu)",
+        g_variant_builder_add (builder, "(sssssuuu)",
+                alpm_db_get_name (alpm_pkg_get_db (pkg)),
                 name,
                 alpm_pkg_get_desc (pkg),
                 (localpkg) ? alpm_pkg_get_version (localpkg) : "-",
@@ -1177,7 +1178,8 @@ get_packages (GVariant *parameters)
     {
         alpm_pkg_t *pkg      = i->data;
 
-        g_variant_builder_add (builder, "(ssssuuu)",
+        g_variant_builder_add (builder, "(sssssuuu)",
+                alpm_db_get_name (alpm_pkg_get_db (pkg)),
                 alpm_pkg_get_name (pkg),
                 alpm_pkg_get_desc (pkg),
                 alpm_pkg_get_version (pkg),
@@ -1187,7 +1189,7 @@ get_packages (GVariant *parameters)
                 (guint) 0);
     }
 
-    emit_signal ("GetPackagesFinished", "a(ssssuuu)", builder);
+    emit_signal ("GetPackagesFinished", "a(sssssuuu)", builder);
     g_variant_builder_unref (builder);
     /* we don't alpm_trans_release (handle) since that will be done only if
      * user cancel (NoSysUpgrade) or after the update is done (SysUpgrade) */

@@ -62,6 +62,7 @@
 
 /* GtkListStore columns */
 enum {
+    UCOL_REPO,
     UCOL_PACKAGE,
     UCOL_DESC,
     UCOL_OLD,
@@ -80,6 +81,7 @@ enum {
 
 /* GtkTreeView columns */
 enum {
+    COL_REPO,
     COL_NAME,
     COL_OLD,
     COL_NEW,
@@ -1639,6 +1641,7 @@ updater_get_packages_cb (KaluUpdater *kupdater _UNUSED_, const gchar *errmsg,
         k_pkg = i->data;
         gtk_list_store_append (updater->store, &iter);
         gtk_list_store_set (updater->store, &iter,
+                UCOL_REPO,              k_pkg->repo,
                 UCOL_PACKAGE,           k_pkg->name,
                 UCOL_DESC,              k_pkg->desc,
                 UCOL_OLD,               k_pkg->old_version,
@@ -2403,6 +2406,7 @@ updater_run (const gchar *conffile, alpm_list_t *cmdline_post)
     /* store for the list */
     GtkListStore *store;
     store = gtk_list_store_new (NB_UCOL,
+            G_TYPE_STRING,  /* repo */
             G_TYPE_STRING,  /* pkg */
             G_TYPE_STRING,  /* desc */
             G_TYPE_STRING,  /* old version */
@@ -2445,6 +2449,17 @@ updater_run (const gchar *conffile, alpm_list_t *cmdline_post)
     GtkCellRenderer *renderer_lbl;
     GtkCellRenderer *renderer_pbar;
     GtkTreeViewColumn *column;
+    /* column: Repo */
+    renderer = gtk_cell_renderer_text_new ();
+    column = gtk_tree_view_column_new_with_attributes (
+            _c("column", "Repo"),
+            renderer,
+            "text", UCOL_REPO,
+            NULL);
+    g_object_set_data (G_OBJECT (column), "col-id", (gpointer) COL_REPO);
+    gtk_tree_view_column_set_resizable (column, TRUE);
+    gtk_tree_view_column_set_sort_column_id (column, UCOL_REPO);
+    gtk_tree_view_append_column (GTK_TREE_VIEW (list), column);
     /* column: Package */
     renderer = gtk_cell_renderer_text_new ();
     column = gtk_tree_view_column_new_with_attributes (

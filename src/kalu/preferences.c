@@ -651,6 +651,8 @@ add_template (GtkWidget    *grid,
     {
         tooltip = g_strconcat (
             _("The following variables are available :"),
+            (type & (CHECK_UPGRADES | CHECK_WATCHED))
+            ? _("\n- <b>$REPO</b> : repository name") : "",
             _("\n- <b>$PKG</b> : package name"),
             _("\n- <b>$OLD</b> : old/current version number"),
             (type & _CHECK_AUR_NOT_FOUND) ? NULL

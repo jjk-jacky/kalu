@@ -187,6 +187,7 @@ typedef struct _watched_package_t {
 } watched_package_t;
 
 typedef struct _kalu_package_t {
+    char    *repo;
     char    *name;
     char    *desc;
     char    *old_version;

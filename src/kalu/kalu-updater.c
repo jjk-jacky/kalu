@@ -446,9 +446,10 @@ kalu_updater_g_signal (GDBusProxy   *proxy,
                 mc->data = NULL;
 
                 kalu_package_t *k_pkg;
-                g_variant_get (parameters, "(a(ssssuuu))", &iter);
+                g_variant_get (parameters, "(a(sssssuuu))", &iter);
                 k_pkg = new0 (kalu_package_t, 1);
-                while (g_variant_iter_loop (iter, "(ssssuuu)",
+                while (g_variant_iter_loop (iter, "(sssssuuu)",
+                            &k_pkg->repo,
                             &k_pkg->name,
                             &k_pkg->desc,
                             &k_pkg->old_version,
@@ -469,6 +470,7 @@ kalu_updater_g_signal (GDBusProxy   *proxy,
                 for (i = pkgs; i; i = alpm_list_next (i))
                 {
                     k_pkg = i->data;
+                    free (k_pkg->repo);
                     free (k_pkg->name);
                     free (k_pkg->desc);
                     free (k_pkg->old_version);

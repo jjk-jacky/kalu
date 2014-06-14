@@ -563,6 +563,7 @@ kalu_alpm_has_updates (alpm_list_t **packages, GError **error)
         kalu_package_t *package;
 
         package = new0 (kalu_package_t, 1);
+        package->repo = strdup (alpm_db_get_name (alpm_pkg_get_db (pkg)));
         package->name = strdup (alpm_pkg_get_name (pkg));
         package->desc = strdup (alpm_pkg_get_desc (pkg));
         package->new_version = strdup (alpm_pkg_get_version (pkg));
@@ -597,6 +598,7 @@ kalu_alpm_has_updates (alpm_list_t **packages, GError **error)
             kalu_package_t *package;
 
             package = new0 (kalu_package_t, 1);
+            package->repo = strdup (alpm_db_get_name (alpm_pkg_get_db (pkg)));
             package->name = strdup (alpm_pkg_get_name (pkg));
             package->desc = strdup (alpm_pkg_get_desc (pkg));
             package->new_version = strdup (_("none"));
@@ -649,6 +651,7 @@ kalu_alpm_has_updates_watched (alpm_list_t **packages, alpm_list_t *watched,
                 {
                     package = new0 (kalu_package_t, 1);
 
+                    package->repo = strdup (alpm_db_get_name (alpm_pkg_get_db (pkg)));
                     package->name = strdup (alpm_pkg_get_name (pkg));
                     package->desc = strdup (alpm_pkg_get_desc (pkg));
                     package->old_version = strdup (w_pkg->version);

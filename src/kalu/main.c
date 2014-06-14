@@ -157,7 +157,7 @@ notify_updates (
     templates_t      template;
     const char      *unit;
     double           size_h;
-    replacement_t   *replacements[8];
+    replacement_t   *replacements[9];
     gboolean         escaping = FALSE;
     GString         *string_pkgs = NULL;     /* list of AUR packages */
 
@@ -259,35 +259,39 @@ notify_updates (
             nsize += net_size;
 
             replacements[0] = new0 (replacement_t, 1);
-            replacements[0]->name = "PKG";
-            replacements[0]->value = pkg->name;
+            replacements[0]->name = "REPO";
+            replacements[0]->value = (pkg->repo) ? pkg->repo : (char *) "-";
             replacements[0]->need_escaping = TRUE;
             replacements[1] = new0 (replacement_t, 1);
-            replacements[1]->name = "OLD";
-            replacements[1]->value = pkg->old_version;
+            replacements[1]->name = "PKG";
+            replacements[1]->value = pkg->name;
+            replacements[1]->need_escaping = TRUE;
             replacements[2] = new0 (replacement_t, 1);
-            replacements[2]->name = "NEW";
-            replacements[2]->value = pkg->new_version;
+            replacements[2]->name = "OLD";
+            replacements[2]->value = pkg->old_version;
             replacements[3] = new0 (replacement_t, 1);
-            replacements[3]->name = "DL";
-            size_h = humanize_size (pkg->dl_size, '\0', &unit);
-            snprint_size (buf, 255, size_h, unit);
-            replacements[3]->value = strdup (buf);
+            replacements[3]->name = "NEW";
+            replacements[3]->value = pkg->new_version;
             replacements[4] = new0 (replacement_t, 1);
-            replacements[4]->name = "INS";
-            size_h = humanize_size (pkg->new_size, '\0', &unit);
+            replacements[4]->name = "DL";
+            size_h = humanize_size (pkg->dl_size, '\0', &unit);
             snprint_size (buf, 255, size_h, unit);
             replacements[4]->value = strdup (buf);
             replacements[5] = new0 (replacement_t, 1);
-            replacements[5]->name = "NET";
-            size_h = humanize_size (net_size, '\0', &unit);
+            replacements[5]->name = "INS";
+            size_h = humanize_size (pkg->new_size, '\0', &unit);
             snprint_size (buf, 255, size_h, unit);
             replacements[5]->value = strdup (buf);
             replacements[6] = new0 (replacement_t, 1);
-            replacements[6]->name = "DESC";
-            replacements[6]->value = pkg->desc;
-            replacements[6]->need_escaping = TRUE;
-            replacements[7] = NULL;
+            replacements[6]->name = "NET";
+            size_h = humanize_size (net_size, '\0', &unit);
+            snprint_size (buf, 255, size_h, unit);
+            replacements[6]->value = strdup (buf);
+            replacements[7] = new0 (replacement_t, 1);
+            replacements[7]->name = "DESC";
+            replacements[7]->value = pkg->desc;
+            replacements[7]->need_escaping = TRUE;
+            replacements[8] = NULL;
 
             /* add separator? */
             if (nb > 1)
@@ -302,9 +306,9 @@ notify_updates (
             parse_tpl (template.package, &text, &len, &alloc,
                     replacements, escaping);
 
-            free (replacements[3]->value);
             free (replacements[4]->value);
             free (replacements[5]->value);
+            free (replacements[6]->value);
             for (j = 0; j < 7; ++j)
                 free (replacements[j]);
 
@@ -834,6 +838,7 @@ free_config (void)
 void
 free_package (kalu_package_t *package)
 {
+    free (package->repo);
     free (package->name);
     free (package->desc);
     free (package->old_version);
