@@ -276,6 +276,7 @@ kalu_alpm_load (kalu_simul_t *simulation, const gchar *conffile, GError **error)
     alpm_option_set_arch (alpm->handle, pac_conf->arch);
     alpm_option_set_ignorepkgs (alpm->handle, pac_conf->ignorepkgs);
     alpm_option_set_ignoregroups (alpm->handle, pac_conf->ignoregroups);
+    alpm_option_set_default_siglevel (alpm->handle, pac_conf->siglevel);
     /* set GnuPG's rootdir */
     if (alpm_option_set_gpgdir (alpm->handle, pac_conf->gpgdir) != 0)
     {
