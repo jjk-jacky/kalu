@@ -297,6 +297,7 @@ kalu_alpm_load (kalu_simul_t *simulation, const gchar *conffile, GError **error)
         alpm_option_set_dlcb (alpm->handle, simulation->dl_progress_cb);
         alpm_option_set_questioncb (alpm->handle, simulation->question_cb);
         alpm_option_set_logcb (alpm->handle, simulation->log_cb);
+        simulation->pac_conf = pac_conf;
     }
     else
 #endif
@@ -381,7 +382,8 @@ kalu_alpm_load (kalu_simul_t *simulation, const gchar *conffile, GError **error)
     /* set global var */
     alpm_verbose = pac_conf->verbosepkglists;
 
-    free_pacman_config (pac_conf);
+    if (!simulation)
+        free_pacman_config (pac_conf);
     return TRUE;
 }
 
@@ -732,6 +734,12 @@ kalu_alpm_has_foreign (alpm_list_t **packages, alpm_list_t *ignore,
     }
 
     return (*packages != NULL);
+}
+
+const gchar *
+kalu_alpm_get_dbpath (void)
+{
+    return (alpm) ? alpm->dbpath : NULL;
 }
 
 void

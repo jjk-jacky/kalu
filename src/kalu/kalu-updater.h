@@ -70,6 +70,7 @@ kalu_updater_new_finish (GAsyncResult *res, GError **error);
 
 /* Init */
 gboolean    kalu_updater_init_upd           (KaluUpdater        *updater,
+                                             gboolean            downloadonly,
                                              GCancellable       *cancellable,
                                              KaluMethodCallback  callback,
                                              gpointer            data,

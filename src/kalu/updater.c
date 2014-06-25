@@ -60,6 +60,14 @@
 #define PCTG_NO_DL_CHECK_DISKSPACE    0.05
 #define PCTG_NO_DL_SYSUPGRADE         0.75
 
+#define PCTG_DL_ONLY_DOWNLOAD           0.90
+#define PCTG_DL_ONLY_KEYRING            0.02
+#define PCTG_DL_ONLY_PKG_INTEGRITY      0.08
+#define PCTG_DL_ONLY_FILE_CONFLICTS     0.00
+#define PCTG_DL_ONLY_LOAD_PKGFILES      0.00
+#define PCTG_DL_ONLY_CHECK_DISKSPACE    0.00
+#define PCTG_DL_ONLY_SYSUPGRADE         0.00
+
 /* GtkListStore columns */
 enum {
     UCOL_REPO,
@@ -159,6 +167,7 @@ typedef struct _updater_t {
     GtkTextBuffer *buffer;
     GtkWidget *btn_sysupgrade;
     GtkWidget *btn_close;
+    GtkWidget *btn_rerun;
 
     gint pos_expanded;
     gint pos_collapsed;
@@ -181,6 +190,7 @@ typedef struct _updater_t {
     guint total_dl;
 
     KaluUpdater *kupdater;
+    gboolean downloadonly;
 
     alpm_list_t *cmdline_post;
 
@@ -282,6 +292,11 @@ _show_error (const gchar *msg, const gchar *fmt, ...)
     gtk_widget_show (updater->lbl_action);
     gtk_widget_hide (updater->pbar_action);
     gtk_widget_set_sensitive (updater->btn_close, TRUE);
+    if (updater->downloadonly)
+    {
+        gtk_widget_set_sensitive (updater->btn_sysupgrade, TRUE);
+        gtk_widget_set_sensitive (updater->btn_rerun, TRUE);
+    }
     if (buffer != bufmsg)
     {
         free (buffer);
@@ -1481,7 +1496,7 @@ on_sync_dbs (KaluUpdater *kupdater _UNUSED_, gint nb)
             _n("Synchronizing a database\n", "Synchronizing %d databases\n",
                 (long unsigned int) nb),
             nb);
-    gtk_label_set_text (GTK_LABEL (updater->lbl_main), (updater->kupdater)
+    gtk_label_set_text (GTK_LABEL (updater->lbl_main), (!updater->downloadonly)
             ? _("Synchronizing databases...") : _("Synchronizing simulation databases..."));
 }
 
@@ -1534,25 +1549,68 @@ on_sync_db_end (KaluUpdater *kupdater _UNUSED_, sync_db_results_t result)
 }
 
 static void
+free_kupdater (gboolean unref)
+{
+    if (updater->kupdater == NULL)
+        return;
+
+    if (updater->step_data != NULL)
+    {
+        free (updater->step_data);
+        updater->step_data = NULL;
+    }
+    if (updater->step == STEP_WAITING_USER_CONFIRMATION)
+    {
+        kalu_updater_no_sysupgrade (updater->kupdater, NULL, NULL, NULL, NULL);
+        updater->step = STEP_NONE;
+    }
+    kalu_updater_free_alpm (updater->kupdater, NULL, NULL, NULL, NULL);
+
+    if (unref)
+    {
+        g_object_unref (updater->kupdater);
+        updater->kupdater = NULL;
+    }
+}
+
+static void
 btn_close_cb (GtkButton *button _UNUSED_, gpointer data _UNUSED_)
 {
     if (updater->kupdater != NULL)
     {
-        if (updater->step_data != NULL)
-        {
-            free (updater->step_data);
-            updater->step_data = NULL;
-        }
-        if (updater->step == STEP_WAITING_USER_CONFIRMATION)
-        {
-            kalu_updater_no_sysupgrade (updater->kupdater, NULL, NULL, NULL, NULL);
-            updater->step = STEP_NONE;
-        }
-        kalu_updater_free_alpm (updater->kupdater, NULL, NULL, NULL, NULL);
+        free_kupdater (FALSE);
+        /*FIXME*/
     }
     else
         kalu_alpm_free ();
     gtk_widget_destroy (updater->window);
+}
+
+static void
+dl_pkgs_done (void)
+{
+    gchar buf[128], *b = buf;
+
+#define fmt "<big><b><span color=\"%s\">%s</span></b></big>"
+    add_log (LOGTYPE_NORMAL, _("Downloading packages complete."));
+    add_log (LOGTYPE_NORMAL, "\n");
+    if (G_UNLIKELY (g_snprintf (buf, 128, fmt, config->color_info,
+                    _("Downloading packages complete.")) >= 128))
+        b = g_strdup_printf (fmt, config->color_info, _("Downloading packages complete."));
+    gtk_label_set_markup (GTK_LABEL (updater->lbl_main), b);
+    if (G_UNLIKELY (b != buf))
+    {
+        g_free (b);
+        b = buf;
+    }
+#undef fmt
+    gtk_progress_bar_set_fraction (GTK_PROGRESS_BAR (updater->pbar_main), 1.0);
+    gtk_widget_show (updater->pbar_main);
+    gtk_widget_hide (updater->lbl_action);
+    gtk_widget_hide (updater->pbar_action);
+    gtk_widget_set_sensitive (updater->btn_close, TRUE);
+    updater->step = STEP_NONE;
+    free_kupdater (TRUE);
 }
 
 static void
@@ -1565,7 +1623,21 @@ updater_sysupgrade_cb (KaluUpdater *kupdater _UNUSED_, const gchar *errmsg)
 
     if (errmsg != NULL)
     {
-        _show_error (_("System update failed"), "%s", errmsg);
+        if (updater->downloadonly)
+        {
+            _show_error (_("Downloading packages failed"), "%s", errmsg);
+            free_kupdater (TRUE);
+        }
+        else
+        {
+            _show_error (_("System update failed"), "%s", errmsg);
+        }
+        return;
+    }
+
+    if (updater->downloadonly)
+    {
+        dl_pkgs_done ();
         return;
     }
 
@@ -1782,15 +1854,22 @@ updater_get_packages_cb (KaluUpdater *kupdater _UNUSED_, const gchar *errmsg,
     if (errmsg != NULL)
     {
         _show_error (_("Failed to get packages list"), "%s", errmsg);
-        if (!updater->kupdater)
-            /* simulation: this is button rerun */
-            gtk_widget_set_sensitive (updater->btn_sysupgrade, TRUE);
+        if (updater->downloadonly)
+            free_kupdater (TRUE);
         return;
     }
     else if (pkgs == NULL)
     {
         _show_error (_("No packages to upgrade"),
                 _("Your system is already up-to-date."));
+        if (updater->downloadonly)
+        {
+            free_kupdater (TRUE);
+            /* i.e. this is a simulation, so there's no point for those buttons
+             * to be sensitive (_show_error() switched them automatically) */
+            gtk_widget_set_sensitive (updater->btn_sysupgrade, FALSE);
+            gtk_widget_set_sensitive (updater->btn_rerun, FALSE);
+        }
         return;
     }
 
@@ -1829,7 +1908,7 @@ updater_get_packages_cb (KaluUpdater *kupdater _UNUSED_, const gchar *errmsg,
         updater->total_inst += (k_pkg->new_size > 0) ? k_pkg->new_size : k_pkg->old_size;
     }
 
-    gchar buffer[255];
+    gchar buf[255], *b = buf;
     double size;
     const char *unit;
     char dl_buf[23], inst_buf[23], net_buf[23];
@@ -1842,7 +1921,85 @@ updater_get_packages_cb (KaluUpdater *kupdater _UNUSED_, const gchar *errmsg,
     gtk_widget_hide (updater->pbar_main);
     gtk_progress_bar_set_fraction (GTK_PROGRESS_BAR (updater->pbar_main), 0);
 
-    gtk_label_set_markup (GTK_LABEL (updater->lbl_main), (updater->kupdater)
+    if (updater->downloadonly && updater->kupdater)
+    {
+        GError *err = NULL;
+
+        /* i.e. this is from "downloading packages" not simulation */
+
+        if (dl_size == 0)
+        {
+            dl_pkgs_done ();
+            return;
+        }
+
+#define fmt "<big><b>%s</b></big>"
+        if (G_UNLIKELY (g_snprintf (buf, 255, fmt,
+                        _("Do you want to download packages ?")) >= 255))
+            b = g_strdup_printf (fmt, _("Do you want to download packages ?"));
+#undef fmt
+        gtk_label_set_markup (GTK_LABEL (updater->lbl_main), b);
+        if (G_UNLIKELY (b != buf))
+        {
+            g_free (b);
+            b = buf;
+        }
+
+        updater->pctg_download          = PCTG_DL_ONLY_DOWNLOAD;
+        updater->pctg_pkg_integrity     = PCTG_DL_ONLY_PKG_INTEGRITY;
+        updater->pctg_file_conflicts    = PCTG_DL_ONLY_FILE_CONFLICTS;
+        updater->pctg_load_pkgfiles     = PCTG_DL_ONLY_LOAD_PKGFILES;
+        updater->pctg_check_diskspace   = PCTG_DL_ONLY_CHECK_DISKSPACE;
+        updater->pctg_keyring           = PCTG_DL_ONLY_KEYRING;
+        updater->pctg_sysupgrade        = PCTG_DL_ONLY_SYSUPGRADE;
+
+        size = humanize_size (dl_size, '\0', &unit);
+        snprint_size (dl_buf, 255, size, unit);
+#define fmt _("Download:\t%s")
+        if (G_UNLIKELY (g_snprintf (buf, 255, fmt, dl_buf) >= 255))
+            b = g_strdup_printf (fmt, dl_buf);
+#undef fmt
+        gtk_label_set_markup (GTK_LABEL (updater->lbl_action), b);
+        if (G_UNLIKELY (b != buf))
+        {
+            g_free (b);
+            b = buf;
+        }
+        gtk_widget_show (updater->lbl_action);
+        add_log (LOGTYPE_NORMAL,
+                _("Download: %s\n"),
+                dl_buf);
+
+        if (!confirm (_("Do you want to download packages ?"), NULL,
+                    _("Download packages"), "document-save",
+                    _("No, cancel download"), "gtk-cancel",
+                    updater->window))
+        {
+            _show_error (_("Downloading packages failed"),
+                    _("Download operation cancelled."));
+            free_kupdater (TRUE);
+            return;
+        }
+
+        updater->step = STEP_USER_CONFIRMED;
+        gtk_label_set_text (GTK_LABEL (updater->lbl_main),
+                _("Downloading packages..."));
+        gtk_progress_bar_set_fraction (GTK_PROGRESS_BAR (updater->pbar_main), 0.0);
+        gtk_widget_show (updater->pbar_main);
+
+        if (!kalu_updater_sysupgrade (updater->kupdater, NULL,
+                    (KaluMethodCallback) updater_sysupgrade_cb, NULL, &err))
+        {
+            _show_error (_("Downloading packages failed"), err->message);
+            g_clear_error (&err);
+            free_kupdater (TRUE);
+            return;
+        }
+
+        return;
+    }
+
+    gtk_label_set_markup (GTK_LABEL (updater->lbl_main), (!updater->downloadonly)
             ? _("<big><b>Do you want to upgrade your system ?</b></big>")
             : _("<big><b>Simulation complete</b></big>"));
     if (dl_size > 0)
@@ -1857,9 +2014,10 @@ updater_get_packages_cb (KaluUpdater *kupdater _UNUSED_, const gchar *errmsg,
 
         size = humanize_size (dl_size, '\0', &unit);
         snprint_size (dl_buf, 255, size, unit);
-        snprintf (buffer, 255,
-                _("Download:\t%s\nInstall:\t\t%s\nNet:\t\t\t%s"),
-                dl_buf, inst_buf, net_buf);
+#define fmt "Download:\t%s\nInstall:\t\t%s\nNet:\t\t\t%s"
+        if (G_UNLIKELY (g_snprintf (buf, 255, fmt, dl_buf, inst_buf, net_buf) >= 255))
+            b = g_strdup_printf (fmt, dl_buf, inst_buf, net_buf);
+#undef fmt
         add_log (LOGTYPE_NORMAL,
                 _("Download: %s - Install: %s - Net: %s\n"),
                 dl_buf, inst_buf, net_buf);
@@ -1874,19 +2032,28 @@ updater_get_packages_cb (KaluUpdater *kupdater _UNUSED_, const gchar *errmsg,
         updater->pctg_keyring           = PCTG_NO_DL_KEYRING;
         updater->pctg_sysupgrade        = PCTG_NO_DL_SYSUPGRADE;
 
-        snprintf (buffer, 255,
-                _("Install:\t\t%s\nNet:\t\t\t%s"),
-                inst_buf, net_buf);
+#define fmt "Install:\t\t%s\nNet:\t\t\t%s"
+        if (G_UNLIKELY (g_snprintf (buf, 255, fmt, inst_buf, net_buf) >= 255))
+            b = g_strdup_printf (fmt, inst_buf, net_buf);
+#undef fmt
         add_log (LOGTYPE_NORMAL,
                 _("Install: %s - Net: %s\n"),
                 inst_buf, net_buf);
     }
-    gtk_label_set_markup (GTK_LABEL (updater->lbl_action), buffer);
+    gtk_label_set_markup (GTK_LABEL (updater->lbl_action), b);
+    if (G_UNLIKELY (b != buf))
+    {
+        g_free (b);
+        b = buf;
+    }
     gtk_widget_show (updater->lbl_action);
-    gtk_widget_set_sensitive (updater->btn_sysupgrade, TRUE);
+    if (!updater->downloadonly || dl_size > 0)
+        gtk_widget_set_sensitive (updater->btn_sysupgrade, TRUE);
     gtk_widget_set_sensitive (updater->btn_close, TRUE);
+    if (updater->downloadonly)
+        gtk_widget_set_sensitive (updater->btn_rerun, TRUE);
     updater->step = STEP_WAITING_USER_CONFIRMATION;
-    add_log (LOGTYPE_UNIMPORTANT, (updater->kupdater)
+    add_log (LOGTYPE_UNIMPORTANT, (!updater->downloadonly)
             ? _("Got package list; waiting for user confirmation.\n")
             : _("Simulation complete.\n"));
 }
@@ -1937,7 +2104,10 @@ updater_add_db_cb (KaluUpdater *kupdater, const gchar *errmsg, add_db_t *add_db)
         {
             add_log (LOGTYPE_ERROR, _(" failed\n"));
             _show_error (_("Failed to register databases"), "%s", errmsg);
-            free_pacman_config (add_db->pac_conf);
+            if (updater->downloadonly)
+                free_kupdater (TRUE);
+            else
+                free_pacman_config (add_db->pac_conf);
             free (add_db);
             return;
         }
@@ -1971,32 +2141,60 @@ updater_add_db_cb (KaluUpdater *kupdater, const gchar *errmsg, add_db_t *add_db)
             _show_error (_("Failed to register databases"), "%s",
                     error->message);
             g_clear_error (&error);
-            free_pacman_config (add_db->pac_conf);
+            if (updater->downloadonly)
+                free_kupdater (TRUE);
+            else
+                free_pacman_config (add_db->pac_conf);
             free (add_db);
             return;
         }
     }
     else
     {
-        free_pacman_config (add_db->pac_conf);
+        if (!updater->downloadonly)
+            free_pacman_config (add_db->pac_conf);
         free (add_db);
         gtk_progress_bar_set_fraction (
                 GTK_PROGRESS_BAR (updater->pbar_main), 1);
-        /* we're good, so let's sync dbs */
-        updater->step_data = new0 (sync_dbs_t, 1);
-        updater->step = STEP_SYNC_DBS;
-        if (!kalu_updater_sync_dbs (kupdater,
-                    NULL,
-                    (KaluMethodCallback) updater_sync_dbs_cb,
-                    NULL,
-                    &error))
+        if (!updater->downloadonly)
         {
-            _show_error (_("Failed to synchronize databases"), "%s",
-                    error->message);
-            g_clear_error (&error);
-            free (updater->step_data);
-            updater->step_data = NULL;
-            updater->step = STEP_NONE;
+            /* we're good, so let's sync dbs */
+            updater->step_data = new0 (sync_dbs_t, 1);
+            updater->step = STEP_SYNC_DBS;
+            if (!kalu_updater_sync_dbs (kupdater,
+                        NULL,
+                        (KaluMethodCallback) updater_sync_dbs_cb,
+                        NULL,
+                        &error))
+            {
+                _show_error (_("Failed to synchronize databases"), "%s",
+                        error->message);
+                g_clear_error (&error);
+                free (updater->step_data);
+                updater->step_data = NULL;
+                updater->step = STEP_NONE;
+            }
+        }
+        else
+        {
+            /* downloadonly: we assume dbs to be synced already (from
+             * simulation), so we just ahead */
+            add_log (LOGTYPE_UNIMPORTANT, _("Getting packages list\n"));
+            gtk_label_set_text (GTK_LABEL (updater->lbl_main),
+                    _("Getting packages list..."));
+            gtk_progress_bar_set_fraction (GTK_PROGRESS_BAR (updater->pbar_main), 0.0);
+            if (!kalu_updater_get_packages (kupdater,
+                        NULL,
+                        (KaluMethodCallback) updater_get_packages_cb,
+                        NULL,
+                        &error))
+            {
+                _show_error (_("Failed to get packages list"), "%s", error->message);
+                g_clear_error (&error);
+                free_kupdater (TRUE);
+                return;
+            }
+            gtk_list_store_clear (updater->store);
         }
     }
 }
@@ -2009,7 +2207,10 @@ updater_init_alpm_cb (KaluUpdater *kupdater, const gchar *errmsg,
     {
         add_log (LOGTYPE_UNIMPORTANT, _(" failed\n"));
         _show_error (_("Failed to initialize ALPM library"), "%s", errmsg);
-        free_pacman_config (pac_conf);
+        if (updater->downloadonly)
+            free_kupdater (TRUE);
+        else
+            free_pacman_config (pac_conf);
         return;
     }
     add_log (LOGTYPE_UNIMPORTANT, _(" ok\n"));
@@ -2036,7 +2237,10 @@ updater_method_cb (KaluUpdater *kupdater, const gchar *errmsg,
     {
         add_log (LOGTYPE_UNIMPORTANT, _(" failed\n"));
         _show_error (_("Failed to initialize"), "%s", errmsg);
-        free_pacman_config (pac_conf);
+        if (updater->downloadonly)
+            free_kupdater (TRUE);
+        else
+            free_pacman_config (pac_conf);
         return;
     }
     add_log (LOGTYPE_UNIMPORTANT, _(" ok\n"));
@@ -2048,8 +2252,9 @@ updater_method_cb (KaluUpdater *kupdater, const gchar *errmsg,
             _("Initializing ALPM library..."));
     if (!kalu_updater_init_alpm (kupdater,
                 pac_conf->rootdir,
-                pac_conf->dbpath,
-                pac_conf->logfile,
+                (!updater->downloadonly)
+                ? pac_conf->dbpath : (gchar *) kalu_alpm_get_dbpath (),
+                (!updater->downloadonly) ? pac_conf->logfile : (gchar *) "/dev/null",
                 pac_conf->gpgdir,
                 pac_conf->cachedirs,
                 pac_conf->siglevel,
@@ -2070,7 +2275,10 @@ updater_method_cb (KaluUpdater *kupdater, const gchar *errmsg,
         _show_error (_("Failed to initialize ALPM library"), "%s",
                 error->message);
         g_clear_error (&error);
-        free_pacman_config (pac_conf);
+        if (updater->downloadonly)
+            free_kupdater (TRUE);
+        else
+            free_pacman_config (pac_conf);
     }
 }
 
@@ -2088,7 +2296,8 @@ updater_new_cb (GObject *source _UNUSED_, GAsyncResult *res,
         _show_error (_("Could not initiate kalu_updater"), "%s",
                 error->message);
         g_clear_error (&error);
-        free_pacman_config (pac_conf);
+        if (!updater->downloadonly)
+            free_pacman_config (pac_conf);
         return;
     }
     add_log (LOGTYPE_UNIMPORTANT, _(" ok \n"));
@@ -2217,7 +2426,7 @@ updater_new_cb (GObject *source _UNUSED_, GAsyncResult *res,
             NULL);
 
     add_log (LOGTYPE_UNIMPORTANT, _("Initializing kalu_updater..."));
-    if (!kalu_updater_init_upd (kalu_updater, NULL,
+    if (!kalu_updater_init_upd (kalu_updater, updater->downloadonly, NULL,
                 (KaluMethodCallback) updater_method_cb,
                 (gpointer) pac_conf,
                 &error))
@@ -2225,7 +2434,10 @@ updater_new_cb (GObject *source _UNUSED_, GAsyncResult *res,
         add_log (LOGTYPE_UNIMPORTANT, _(" failed\n"));
         _show_error (_("Could not initialize kalu_updater"), "%s", error->message);
         g_clear_error (&error);
-        free_pacman_config (pac_conf);
+        if (updater->downloadonly)
+            free_kupdater (TRUE);
+        else
+            free_pacman_config (pac_conf);
     }
 }
 
@@ -2400,6 +2612,24 @@ expander_expanded_cb (GObject *o, GParamSpec *pspec _UNUSED_, gpointer sw)
 }
 
 static void
+btn_download_cb (GtkButton *button _UNUSED_, gpointer data)
+{
+    gtk_widget_set_sensitive (updater->btn_sysupgrade, FALSE);
+    gtk_widget_set_sensitive (updater->btn_close, FALSE);
+    gtk_widget_set_sensitive (updater->btn_rerun, FALSE);
+    gtk_label_set_text (GTK_LABEL (updater->lbl_main),
+            _("Initializing... Please wait..."));
+    gtk_progress_bar_set_fraction (GTK_PROGRESS_BAR (updater->pbar_main), 0.0);
+    gtk_widget_show (updater->pbar_main);
+    gtk_widget_hide (updater->lbl_action);
+    /* create kalu_updater */
+    add_log (LOGTYPE_UNIMPORTANT, _("Creating kalu_updater..."));
+    kalu_updater_new (NULL,
+            (GAsyncReadyCallback) updater_new_cb,
+            data);
+}
+
+static void
 btn_rerun_cb (GtkButton *button _UNUSED_, gpointer data _UNUSED_)
 {
     GError *err = NULL;
@@ -2552,13 +2782,14 @@ log_cb (alpm_loglevel_t level, const char *fmt, va_list args)
 void
 updater_run (const gchar *conffile, alpm_list_t *cmdline_post)
 {
-    /* conffile == NULL means run simulation, translate into kupdater == NULL */
+    /* conffile == NULL means run simulation (and possibly download only) */
     gboolean run_simulation = conffile == NULL;
 
     updater = new0 (updater_t, 1);
     updater->cmdline_post = cmdline_post;
     updater->pos_expanded = -1;
     updater->pos_collapsed = -1;
+    updater->downloadonly = run_simulation;
 
     /* the window */
     GtkWidget *window;
@@ -2853,6 +3084,18 @@ updater_run (const gchar *conffile, alpm_list_t *cmdline_post)
         gtk_button_set_always_show_image ((GtkButton *) button, TRUE);
         gtk_widget_show (button);
     }
+    else
+    {
+        /* Download packages only */
+        button = gtk_button_new_with_mnemonic (_("_Download packages..."));
+        updater->btn_sysupgrade = button;
+        image = gtk_image_new_from_icon_name ("document-save", GTK_ICON_SIZE_MENU);
+        gtk_button_set_image (GTK_BUTTON (button), image);
+        gtk_widget_set_sensitive (button, FALSE);
+        gtk_box_pack_end (GTK_BOX (hbox), button, FALSE, FALSE, 2);
+        gtk_button_set_always_show_image ((GtkButton *) button, TRUE);
+        gtk_widget_show (button);
+    }
 
     /* Close */
     button = gtk_button_new_with_mnemonic (_("_Close"));
@@ -2870,7 +3113,7 @@ updater_run (const gchar *conffile, alpm_list_t *cmdline_post)
     {
         /* Re-run simulation (to ask questions again) */
         button = gtk_button_new_with_mnemonic (_("_Rerun simulation..."));
-        updater->btn_sysupgrade = button;
+        updater->btn_rerun = button;
         image = gtk_image_new_from_icon_name ("view-refresh", GTK_ICON_SIZE_MENU);
         gtk_button_set_image (GTK_BUTTON (button), image);
         gtk_widget_set_sensitive (button, FALSE);
@@ -2937,6 +3180,7 @@ updater_run (const gchar *conffile, alpm_list_t *cmdline_post)
                 (void (*) (gpointer unused, const gchar *name)) on_sync_db_start,
             .on_sync_db_end =
                 (void (*) (gpointer unused, guint result)) on_sync_db_end,
+            .pac_conf = NULL
         };
         sync_dbs_t sync_dbs = { 0, 0 };
         alpm_list_t *packages = NULL;
@@ -2950,10 +3194,20 @@ updater_run (const gchar *conffile, alpm_list_t *cmdline_post)
         {
             _show_error (_("Failed to initialize simulation"),
                     err->message);
+            /* _show_error() switched them on, but they should stay off */
+            gtk_widget_set_sensitive (updater->btn_sysupgrade, FALSE);
+            gtk_widget_set_sensitive (updater->btn_rerun, FALSE);
             g_clear_error (&err);
             return;
         }
         gtk_progress_bar_set_fraction (GTK_PROGRESS_BAR (updater->pbar_main), 0.42);
+        /* connect now w/ the pac_conf to be used; will be free-d when handler
+         * is disconnected, i.e. on window close */
+        g_signal_connect_data (updater->btn_sysupgrade, "clicked",
+                G_CALLBACK (btn_download_cb),
+                simulation.pac_conf,
+                (GClosureNotify) free_pacman_config,
+                0);
 
         while (gtk_events_pending ())
             gtk_main_iteration ();
@@ -2964,6 +3218,9 @@ updater_run (const gchar *conffile, alpm_list_t *cmdline_post)
         {
             _show_error (_("Failed to synchronize databases"),
                     err->message);
+            /* _show_error() switched them on, but they should stay off */
+            gtk_widget_set_sensitive (updater->btn_sysupgrade, FALSE);
+            gtk_widget_set_sensitive (updater->btn_rerun, FALSE);
             g_clear_error (&err);
             /* to not try to free it */
             updater->step_data = NULL;

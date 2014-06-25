@@ -1023,6 +1023,24 @@ button/feature will be available.
 The only requirement is that kalu's updater was compiled in, of course, i.e. it
 won't work if you compiled kalu using `--disable-updater` (or `--disable-gui`).
 
+=head2 Download packages only
+
+One more thing you can use the simulation for, is to only download packages for
+the next sysupgrade (without actually performing said sysupgrade).
+
+Once a simulation has completed, a button "Download packages" will be available
+(if there are any packages to upgrade/download). After pressing this button you
+will need to be authenticated, and after a final confirmation packages will be
+downloaded into pacman's cache.
+
+In effect, this is similar to running `pacman -Syuw` but, again, using a
+temporary copy of your databases so your databases aren't synced, for the same
+reasons previously mentionned.
+
+This can allow you to "pre-download" packages ahead of time, but leaving the
+actual sysupgrade to later, maybe when you have more time but less bandwidth
+(noting that some remains required, to sync your databases).
+
 =head1 NOTES
 
 Command-line options B<--auto-checks> and B<--manual-checks> both work without

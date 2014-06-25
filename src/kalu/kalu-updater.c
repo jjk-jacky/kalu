@@ -1370,6 +1370,7 @@ abort_method (KaluUpdater *kupdater, const gchar *name)
 
 /* Init */
 gboolean    kalu_updater_init_upd           (KaluUpdater        *kupdater,
+                                             gboolean            downloadonly,
                                              GCancellable       *cancellable,
                                              KaluMethodCallback  callback,
                                              gpointer            data,
@@ -1379,7 +1380,7 @@ gboolean    kalu_updater_init_upd           (KaluUpdater        *kupdater,
 
     g_dbus_proxy_call_sync (G_DBUS_PROXY (kupdater),
             "Init",
-            NULL,
+            g_variant_new ("(b)", downloadonly),
             G_DBUS_CALL_FLAGS_NONE,
             -1,
             cancellable,

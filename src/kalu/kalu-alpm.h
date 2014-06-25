@@ -31,6 +31,7 @@
 #include <alpm_list.h>
 
 #ifndef DISABLE_UPDATER
+#include "conf.h"
 typedef struct {
     void (*dl_progress_cb) (const gchar *filename, off_t xfered, off_t total);
     void (*question_cb) (alpm_question_t *question);
@@ -38,6 +39,7 @@ typedef struct {
     void (*on_sync_dbs) (gpointer unused, gint nb);
     void (*on_sync_db_start) (gpointer unused, const gchar *name);
     void (*on_sync_db_end) (gpointer unused, guint result);
+    pacman_config_t *pac_conf;
 } kalu_simul_t;
 #else
 typedef struct _kalu_simul_t kalu_simul_t;
@@ -69,6 +71,9 @@ kalu_alpm_has_updates_watched (alpm_list_t **packages, alpm_list_t *watched, GEr
 
 gboolean
 kalu_alpm_has_foreign (alpm_list_t **packages, alpm_list_t *ignore, GError **error);
+
+const gchar *
+kalu_alpm_get_dbpath (void);
 
 void
 kalu_alpm_free (void);
