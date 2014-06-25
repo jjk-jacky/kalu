@@ -1,6 +1,7 @@
 <node>
   <interface name='org.jjk.kalu.UpdaterInterface'>
     <method name='Init'>
+      <arg type='b'  name='downloadonly' direction='in'/>
     </method>
     <method name='InitAlpm'>
       <arg type='s'  name='rootdir'      direction='in'/>
@@ -26,7 +27,7 @@
     <method name='SyncDbs'>
     </method>
     <method name='Answer'>
-      <arg type='i'  name='choice'      direction='in'/>
+      <arg type='i'  name='choice'       direction='in'/>
     </method>
     <method name='GetPackages'>
     </method>

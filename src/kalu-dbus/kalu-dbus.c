@@ -52,7 +52,13 @@ static GDBusConnection *connection = NULL;
 
 static GMainLoop *loop;
 
-static gboolean       is_init = FALSE;
+enum init
+{
+    INIT_NOT = 0,
+    INIT_SYSUPGRADE,
+    INIT_DOWNLOADONLY
+};
+static enum init      is_init = INIT_NOT;
 static gchar         *client  = NULL;
 static alpm_handle_t *handle  = NULL;
 
@@ -690,12 +696,14 @@ method_failed (const gchar *name, const gchar *fmt, ...)
 static gboolean
 init (GVariant *parameters)
 {
+    gboolean downloadonly;
     gchar *sender;
-    g_variant_get (parameters, "(s)", &sender);
+
+    g_variant_get (parameters, "(bs)", &downloadonly, &sender);
     g_variant_unref (parameters);
 
     /* already init */
-    if (is_init)
+    if (is_init != INIT_NOT)
     {
         free (sender);
         method_failed ("Init", _("Session already initialized\n"));
@@ -711,8 +719,8 @@ init (GVariant *parameters)
     subject = polkit_system_bus_name_new (sender);
     result = polkit_authority_check_authorization_sync (
             authority,
-            subject, 
-            "org.jjk.kalu.sysupgrade",
+            subject,
+            (downloadonly) ? "org.jjk.kalu.sysupgrade.downloadonly" : "org.jjk.kalu.sysupgrade",
             NULL,
             POLKIT_CHECK_AUTHORIZATION_FLAGS_ALLOW_USER_INTERACTION,
             NULL,
@@ -738,9 +746,9 @@ init (GVariant *parameters)
     g_object_unref (result);
 
     /* ok, we're good */
-    is_init = TRUE;
+    is_init = (downloadonly) ? INIT_DOWNLOADONLY : INIT_SYSUPGRADE;
     client = sender; /* therefore, we shoudln't free sender */
-    debug ("client is %s", client);
+    debug ("%s; client is %s", (downloadonly) ? "DownloadOnly": "SysUpgrade", client);
     method_finished ("Init");
     return G_SOURCE_REMOVE;
 }
@@ -1091,7 +1099,8 @@ get_packages (GVariant *parameters)
 {
     g_variant_unref (parameters);
 
-    if (alpm_trans_init (handle, 0) == -1)
+    if (alpm_trans_init (handle,
+                (is_init == INIT_DOWNLOADONLY) ? ALPM_TRANS_FLAG_DOWNLOADONLY : 0) == -1)
     {
         method_failed ("GetPackages",
                 _("Failed to initiate transaction: %s\n"),
@@ -1252,7 +1261,8 @@ sysupgrade (GVariant *parameters)
 {
     g_variant_unref (parameters);
 
-    alpm_logaction (handle, PREFIX, "starting sysupgrade...\n");
+    if (is_init == INIT_SYSUPGRADE)
+        alpm_logaction (handle, PREFIX, "starting sysupgrade...\n");
 
     alpm_list_t *alpm_data = NULL;
     if (alpm_trans_commit (handle, &alpm_data) == -1)
@@ -1333,16 +1343,18 @@ sysupgrade (GVariant *parameters)
         }
 
         alpm_list_free (alpm_data);
-        alpm_logaction (handle, PREFIX,
-                "Failed to commit sysupgrade transaction: %s\n",
-                alpm_strerror (err));
+        if (is_init == INIT_SYSUPGRADE)
+            alpm_logaction (handle, PREFIX,
+                    "Failed to commit sysupgrade transaction: %s\n",
+                    alpm_strerror (err));
         alpm_trans_release (handle);
         return G_SOURCE_REMOVE;
     }
 
     alpm_list_free (alpm_data);
     alpm_trans_release (handle);
-    alpm_logaction (handle, PREFIX, "sysupgrade completed\n");
+    if (is_init == INIT_SYSUPGRADE)
+        alpm_logaction (handle, PREFIX, "sysupgrade completed\n");
     method_finished ("SysUpgrade");
     return G_SOURCE_REMOVE;
 }
@@ -1393,14 +1405,17 @@ handle_method_call (GDBusConnection       *conn _UNUSED_,
     /* Init: check auth from PolicyKit, and "lock" to client/sender */
     if (g_strcmp0 (method_name, "Init") == 0)
     {
+        gboolean downloadonly;
+
         /* we need to send the sender to init, hence the following */
+        g_variant_get (parameters, "(b)", &downloadonly);
         g_idle_add ((GSourceFunc) init,
-                g_variant_ref_sink (g_variant_new ("(s)", sender)));
+                g_variant_ref_sink (g_variant_new ("(bs)", downloadonly, sender)));
         g_dbus_method_invocation_return_value (invocation, NULL);
         return;
     }
     /* at this point, we must be init.. */
-    if (!is_init)
+    if (is_init == INIT_NOT)
     {
         send_error ("NoInitError", _("Session not initialized\n"));
         return;
