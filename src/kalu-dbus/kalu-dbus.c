@@ -684,7 +684,7 @@ method_failed (const gchar *name, const gchar *fmt, ...)
 /* methods must ALWAYS do the following :
  * - g_variant_unref (parameters) to free them
  * - either call method_failed() or emit_signal w/ their XxxxFinished signal
- * - return FALSE to remove the timeout
+ * - return G_SOURCE_REMOVE (FALSE) to remove the source
  */
 
 static gboolean
@@ -699,7 +699,7 @@ init (GVariant *parameters)
     {
         free (sender);
         method_failed ("Init", _("Session already initialized\n"));
-        return FALSE;
+        return G_SOURCE_REMOVE;
     }
     /* checking auth */
     GError *error = NULL;
@@ -724,7 +724,7 @@ init (GVariant *parameters)
         g_clear_error (&error);
         /* we have no reason to keep running */
         g_main_loop_quit (loop);
-        return FALSE;
+        return G_SOURCE_REMOVE;
     }
     if (!polkit_authorization_result_get_is_authorized (result))
     {
@@ -733,7 +733,7 @@ init (GVariant *parameters)
         method_failed ("Init", _("Authorization from PolicyKit failed\n"));
         /* we have no reason to keep running */
         g_main_loop_quit (loop);
-        return FALSE;
+        return G_SOURCE_REMOVE;
     }
     g_object_unref (result);
 
@@ -742,7 +742,7 @@ init (GVariant *parameters)
     client = sender; /* therefore, we shoudln't free sender */
     debug ("client is %s", client);
     method_finished ("Init");
-    return FALSE;
+    return G_SOURCE_REMOVE;
 }
 
 static gboolean
@@ -799,13 +799,13 @@ init_alpm (GVariant *parameters)
     {
         method_failed ("InitAlpm", _("Failed to initialize alpm library: %s\n"),
                 alpm_strerror (err));
-        return FALSE;
+        return G_SOURCE_REMOVE;
     }
 
     if (!(alpm_capabilities () & ALPM_CAPABILITY_DOWNLOADER))
     {
         method_failed ("InitAlpm", _("ALPM has no downloader capability\n"));
-        return FALSE;
+        return G_SOURCE_REMOVE;
     }
 
     /* set callbacks, that we'll turn into signals */
@@ -821,7 +821,7 @@ init_alpm (GVariant *parameters)
     {
         method_failed ("InitAlpm", _("Unable to set log file: %s\n"),
                 alpm_strerror (alpm_errno (handle)));
-        return FALSE;
+        return G_SOURCE_REMOVE;
     }
 
     /* Set GnuPG's home directory.  This is not relative to rootdir, even if
@@ -831,7 +831,7 @@ init_alpm (GVariant *parameters)
     {
         method_failed ("InitAlpm", _("Unable to set gpgdir: %s\n"),
                 alpm_strerror (alpm_errno (handle)));
-        return FALSE;
+        return G_SOURCE_REMOVE;
     }
 
     /* cachedirs */
@@ -846,7 +846,7 @@ init_alpm (GVariant *parameters)
         FREELIST (cachedirs);
         method_failed ("InitAlpm", _("Unable to set cache dirs: %s\n"),
                 alpm_strerror (alpm_errno (handle)));
-        return FALSE;
+        return G_SOURCE_REMOVE;
     }
     FREELIST (cachedirs);
 
@@ -854,7 +854,7 @@ init_alpm (GVariant *parameters)
     {
         method_failed (_("Unable to set default siglevel: %s\n"),
                 alpm_strerror (alpm_errno (handle)));
-        return FALSE;
+        return G_SOURCE_REMOVE;
     }
 
     /* following options can't really fail, unless handle is wrong but
@@ -900,7 +900,7 @@ init_alpm (GVariant *parameters)
 
     /* done */
     method_finished ("InitAlpm");
-    return FALSE;
+    return G_SOURCE_REMOVE;
 }
 
 static gboolean
@@ -923,7 +923,7 @@ free_alpm (GVariant *parameters)
 
     /* we have no reason to keep running at this point */
     g_main_loop_quit (loop);
-    return FALSE;
+    return G_SOURCE_REMOVE;
 }
 
 static gboolean
@@ -949,7 +949,7 @@ add_db (GVariant *parameters)
     {
         method_failed ("AddDb", _("Could not register database %s: %s\n"),
                 name, alpm_strerror (alpm_errno (handle)));
-        return FALSE;
+        return G_SOURCE_REMOVE;
     }
 
     while (g_variant_iter_loop (servers_iter, "s", &s))
@@ -980,7 +980,7 @@ add_db (GVariant *parameters)
                 method_failed ("AddDb",
                         _("Server %s contains the $arch variable, but no Architecture was defined.\n"),
                         value);
-                return FALSE;
+                return G_SOURCE_REMOVE;
             }
             server = temp;
         }
@@ -996,7 +996,7 @@ add_db (GVariant *parameters)
                     server,
                     name,
                     alpm_strerror (alpm_errno (handle)));
-            return FALSE;
+            return G_SOURCE_REMOVE;
         }
         free (server);
     }
@@ -1008,12 +1008,12 @@ add_db (GVariant *parameters)
         method_failed ("AddDb", _("Database %s is not valid: %s\n"),
                 name,
                 alpm_strerror (alpm_errno (handle)));
-        return FALSE;
+        return G_SOURCE_REMOVE;
     }
 
     /* done */
     method_finished ("AddDb");
-    return FALSE;
+    return G_SOURCE_REMOVE;
 }
 
 static gboolean
@@ -1055,7 +1055,7 @@ sync_dbs (GVariant *parameters)
     }
 
     method_finished ("SyncDbs");
-    return FALSE;
+    return G_SOURCE_REMOVE;
 }
 
 static gboolean
@@ -1070,7 +1070,7 @@ answer (GVariant *parameters)
     {
         method_failed ("Answer",
                 _("Invalid call to Answer, no Question pending.\n"));
-        return FALSE;
+        return G_SOURCE_REMOVE;
     }
 
     if (response >= 0)
@@ -1083,7 +1083,7 @@ answer (GVariant *parameters)
         choice = 0;
     }
     method_finished ("Answer");
-    return FALSE;
+    return G_SOURCE_REMOVE;
 }
 
 static gboolean
@@ -1096,7 +1096,7 @@ get_packages (GVariant *parameters)
         method_failed ("GetPackages",
                 _("Failed to initiate transaction: %s\n"),
                 alpm_strerror (alpm_errno (handle)));
-        return FALSE;
+        return G_SOURCE_REMOVE;
     }
 
     if (alpm_sync_sysupgrade (handle, 0) == -1)
@@ -1104,7 +1104,7 @@ get_packages (GVariant *parameters)
         method_failed ("GetPackages", "%s",
                 alpm_strerror (alpm_errno (handle)));
         alpm_trans_release (handle);
-        return FALSE;
+        return G_SOURCE_REMOVE;
     }
 
     alpm_list_t *alpm_data = NULL;
@@ -1195,7 +1195,7 @@ get_packages (GVariant *parameters)
 
         alpm_list_free (alpm_data);
         alpm_trans_release (handle);
-        return FALSE;
+        return G_SOURCE_REMOVE;
     }
     alpm_list_free (alpm_data);
 
@@ -1244,7 +1244,7 @@ get_packages (GVariant *parameters)
     g_variant_builder_unref (builder);
     /* we don't alpm_trans_release (handle) since that will be done only if
      * user cancel (NoSysUpgrade) or after the update is done (SysUpgrade) */
-    return FALSE;
+    return G_SOURCE_REMOVE;
 }
 
 static gboolean
@@ -1337,14 +1337,14 @@ sysupgrade (GVariant *parameters)
                 "Failed to commit sysupgrade transaction: %s\n",
                 alpm_strerror (err));
         alpm_trans_release (handle);
-        return FALSE;
+        return G_SOURCE_REMOVE;
     }
 
     alpm_list_free (alpm_data);
     alpm_trans_release (handle);
     alpm_logaction (handle, PREFIX, "sysupgrade completed\n");
     method_finished ("SysUpgrade");
-    return FALSE;
+    return G_SOURCE_REMOVE;
 }
 
 static gboolean
@@ -1353,7 +1353,7 @@ no_sysupgrade (GVariant *parameters)
     g_variant_unref (parameters);
     alpm_trans_release (handle);
     method_finished ("NoSysUpgrade");
-    return FALSE;
+    return G_SOURCE_REMOVE;
 }
 
 #undef method_finished
@@ -1374,7 +1374,7 @@ no_sysupgrade (GVariant *parameters)
         if (g_strcmp0 (method_name, name) == 0)                         \
         {                                                               \
             g_variant_ref (parameters);                                 \
-            g_timeout_add (1, (GSourceFunc) func, parameters);          \
+            g_idle_add ((GSourceFunc) func, parameters);                \
             g_dbus_method_invocation_return_value (invocation, NULL);   \
             return;                                                     \
         }                                                               \
@@ -1394,11 +1394,8 @@ handle_method_call (GDBusConnection       *conn _UNUSED_,
     if (g_strcmp0 (method_name, "Init") == 0)
     {
         /* we need to send the sender to init, hence the following */
-        GVariant *value = g_variant_new ("(s)", sender);
-        parameters = value;
-        g_variant_ref (parameters);
-        g_timeout_add (1, (GSourceFunc) init, parameters);
-        g_variant_unref (value);
+        g_idle_add ((GSourceFunc) init,
+                g_variant_ref_sink (g_variant_new ("(s)", sender)));
         g_dbus_method_invocation_return_value (invocation, NULL);
         return;
     }
