@@ -504,10 +504,11 @@ kalu_check (gboolean is_auto)
                 NULL));
 }
 
-void
+gboolean
 kalu_auto_check (void)
 {
     kalu_check (TRUE);
+    return G_SOURCE_REMOVE;
 }
 
 static void
@@ -1461,7 +1462,7 @@ is_within_skip (void)
     return within_skip;
 }
 
-void
+gboolean
 skip_next_timeout (void)
 {
     gboolean force = FALSE;
@@ -1481,7 +1482,7 @@ skip_next_timeout (void)
             debug ("skip period: none set");
             /* we should still trigger auto-checks */
             kalu_check (TRUE);
-            return;
+            return G_SOURCE_REMOVE;
         }
         kalpm_state.skip_next = (is_within_skip ()) ? SKIP_BEGIN : SKIP_END;
         force = TRUE;
@@ -1547,6 +1548,7 @@ skip_next_timeout (void)
 
     g_date_time_unref (now);
     g_date_time_unref (next);
+    return G_SOURCE_REMOVE;
 }
 
 gboolean

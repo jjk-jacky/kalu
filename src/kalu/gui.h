@@ -67,7 +67,7 @@ void notification_closed_cb (NotifyNotification *notification, gpointer data);
 gboolean is_pacman_conflicting (alpm_list_t *packages);
 
 void kalu_check (gboolean is_auto);
-void kalu_auto_check (void);
+gboolean kalu_auto_check (void);
 
 void icon_popup_cb (GtkStatusIcon *_icon, guint button, guint activate_time,
                gpointer data);
@@ -87,7 +87,7 @@ void set_kalpm_nb (check_t type, gint nb, gboolean update_icon);
 void set_kalpm_nb_syncdbs (gint nb);
 void set_kalpm_busy (gboolean busy);
 void reset_timeout (void);
-void skip_next_timeout (void);
+gboolean skip_next_timeout (void);
 gboolean reload_watched (gboolean is_aur, GError **error);
 
 #endif /* _GUI_H */
