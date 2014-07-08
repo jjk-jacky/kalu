@@ -343,24 +343,6 @@ event_cb (alpm_event_t *event)
         emit_signal ("EventScriptlet", "s",
                 ((alpm_event_scriptlet_info_t *) event)->line);
     }
-    else if (event->type == ALPM_EVENT_LOG)
-    {
-        alpm_event_log_t *e = (alpm_event_log_t *) event;
-
-        if (!e->fmt || *e->fmt == '\0')
-        {
-            return;
-        }
-
-        if (e->level & (ALPM_LOG_DEBUG | ALPM_LOG_FUNCTION))
-        {
-            return;
-        }
-
-        gchar *s = g_strdup_vprintf (e->fmt, e->args);
-        emit_signal ("Log", "is", (gint) e->level, s);
-        g_free (s);
-    }
     else if (event->type == ALPM_EVENT_KEY_DOWNLOAD_START)
     {
         emit_signal ("Event", "i", EVENT_KEY_DOWNLOAD);
@@ -455,6 +437,25 @@ dl_progress_cb (const char *filename, off_t _xfered, off_t _total)
     guint xfered = (guint) _xfered;
     guint total  = (guint) _total;
     emit_signal ("Downloading", "suu", filename, xfered, total);
+}
+
+/* callback to handle notifications from the library */
+static void
+log_cb (alpm_loglevel_t level, const char *fmt, va_list args)
+{
+    if (!fmt || *fmt == '\0')
+    {
+        return;
+    }
+
+    if (level & ALPM_LOG_DEBUG || level & ALPM_LOG_FUNCTION)
+    {
+        return;
+    }
+
+    gchar *s = g_strdup_vprintf (fmt, args);
+    emit_signal ("Log", "is", (gint) level, s);
+    g_free (s);
 }
 
 /* callback to handle questions from libalpm */
@@ -739,6 +740,7 @@ init_alpm (GVariant *parameters)
     }
 
     /* set callbacks, that we'll turn into signals */
+    alpm_option_set_logcb (handle, log_cb);
     alpm_option_set_dlcb (handle, dl_progress_cb);
     alpm_option_set_eventcb (handle, event_cb);
     alpm_option_set_questioncb (handle, question_cb);
