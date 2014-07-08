@@ -289,17 +289,18 @@ kalu_alpm_load (kalu_simul_t *simulation, const gchar *conffile, GError **error)
     /* cachedirs are used when determining download size */
     alpm_option_set_cachedirs (alpm->handle, pac_conf->cachedirs);
 
-    if (config->is_debug > 1)
-        alpm_option_set_logcb (alpm->handle, log_cb);
-
 #ifndef DISABLE_UPDATER
     if (simulation)
     {
         alpm->simulation = simulation;
         alpm_option_set_dlcb (alpm->handle, simulation->dl_progress_cb);
         alpm_option_set_questioncb (alpm->handle, simulation->question_cb);
+        alpm_option_set_logcb (alpm->handle, simulation->log_cb);
     }
+    else
 #endif
+    if (config->is_debug > 1)
+        alpm_option_set_logcb (alpm->handle, log_cb);
 
     /* now we need to add dbs */
     alpm_list_t *i;

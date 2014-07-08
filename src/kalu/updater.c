@@ -2319,6 +2319,22 @@ question_cb (alpm_question_t event, void *data1, void *data2, void *data3, int *
     }
 }
 
+static void
+log_cb (alpm_loglevel_t level, const char *fmt, va_list args)
+{
+    gchar *s;
+
+    if (level & (ALPM_LOG_DEBUG | ALPM_LOG_FUNCTION))
+        return;
+
+    if (!fmt || *fmt == '\0')
+        return;
+
+    s = g_strdup_vprintf (fmt, args);
+    on_log (NULL, level, s);
+    g_free (s);
+}
+
 void
 updater_run (const gchar *conffile, alpm_list_t *cmdline_post)
 {
@@ -2699,6 +2715,7 @@ updater_run (const gchar *conffile, alpm_list_t *cmdline_post)
         kalu_simul_t simulation = {
             .dl_progress_cb = dl_progress_cb,
             .question_cb = question_cb,
+            .log_cb = log_cb,
             .on_sync_dbs = (void (*) (gpointer unused, gint nb)) on_sync_dbs,
             .on_sync_db_start =
                 (void (*) (gpointer unused, const gchar *name)) on_sync_db_start,
