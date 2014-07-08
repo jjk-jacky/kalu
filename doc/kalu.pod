@@ -446,7 +446,7 @@ below), or simply run the program of your choice.
 =item CmdLine = I<cmdline>
 
 The command line to start when pressing the button "Upgrade system" from the
-notification.
+notification. See L<B<SYSTEM UPGRADE>|SYSTEM UPGRADE> below.
 
 =item I<After completing a system upgrade, ask whether to start the following>
 
@@ -586,7 +586,7 @@ be featured.
 =item CmdLineAur = I<cmdline>
 
 The command line to start when pressing the button "Update AUR packages" from the
-notification.
+notification. See L<B<SYSTEM UPGRADE>|SYSTEM UPGRADE> below.
 
 You can use B<$PACKAGES> in the command line, which will be replaced by the
 list of all packages for which an upgrade is available in the AUR.
@@ -870,9 +870,28 @@ on notifications for available upgrades, can be featured. This button can start
 a process of your choice, or kalu's own system upgrader. (See L<B<PREFERENCES>|PREFERENCES>
 above.)
 
-The later will first synchronize your databases, then upgrade all packages that
-are out of date. In other words, it does what a `pacman -Syu` would do, only
-in a GTK GUI.
+=head2 Running a command line (System/AUR upgrade)
+
+You can define a command line for kalu to execute. When running a command line,
+whether to perform a system upgrade or an AUR update, kalu will wait until the
+process' execution is over, meanwhile remaining in busy state (so no checks can
+be started while an upgrade is in progress, as that would be useless, if not
+slowing things down).
+
+Once the process has ended, kalu will then automatically run its automatic
+checks again, to refresh its state. Note that if you started both a system
+upgrade command line and an AUR update command line at the same time, kalu will
+remain in busy state until both are done, and only then runs its checks.
+
+Usually, you'll likely start a terminal emulator within which `pacman` or an AUR
+helper will do its work; Once done and the terminal closes, kalu will rerun its
+checks and everything is done as expected.
+
+=head2 Using kalu's system updater
+
+You can also use kalu's own system updater, which will first synchronize your
+databases, then upgrade all packages that are out of date. In other words, it
+does what a `pacman -Syu` would do, only in a GTK GUI.
 
 In order to synchronize databases and upgrades packages, root privileges are
 obviously required. The way this is handled is as follows: kalu itself only
