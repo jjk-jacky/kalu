@@ -696,6 +696,12 @@ setstringoption (char *value, const char *option, char **cfg, gboolean esc)
             ++value;
         }
     }
+    else if (esc && value[0] == '\0')
+    {
+        *cfg = NULL;
+        debug ("config: %s has no value", option);
+        return;
+    }
 
     *cfg = strreplace (value, "\\n", "\n");
     if (esc && strstr (*cfg, "\\e"))

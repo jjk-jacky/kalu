@@ -739,6 +739,16 @@ btn_manage_watched_cb (GtkButton *button _UNUSED_, gboolean is_aur)
         new_config.tpl_name->tpl_key = strreplace (s, "\\n", "\n");         \
         has_tpl = TRUE;                                                     \
     }                                                                       \
+    else                                                                    \
+    {                                                                       \
+        if (!has_tpl)                                                       \
+        {                                                                   \
+            add_to_conf ("[template-" name "]\n");                          \
+        }                                                                   \
+        add_to_conf (key " =\n");                                           \
+        new_config.tpl_name->tpl_key = NULL;                                \
+        has_tpl = TRUE;                                                     \
+    }                                                                       \
 } while (0)
 #define free_tpl(tpl)  do {     \
     if (tpl->title)             \
