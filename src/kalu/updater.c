@@ -869,7 +869,7 @@ on_conflict_pkg (KaluUpdater *kupdater _UNUSED_, const gchar *pkg1, const gchar 
             _("%s and %s and in conflict. Remove %s ?"),
             pkg1, pkg2, pkg2);
     snprintf (lbl_yes, 42,   _("Remove %s"), pkg2);
-    snprintf (lbl_no,  42,   _("Keep %s"), pkg1);
+    snprintf (lbl_no,  42,   _("Keep %s"), pkg2);
     add_log (LOGTYPE_INFO, "%s", question);
     answer = confirm (question, reason, lbl_yes, NULL, lbl_no, NULL,
             updater->window);
