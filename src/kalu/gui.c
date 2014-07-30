@@ -1720,8 +1720,8 @@ reload_watched (gboolean is_aur, GError **error)
         /* clear */
         FREE_WATCHED_PACKAGE_LIST (config->watched_aur);
         /* load */
-        snprintf (file, MAX_PATH - 1, "%s/.config/kalu/watched-aur.conf",
-                g_get_home_dir ());
+        snprintf (file, MAX_PATH - 1, "%s/kalu/watched-aur.conf",
+                g_get_user_config_dir ());
         conffile = CONF_FILE_WATCHED_AUR;
     }
     else
@@ -1729,8 +1729,8 @@ reload_watched (gboolean is_aur, GError **error)
         /* clear */
         FREE_WATCHED_PACKAGE_LIST (config->watched);
         /* load */
-        snprintf (file, MAX_PATH - 1, "%s/.config/kalu/watched.conf",
-                g_get_home_dir ());
+        snprintf (file, MAX_PATH - 1, "%s/kalu/watched.conf",
+                g_get_user_config_dir ());
         conffile = CONF_FILE_WATCHED;
     }
 

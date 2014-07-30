@@ -879,7 +879,7 @@ btn_mark_cb (GtkWidget *button _UNUSED_, GtkWidget *window)
     char file[MAX_PATH];
     gboolean saved = FALSE;
 
-    snprintf (file, MAX_PATH - 1, "%s/.config/kalu/news.conf", g_get_home_dir ());
+    snprintf (file, MAX_PATH - 1, "%s/kalu/news.conf", g_get_user_config_dir ());
     if (ensure_path (file))
     {
         fp = fopen (file, "w");

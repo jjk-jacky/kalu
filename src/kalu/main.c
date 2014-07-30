@@ -1328,8 +1328,8 @@ main (int argc, char *argv[])
 #endif
 
     /* parse config */
-    snprintf (conffile, MAX_PATH - 1, "%s/.config/kalu/kalu.conf",
-            g_get_home_dir ());
+    snprintf (conffile, MAX_PATH - 1, "%s/kalu/kalu.conf",
+            g_get_user_config_dir ());
     if (!parse_config_file (conffile, CONF_FILE_KALU, &error))
     {
         do_show_error (_("Errors while parsing configuration"),
@@ -1337,8 +1337,8 @@ main (int argc, char *argv[])
         g_clear_error (&error);
     }
     /* parse watched */
-    snprintf (conffile, MAX_PATH - 1, "%s/.config/kalu/watched.conf",
-            g_get_home_dir ());
+    snprintf (conffile, MAX_PATH - 1, "%s/kalu/watched.conf",
+            g_get_user_config_dir ());
     if (!parse_config_file (conffile, CONF_FILE_WATCHED, &error))
     {
         do_show_error (_("Unable to parse watched packages"),
@@ -1346,8 +1346,8 @@ main (int argc, char *argv[])
         g_clear_error (&error);
     }
     /* parse watched aur */
-    snprintf (conffile, MAX_PATH - 1, "%s/.config/kalu/watched-aur.conf",
-            g_get_home_dir ());
+    snprintf (conffile, MAX_PATH - 1, "%s/kalu/watched-aur.conf",
+            g_get_user_config_dir ());
     if (!parse_config_file (conffile, CONF_FILE_WATCHED_AUR, &error))
     {
         do_show_error (_("Unable to parse watched AUR packages"),
@@ -1355,8 +1355,8 @@ main (int argc, char *argv[])
         g_clear_error (&error);
     }
     /* parse news */
-    snprintf (conffile, MAX_PATH - 1, "%s/.config/kalu/news.conf",
-            g_get_home_dir ());
+    snprintf (conffile, MAX_PATH - 1, "%s/kalu/news.conf",
+            g_get_user_config_dir ());
     if (!parse_config_file (conffile, CONF_FILE_NEWS, &error))
     {
         do_show_error (_("Unable to parse last news data"),

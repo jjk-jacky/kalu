@@ -215,8 +215,8 @@ Pops up the systray menu at current mouse pointer position.
 
 =head1 DATA LOCATION & FORMAT
 
-Every setting/data kalu stores will be done in folder F<~/.config/kalu/>, all
-files following a simple format of B<Key = Value>
+Every setting/data kalu stores will be done in folder F<$XDG_CONFIG_HOME/kalu>,
+all files following a simple format of B<Key = Value>
 
 The following files are used :
 

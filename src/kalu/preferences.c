@@ -1324,8 +1324,8 @@ btn_save_cb (GtkButton *button _UNUSED_, gpointer data _UNUSED_)
     /* save file */
     char conffile[MAX_PATH];
     GError *error = NULL;
-    snprintf (conffile, MAX_PATH - 1, "%s/.config/kalu/kalu.conf",
-            g_get_home_dir ());
+    snprintf (conffile, MAX_PATH - 1, "%s/kalu/kalu.conf",
+            g_get_user_config_dir ());
     if (!ensure_path (conffile))
     {
         s = strrchr (conffile, '/');
