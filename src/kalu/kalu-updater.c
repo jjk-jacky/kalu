@@ -301,6 +301,7 @@ kalu_updater_init (KaluUpdater *kupdater)
         {"SyncDbs",     FALSE, NULL, NULL},
         {"GetPackages", FALSE, NULL, NULL},
         {"SysUpgrade",  FALSE, NULL, NULL},
+        {"Abort",       FALSE, NULL, NULL},
         {"NoSysUpgrade",FALSE, NULL, NULL},
         {"FreeAlpm",    FALSE, NULL, NULL},
         {NULL, FALSE, NULL, NULL}
@@ -1589,6 +1590,29 @@ gboolean    kalu_updater_sysupgrade         (KaluUpdater         *kupdater,
             error);
 
     end ("SysUpgrade");
+}
+
+
+/* Abort */
+
+gboolean    kalu_updater_abort              (KaluUpdater         *kupdater,
+                                             GCancellable        *cancellable,
+                                             KaluMethodCallback   callback,
+                                             gpointer             data,
+                                             GError             **error)
+{
+    GVariant *variant;
+    check ("Abort");
+
+    variant = g_dbus_proxy_call_sync (G_DBUS_PROXY (kupdater),
+            "Abort",
+            NULL,
+            G_DBUS_CALL_FLAGS_NONE,
+            -1,
+            cancellable,
+            error);
+
+    end ("Abort");
 }
 
 

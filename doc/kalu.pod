@@ -982,6 +982,15 @@ database synchronized, one when starting the upgrade, one after the upgrade
 was completed, and one after each package operation (installed, upgraded,
 removed).
 
+Note that a button "Abort" is available during the process. After a
+confirmation, this will basically do the same as would hitting B<^C> from your
+terminal when running pacman.
+
+Which is to say, doing so when e.g. download packages is fine, the operation
+should be cleanly aborted, and downloads can be resumed later on. However, you
+probably don't want to do that while the actual system upgrade is being
+performed, for obvious reasons.
+
 =head1 UPGRADE SIMULATION
 
 Every once in a while, kalu might not be able to list the available upgrades,

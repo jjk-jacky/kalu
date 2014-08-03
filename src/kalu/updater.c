@@ -168,6 +168,7 @@ typedef struct _updater_t {
     GtkWidget *btn_sysupgrade;
     GtkWidget *btn_close;
     GtkWidget *btn_rerun;
+    GtkWidget *btn_abort;
 
     gint pos_expanded;
     gint pos_collapsed;
@@ -1587,6 +1588,21 @@ btn_close_cb (GtkButton *button _UNUSED_, gpointer data _UNUSED_)
 }
 
 static void
+btn_abort_cb (GtkButton *button _UNUSED_, gpointer date _UNUSED_)
+{
+    if (confirm (_("Are you sure you want to abort the current operation ?"),
+                (updater->downloadonly || updater->step != STEP_UPGRADING) ? NULL
+                : _("CAUTION: This might leave your system in an unstable/non-working state."),
+                _("Yes, abort operation"), NULL,
+                _("No, keep going"), NULL,
+                updater->window))
+    {
+        gtk_widget_set_sensitive (updater->btn_abort, FALSE);
+        kalu_updater_abort (updater->kupdater, NULL, NULL, NULL, NULL);
+    }
+}
+
+static void
 dl_pkgs_done (void)
 {
     gchar buf[128], *b = buf;
@@ -1619,6 +1635,7 @@ updater_sysupgrade_cb (KaluUpdater *kupdater _UNUSED_, const gchar *errmsg)
     alpm_list_t *i;
     gchar buf[128], *b = buf;
 
+    gtk_widget_set_sensitive (updater->btn_abort, FALSE);
     gtk_widget_set_sensitive (updater->btn_close, TRUE);
 
     if (errmsg != NULL)
@@ -1841,6 +1858,7 @@ btn_sysupgrade_cb (GtkButton *button _UNUSED_, gpointer data _UNUSED_)
         g_clear_error (&error);
         return;
     }
+    gtk_widget_set_sensitive (updater->btn_abort, TRUE);
 }
 
 static void
@@ -1996,6 +2014,7 @@ updater_get_packages_cb (KaluUpdater *kupdater _UNUSED_, const gchar *errmsg,
             return;
         }
 
+        gtk_widget_set_sensitive (updater->btn_abort, TRUE);
         return;
     }
 
@@ -3070,6 +3089,19 @@ updater_run (const gchar *conffile, alpm_list_t *cmdline_post)
     gtk_widget_show (hbox);
 
     GtkWidget *button, *image;
+
+    /* Abort */
+    button = gtk_button_new_with_mnemonic (_("_Abort"));
+    image = gtk_image_new_from_icon_name ("gtk-cancel", GTK_ICON_SIZE_MENU);
+    gtk_button_set_image (GTK_BUTTON (button), image);
+    updater->btn_abort = button;
+    gtk_widget_set_sensitive (button, FALSE);
+    gtk_box_pack_start (GTK_BOX (hbox), button, FALSE, FALSE, 2);
+    g_signal_connect (G_OBJECT (button), "clicked",
+            G_CALLBACK (btn_abort_cb), NULL);
+    gtk_button_set_always_show_image ((GtkButton *) button, TRUE);
+    gtk_widget_show (button);
+
     if (!run_simulation)
     {
         /* Upgrade system */

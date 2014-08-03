@@ -135,6 +135,15 @@ gboolean    kalu_updater_sysupgrade         (KaluUpdater         *kupdater,
                                              GError             **error);
 
 
+/* Abort */
+
+gboolean    kalu_updater_abort              (KaluUpdater         *kupdater,
+                                             GCancellable        *cancellable,
+                                             KaluMethodCallback   callback,
+                                             gpointer             data,
+                                             GError             **error);
+
+
 /* NoSysUpgrade */
 
 gboolean    kalu_updater_no_sysupgrade      (KaluUpdater         *kupdater,

@@ -33,6 +33,8 @@
     </method>
     <method name='SysUpgrade'>
     </method>
+    <method name='Abort'>
+    </method>
     <method name='NoSysUpgrade'>
     </method>
     <method name='FreeAlpm'>

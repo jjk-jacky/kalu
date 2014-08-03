@@ -28,6 +28,9 @@
 #include <stdio.h>
 #include <time.h>
 #include <sys/types.h> /* off_t */
+#include <signal.h>
+#include <unistd.h>
+#include <pthread.h>
 
 /* PolicyKit */
 #include <polkit/polkit.h>
@@ -58,7 +61,23 @@ enum init
     INIT_SYSUPGRADE,
     INIT_DOWNLOADONLY
 };
+enum state
+{
+    STATE_NONE = 0,
+    STATE_INIT,
+    STATE_INIT_DONE,
+    STATE_ADD_DB,
+    STATE_ADD_DB_DONE,
+    STATE_SYNC,
+    STATE_SYNC_DONE,
+    STATE_GOT_PKGS,
+    STATE_GOT_PKGS_DONE,
+    STATE_SYSUPG,
+    STATE_SYSUPG_DONE,
+    STATE_INVALID
+};
 static enum init      is_init = INIT_NOT;
+static enum state     state   = STATE_NONE;
 static gchar         *client  = NULL;
 static alpm_handle_t *handle  = NULL;
 
@@ -779,6 +798,14 @@ init_alpm (GVariant *parameters)
     /* to extract arrays into alpm_list_t */
     const gchar *s;
 
+    if (state != STATE_NONE)
+    {
+        g_variant_unref (parameters);
+        method_failed ("InitAlpm", _("Invalid state"));
+        return G_SOURCE_REMOVE;
+    }
+    state = STATE_INIT;
+
     debug ("getting alpm params");
     g_variant_get (parameters, "(ssssasisbbdasasasas)",
         &rootdir,
@@ -807,12 +834,14 @@ init_alpm (GVariant *parameters)
     {
         method_failed ("InitAlpm", _("Failed to initialize alpm library: %s\n"),
                 alpm_strerror (err));
+        state = STATE_NONE;
         return G_SOURCE_REMOVE;
     }
 
     if (!(alpm_capabilities () & ALPM_CAPABILITY_DOWNLOADER))
     {
         method_failed ("InitAlpm", _("ALPM has no downloader capability\n"));
+        state = STATE_INVALID;
         return G_SOURCE_REMOVE;
     }
 
@@ -829,6 +858,7 @@ init_alpm (GVariant *parameters)
     {
         method_failed ("InitAlpm", _("Unable to set log file: %s\n"),
                 alpm_strerror (alpm_errno (handle)));
+        state = STATE_INVALID;
         return G_SOURCE_REMOVE;
     }
 
@@ -839,6 +869,7 @@ init_alpm (GVariant *parameters)
     {
         method_failed ("InitAlpm", _("Unable to set gpgdir: %s\n"),
                 alpm_strerror (alpm_errno (handle)));
+        state = STATE_INVALID;
         return G_SOURCE_REMOVE;
     }
 
@@ -854,6 +885,7 @@ init_alpm (GVariant *parameters)
         FREELIST (cachedirs);
         method_failed ("InitAlpm", _("Unable to set cache dirs: %s\n"),
                 alpm_strerror (alpm_errno (handle)));
+        state = STATE_INVALID;
         return G_SOURCE_REMOVE;
     }
     FREELIST (cachedirs);
@@ -862,6 +894,7 @@ init_alpm (GVariant *parameters)
     {
         method_failed (_("Unable to set default siglevel: %s\n"),
                 alpm_strerror (alpm_errno (handle)));
+        state = STATE_INVALID;
         return G_SOURCE_REMOVE;
     }
 
@@ -908,6 +941,7 @@ init_alpm (GVariant *parameters)
 
     /* done */
     method_finished ("InitAlpm");
+    state = STATE_INIT_DONE;
     return G_SOURCE_REMOVE;
 }
 
@@ -915,6 +949,15 @@ static gboolean
 free_alpm (GVariant *parameters)
 {
     g_variant_unref (parameters);
+
+    /* this is in case there's a sysupgrade being performed in another thread,
+     * and we're asked to free alpm -- obviously, we shouldn't */
+    if (state == STATE_SYSUPG)
+    {
+        method_failed ("FreeAlpm", _("Invalid state"));
+        return G_SOURCE_REMOVE;
+    }
+
     free (client);
     client = NULL;
 
@@ -941,9 +984,18 @@ add_db (GVariant *parameters)
     int           siglevel;
     GVariantIter *servers_iter;
     alpm_list_t  *servers = NULL;
+    enum state    old_state = state;
 
     /* to extract arrays into alpm_list_t */
     const gchar *s;
+
+    if (state != STATE_INIT_DONE && state != STATE_ADD_DB_DONE)
+    {
+        g_variant_unref (parameters);
+        method_failed ("AddDb", _("Invalid state"));
+        return G_SOURCE_REMOVE;
+    }
+    state = STATE_ADD_DB;
 
     g_variant_get (parameters, "(sias)",
             &name,
@@ -957,6 +1009,7 @@ add_db (GVariant *parameters)
     {
         method_failed ("AddDb", _("Could not register database %s: %s\n"),
                 name, alpm_strerror (alpm_errno (handle)));
+        state = old_state;
         return G_SOURCE_REMOVE;
     }
 
@@ -988,6 +1041,7 @@ add_db (GVariant *parameters)
                 method_failed ("AddDb",
                         _("Server %s contains the $arch variable, but no Architecture was defined.\n"),
                         value);
+                state = STATE_INVALID;
                 return G_SOURCE_REMOVE;
             }
             server = temp;
@@ -1004,6 +1058,7 @@ add_db (GVariant *parameters)
                     server,
                     name,
                     alpm_strerror (alpm_errno (handle)));
+            state = old_state;
             return G_SOURCE_REMOVE;
         }
         free (server);
@@ -1016,11 +1071,13 @@ add_db (GVariant *parameters)
         method_failed ("AddDb", _("Database %s is not valid: %s\n"),
                 name,
                 alpm_strerror (alpm_errno (handle)));
+        state = STATE_INVALID;
         return G_SOURCE_REMOVE;
     }
 
     /* done */
     method_finished ("AddDb");
+    state = STATE_ADD_DB_DONE;
     return G_SOURCE_REMOVE;
 }
 
@@ -1033,6 +1090,13 @@ sync_dbs (GVariant *parameters)
     sync_db_results_t   result;
 
     g_variant_unref (parameters);
+
+    if (state != STATE_ADD_DB_DONE && state != STATE_SYNC_DONE)
+    {
+        method_failed ("SyncDbs", _("Invalid state"));
+        return G_SOURCE_REMOVE;
+    }
+    state = STATE_SYNC;
 
     syncdbs = alpm_get_syncdbs (handle);
     emit_signal ("SyncDbs", "i", alpm_list_count (syncdbs));
@@ -1063,6 +1127,7 @@ sync_dbs (GVariant *parameters)
     }
 
     method_finished ("SyncDbs");
+    state = STATE_SYNC_DONE;
     return G_SOURCE_REMOVE;
 }
 
@@ -1099,12 +1164,20 @@ get_packages (GVariant *parameters)
 {
     g_variant_unref (parameters);
 
+    if (state != STATE_SYNC_DONE && state != STATE_ADD_DB_DONE)
+    {
+        method_failed ("GetPackages", _("Invalid state"));
+        return G_SOURCE_REMOVE;
+    }
+    state = STATE_GOT_PKGS;
+
     if (alpm_trans_init (handle,
                 (is_init == INIT_DOWNLOADONLY) ? ALPM_TRANS_FLAG_DOWNLOADONLY : 0) == -1)
     {
         method_failed ("GetPackages",
                 _("Failed to initiate transaction: %s\n"),
                 alpm_strerror (alpm_errno (handle)));
+        state = STATE_INVALID;
         return G_SOURCE_REMOVE;
     }
 
@@ -1113,6 +1186,7 @@ get_packages (GVariant *parameters)
         method_failed ("GetPackages", "%s",
                 alpm_strerror (alpm_errno (handle)));
         alpm_trans_release (handle);
+        state = STATE_INVALID;
         return G_SOURCE_REMOVE;
     }
 
@@ -1204,6 +1278,7 @@ get_packages (GVariant *parameters)
 
         alpm_list_free (alpm_data);
         alpm_trans_release (handle);
+        state = STATE_INVALID;
         return G_SOURCE_REMOVE;
     }
     alpm_list_free (alpm_data);
@@ -1253,13 +1328,15 @@ get_packages (GVariant *parameters)
     g_variant_builder_unref (builder);
     /* we don't alpm_trans_release (handle) since that will be done only if
      * user cancel (NoSysUpgrade) or after the update is done (SysUpgrade) */
+    state = STATE_GOT_PKGS_DONE;
     return G_SOURCE_REMOVE;
 }
 
-static gboolean
-sysupgrade (GVariant *parameters)
+static pthread_t pt = 0;
+static gpointer
+thread_sysupgrade (gpointer data _UNUSED_)
 {
-    g_variant_unref (parameters);
+    pt = pthread_self ();
 
     if (is_init == INIT_SYSUPGRADE)
         alpm_logaction (handle, PREFIX, "starting sysupgrade...\n");
@@ -1348,7 +1425,9 @@ sysupgrade (GVariant *parameters)
                     "Failed to commit sysupgrade transaction: %s\n",
                     alpm_strerror (err));
         alpm_trans_release (handle);
-        return G_SOURCE_REMOVE;
+        state = STATE_INVALID;
+        pt = 0;
+        return NULL;
     }
 
     alpm_list_free (alpm_data);
@@ -1356,6 +1435,47 @@ sysupgrade (GVariant *parameters)
     if (is_init == INIT_SYSUPGRADE)
         alpm_logaction (handle, PREFIX, "sysupgrade completed\n");
     method_finished ("SysUpgrade");
+    state = STATE_SYSUPG_DONE;
+    pt = 0;
+    return NULL;
+}
+
+static gboolean
+sysupgrade (GVariant *parameters)
+{
+    g_variant_unref (parameters);
+
+    if (state != STATE_GOT_PKGS_DONE)
+    {
+        method_failed ("SysUpgrade", _("Invalid state"));
+        return G_SOURCE_REMOVE;
+    }
+    state = STATE_SYSUPG;
+
+    /* do the work in another thread, so we can still process method Abort if
+     * needed, to raise SIGINT and abort the alpm transaction */
+    g_thread_unref (g_thread_new ("sysupgrade", thread_sysupgrade, NULL));
+
+    return G_SOURCE_REMOVE;
+}
+
+static gboolean
+do_abort (GVariant *parameters)
+{
+    g_variant_unref (parameters);
+    if (state != STATE_SYSUPG)
+    {
+        method_failed ("Abort", _("Invalid state"));
+        return G_SOURCE_REMOVE;
+    }
+
+    /* this will cause us to abort (interrupt) the transaction (if any) and end
+     * properly. Also it will be caught by libalpm if during a download, so it
+     * can be aborted properly, then raised again so we handle it as well */
+    if (pt > 0)
+        pthread_kill (pt, SIGINT);
+
+    method_finished ("Abort");
     return G_SOURCE_REMOVE;
 }
 
@@ -1363,8 +1483,15 @@ static gboolean
 no_sysupgrade (GVariant *parameters)
 {
     g_variant_unref (parameters);
+    if (state != STATE_GOT_PKGS_DONE)
+    {
+        method_failed ("NoSysUpgrade", _("Invalid state"));
+        return G_SOURCE_REMOVE;
+    }
+
     alpm_trans_release (handle);
     method_finished ("NoSysUpgrade");
+    state = STATE_SYSUPG_DONE;
     return G_SOURCE_REMOVE;
 }
 
@@ -1437,6 +1564,7 @@ handle_method_call (GDBusConnection       *conn _UNUSED_,
     if_method ("Answer",        answer);
     if_method ("GetPackages",   get_packages);
     if_method ("SysUpgrade",    sysupgrade);
+    if_method ("Abort",         do_abort);
     if_method ("NoSysUpgrade",  no_sysupgrade);
 
     send_error ("UnknownMethod", _("Unknown method: %s\n"), method_name);
@@ -1483,10 +1611,50 @@ on_name_lost (GDBusConnection *conn _UNUSED_,
 }
 
 
+static int rc = 0;
+
+static void
+sig_handler (gint signum)
+{
+    if (signum == SIGINT && state == STATE_SYSUPG)
+    {
+        static gboolean interrupted = FALSE;
+
+        /* our handler might be called multiple times because if a download was
+         * aborted via SIGINT, all pending downloads will still "go through"
+         * only to be aborted instantly, but that does raise a SIGINT each time.
+         * And if we were to call alpm_trans_interrupt() again we'd get some
+         * "weird" error message (instead of the precise "unexpected error" :p)
+         * so let's don't.
+         */
+        if (!interrupted)
+        {
+            alpm_trans_interrupt (handle);
+            interrupted = TRUE;
+        }
+        return;
+    }
+
+    if (state == STATE_GOT_PKGS_DONE)
+    {
+        alpm_trans_release (handle);
+    }
+
+    rc = 128 + signum;
+    g_main_loop_quit (loop);
+}
+
 int
 main (int argc _UNUSED_, char *argv[] _UNUSED_)
 {
     guint owner_id;
+    struct sigaction sa;
+
+    sa.sa_handler = sig_handler;
+    sigemptyset (&sa.sa_mask);
+    sa.sa_flags = 0;
+    sigaction (SIGINT,  &sa, NULL);
+    sigaction (SIGTERM, &sa, NULL);
 
     setlocale (LC_ALL, "");
 #ifdef ENABLE_NLS
@@ -1509,5 +1677,11 @@ main (int argc _UNUSED_, char *argv[] _UNUSED_)
     g_main_loop_run (loop);
 
     g_bus_unown_name (owner_id);
-    return 0;
+
+    if (handle)
+        alpm_release (handle);
+    if (client)
+        free (client);
+
+    return rc;
 }
