@@ -1835,6 +1835,7 @@ btn_sysupgrade_cb (GtkButton *button _UNUSED_, gpointer data _UNUSED_)
     gtk_widget_set_sensitive (updater->btn_close, FALSE);
     gtk_widget_set_sensitive (updater->btn_sysupgrade, FALSE);
     updater->step = STEP_USER_CONFIRMED;
+    updater->pctg_done = 0.0;
     gtk_label_set_text (GTK_LABEL (updater->lbl_main),
             _("Performing system upgrade..."));
     gtk_progress_bar_set_fraction (GTK_PROGRESS_BAR (updater->pbar_main), 0.0);
@@ -1992,6 +1993,7 @@ updater_get_packages_cb (KaluUpdater *kupdater _UNUSED_, const gchar *errmsg,
         }
 
         updater->step = STEP_USER_CONFIRMED;
+        updater->pctg_done = 0.0;
         gtk_label_set_text (GTK_LABEL (updater->lbl_main),
                 _("Downloading packages..."));
         gtk_progress_bar_set_fraction (GTK_PROGRESS_BAR (updater->pbar_main), 0.0);
