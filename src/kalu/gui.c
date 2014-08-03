@@ -1302,7 +1302,7 @@ static void make_tooltip (gchar *s, gint *max, guint tt)
 #undef addstr
 
 gboolean
-icon_query_tooltip_cb (GtkWidget *icon _UNUSED_, gint x _UNUSED_, gint y _UNUSED_,
+icon_query_tooltip_cb (GtkWidget *_icon _UNUSED_, gint x _UNUSED_, gint y _UNUSED_,
                        gboolean keyboard_mode _UNUSED_, GtkTooltip *tooltip,
                        gpointer data _UNUSED_)
 {

@@ -1150,7 +1150,7 @@ sn_state_cb (void)
 }
 
 static void
-sn_reg_failed (StatusNotifier *_sn, GError *error)
+sn_reg_failed (StatusNotifier *_sn _UNUSED_, GError *error)
 {
     guint i;
 
