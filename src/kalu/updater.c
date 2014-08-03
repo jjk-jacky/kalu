@@ -1004,19 +1004,11 @@ on_progress (KaluUpdater *kupdater _UNUSED_, event_t event, const gchar *pkg,
             done = (guint) (size * pctg);
             pctg = (double) (updater->step_done + done) / updater->total_inst;
 
-            if (pctg > 1.0)
-            {
-                debug("#1: pctg=%.2f", pctg);
-            }
             gtk_progress_bar_set_fraction (
                     GTK_PROGRESS_BAR (updater->pbar_action), pctg);
 
             /* global progress */
             pctg = updater->pctg_done + (pctg * updater->pctg_sysupgrade);
-            if (pctg > 1.0)
-            {
-                debug("#2: pctg=%.2f", pctg);
-            }
             gtk_progress_bar_set_fraction (
                     GTK_PROGRESS_BAR (updater->pbar_main), pctg);
         }
