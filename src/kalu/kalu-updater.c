@@ -1359,15 +1359,13 @@ abort_method (KaluUpdater *kupdater, const gchar *name)
 } while (0)
 
 #define end(name)     do {                  \
-    if (error == NULL || *error == NULL)    \
-    {                                       \
-        return TRUE;                        \
-    }                                       \
-    else                                    \
+    if (!variant)                           \
     {                                       \
         abort_method (kupdater, name);      \
         return FALSE;                       \
     }                                       \
+    g_variant_unref (variant);              \
+    return TRUE;                            \
 } while (0)
 
 /* Init */
@@ -1378,9 +1376,10 @@ gboolean    kalu_updater_init_upd           (KaluUpdater        *kupdater,
                                              gpointer            data,
                                              GError            **error)
 {
+    GVariant *variant;
     check ("Init");
 
-    g_dbus_proxy_call_sync (G_DBUS_PROXY (kupdater),
+    variant = g_dbus_proxy_call_sync (G_DBUS_PROXY (kupdater),
             "Init",
             g_variant_new ("(b)", downloadonly),
             G_DBUS_CALL_FLAGS_NONE,
@@ -1414,6 +1413,7 @@ gboolean    kalu_updater_init_alpm          (KaluUpdater         *kupdater,
                                              gpointer             data,
                                              GError             **error)
 {
+    GVariant *variant;
     check ("InitAlpm");
 
     GVariantBuilder *cachedirs_builder;
@@ -1453,7 +1453,7 @@ gboolean    kalu_updater_init_alpm          (KaluUpdater         *kupdater,
         g_variant_builder_add (noextracts_builder, "s", i->data);
     }
 
-    g_dbus_proxy_call_sync (G_DBUS_PROXY (kupdater),
+    variant = g_dbus_proxy_call_sync (G_DBUS_PROXY (kupdater),
             "InitAlpm",
             g_variant_new ("(ssssasisbbdasasasas)",
                 rootdir,
@@ -1495,6 +1495,7 @@ gboolean    kalu_updater_add_db             (KaluUpdater         *kupdater,
                                              gpointer             data,
                                              GError             **error)
 {
+    GVariant *variant;
     check ("AddDb");
 
     GVariantBuilder *servers_builder;
@@ -1506,7 +1507,7 @@ gboolean    kalu_updater_add_db             (KaluUpdater         *kupdater,
         g_variant_builder_add (servers_builder, "s", i->data);
     }
 
-    g_dbus_proxy_call_sync (G_DBUS_PROXY (kupdater),
+    variant = g_dbus_proxy_call_sync (G_DBUS_PROXY (kupdater),
             "AddDb",
             g_variant_new ("(sias)",
                 name,
@@ -1530,9 +1531,10 @@ gboolean    kalu_updater_sync_dbs           (KaluUpdater         *kupdater,
                                              gpointer             data,
                                              GError             **error)
 {
+    GVariant *variant;
     check ("SyncDbs");
 
-    g_dbus_proxy_call_sync (G_DBUS_PROXY (kupdater),
+    variant = g_dbus_proxy_call_sync (G_DBUS_PROXY (kupdater),
             "SyncDbs",
             NULL,
             G_DBUS_CALL_FLAGS_NONE,
@@ -1552,9 +1554,10 @@ gboolean    kalu_updater_get_packages       (KaluUpdater         *kupdater,
                                              gpointer             data,
                                              GError             **error)
 {
+    GVariant *variant;
     check ("GetPackages");
 
-    g_dbus_proxy_call_sync (G_DBUS_PROXY (kupdater),
+    variant = g_dbus_proxy_call_sync (G_DBUS_PROXY (kupdater),
             "GetPackages",
             NULL,
             G_DBUS_CALL_FLAGS_NONE,
@@ -1574,9 +1577,10 @@ gboolean    kalu_updater_sysupgrade         (KaluUpdater         *kupdater,
                                              gpointer             data,
                                              GError             **error)
 {
+    GVariant *variant;
     check ("SysUpgrade");
 
-    g_dbus_proxy_call_sync (G_DBUS_PROXY (kupdater),
+    variant = g_dbus_proxy_call_sync (G_DBUS_PROXY (kupdater),
             "SysUpgrade",
             NULL,
             G_DBUS_CALL_FLAGS_NONE,
@@ -1596,9 +1600,10 @@ gboolean    kalu_updater_no_sysupgrade      (KaluUpdater         *kupdater,
                                              gpointer             data,
                                              GError             **error)
 {
+    GVariant *variant;
     check ("NoSysUpgrade");
 
-    g_dbus_proxy_call_sync (G_DBUS_PROXY (kupdater),
+    variant = g_dbus_proxy_call_sync (G_DBUS_PROXY (kupdater),
             "NoSysUpgrade",
             NULL,
             G_DBUS_CALL_FLAGS_NONE,
@@ -1618,9 +1623,10 @@ gboolean    kalu_updater_free_alpm          (KaluUpdater         *kupdater,
                                              gpointer             data,
                                              GError             **error)
 {
+    GVariant *variant;
     check ("FreeAlpm");
 
-    g_dbus_proxy_call_sync (G_DBUS_PROXY (kupdater),
+    variant = g_dbus_proxy_call_sync (G_DBUS_PROXY (kupdater),
             "FreeAlpm",
             NULL,
             G_DBUS_CALL_FLAGS_NONE,
