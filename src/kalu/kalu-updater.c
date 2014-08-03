@@ -375,6 +375,8 @@ kalu_updater_g_signal (GDBusProxy   *proxy,
                 }
                 debug ("MethodFailed for method %s: %s\n", name, msg);
 
+                mc->is_running = FALSE;
+
                 if (mc->callback == NULL)
                 {
                     break;
@@ -383,7 +385,6 @@ kalu_updater_g_signal (GDBusProxy   *proxy,
                 KaluMethodCallback cb = mc->callback;
                 gpointer data = mc->data;
 
-                mc->is_running = FALSE;
                 mc->callback = NULL;
                 mc->data = NULL;
 
@@ -425,6 +426,8 @@ kalu_updater_g_signal (GDBusProxy   *proxy,
                 }
                 debug ("MethodFinished for method %s\n", name);
 
+                mc->is_running = FALSE;
+
                 if (mc->callback == NULL)
                 {
                     break;
@@ -433,7 +436,6 @@ kalu_updater_g_signal (GDBusProxy   *proxy,
                 KaluMethodCallback cb = mc->callback;
                 gpointer data = mc->data;
 
-                mc->is_running = FALSE;
                 mc->callback = NULL;
                 mc->data = NULL;
 
