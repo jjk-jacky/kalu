@@ -129,7 +129,7 @@ while read_dom; do
         fi
         if [[ $nb_out -gt 0 ]]; then
             echo "static const GDBusArgInfo * const _arg_${_NAME}_out[] = {";
-            for i in {1..$nb_out}; do
+            for (( i=1; $i <= $nb_out; i++)); do
                 echo "    &${args_out[$i]},"
             done
             echo -e "    NULL\n};"
