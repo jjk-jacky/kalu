@@ -21,7 +21,7 @@ pretty generally understood to be a bad idea).
 Because if kalu did sync your databases, and there were upgrades available, but
 you did not apply them right away (for one reason or another, e.g. you're busy,
 or were AFK when the notification poped up and didn't see it...) then your next
--S operation would really by a -Sy, event though you might not even realize it.
+-S operation would really be a -Sy, event though you might not even realize it.
 
 ## What does it check for?
 
