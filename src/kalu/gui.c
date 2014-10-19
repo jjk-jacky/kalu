@@ -1096,6 +1096,7 @@ icon_press_cb (GtkStatusIcon *icon _UNUSED_, GdkEventButton *event, gpointer dat
                         && config->on_dbl_click_paused != DO_SAME_AS_ACTIVE)
                     ? config->on_dbl_click_paused
                     : config->on_dbl_click);
+            return TRUE;
         }
         else if (event->type == GDK_BUTTON_PRESS)
         {
@@ -1114,14 +1115,17 @@ icon_press_cb (GtkStatusIcon *icon _UNUSED_, GdkEventButton *event, gpointer dat
             {
                 icon_press_timeout = g_timeout_add (250, icon_press_click, NULL);
             }
+            return TRUE;
         }
     }
+    /* middle button? */
     else if (event->button == 2 && event->type == GDK_BUTTON_PRESS)
     {
         process_click_action ((kalpm_state.is_paused
                     && config->on_mdl_click_paused != DO_SAME_AS_ACTIVE)
                 ? config->on_mdl_click_paused
                 : config->on_mdl_click);
+        return TRUE;
     }
 
     return FALSE;
