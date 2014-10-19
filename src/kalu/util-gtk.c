@@ -218,7 +218,7 @@ new_notification (const gchar *summary, const gchar *text)
             g_object_ref_sink (w);
             debug ("new notification: using kalu's icon");
             pixbuf = gtk_icon_theme_load_icon (gtk_icon_theme_get_default (),
-                    "kalu", config->notif_icon_size, 0, NULL);
+                    "kalu", config->notif_icon_size, GTK_ICON_LOOKUP_FORCE_SIZE, NULL);
         }
         notify_notification_set_image_from_pixbuf (notification, pixbuf);
         g_object_unref (pixbuf);
