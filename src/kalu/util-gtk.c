@@ -193,7 +193,6 @@ new_notification (const gchar *summary, const gchar *text)
     notification = notify_notification_new (summary, text, NULL);
     if (config->notif_icon != ICON_NONE)
     {
-        GtkWidget *w = NULL;
         GdkPixbuf *pixbuf = NULL;
 
         if (config->notif_icon == ICON_USER)
@@ -214,19 +213,12 @@ new_notification (const gchar *summary, const gchar *text)
         /* ICON_KALU || failed to load ICON_USER */
         if (!pixbuf)
         {
-            w = gtk_label_new (NULL);
-            g_object_ref_sink (w);
             debug ("new notification: using kalu's icon");
             pixbuf = gtk_icon_theme_load_icon (gtk_icon_theme_get_default (),
                     "kalu", config->notif_icon_size, GTK_ICON_LOOKUP_FORCE_SIZE, NULL);
         }
         notify_notification_set_image_from_pixbuf (notification, pixbuf);
         g_object_unref (pixbuf);
-        if (w)
-        {
-            gtk_widget_destroy (w);
-            g_object_unref (w);
-        }
     }
     notify_notification_set_timeout (notification, config->timeout);
     return notification;
