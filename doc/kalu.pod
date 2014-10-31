@@ -64,8 +64,8 @@ notification (if something is found) :
 kalu will check for upgrades of any of the installed packages, similarly to
 what a `pacman -Syu` would do. To do so, kalu does not requires root
 privileges to do its checking. In order to determine whether or not upgrades
-are available, it will create a temporary copy of your sync databases and
-synchronize those copies, and of course remove them once done.
+are available, it uses temporary copies of your sync databases and
+synchronize those copies. (Those are also used when running simulations.)
 
 That way not only can all this be done as user, but it avoids putting you
 in a situation where you'd risk messing up your system, as you might otherwise
@@ -76,6 +76,16 @@ generally understood to be a bad idea).
 yet you did not upgrade right away - e.g. because you didn't see the
 notification or were busy on something - then your next -S operation would
 really be a -Sy even though you might not even realize it.)
+
+The first time kalu needs temporary databases, it will create a temporary
+folder and set it up. This folder will then B<not> be removed until kalu ends,
+thus allowing to re-use those temporary copies for further checks/simulations,
+reducing bandwidth usage and therefore speeding things a bit.
+
+(Note kalu will actually remove the folder & re-create new temporary copies in a
+new folder if the DB path for ALPM (e.g. from pacman.conf) changed. Alse note
+that if for some reason you wanted kalu to recreate copies, you can simply
+remove the folder, I<$TMPDIR/kalu-XXXXXX>)
 
 =item B<* Watched packages>
 

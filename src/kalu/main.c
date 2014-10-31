@@ -1540,6 +1540,7 @@ eop:
         g_object_unref (sn);
 #endif
 #endif /* DISABLE_GUI */
+    kalu_alpm_rmdb ();
     if (config->is_curl_init)
     {
         curl_global_cleanup ();

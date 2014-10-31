@@ -50,6 +50,8 @@ unsigned short alpm_verbose;
 
 
 static kalu_alpm_t *alpm;
+static gchar *pac_dbpath = NULL;
+static gchar *tmp_dbpath = NULL;
 
 static gboolean copy_file (const gchar *from, const gchar *to);
 static gboolean create_local_db (const gchar *dbpath, gchar **newpath,
@@ -89,9 +91,59 @@ create_local_db (const gchar *_dbpath, gchar **newpath, GError **error)
     gchar    buf[MAX_PATH];
     gchar    buf2[MAX_PATH];
     gchar   *dbpath;
-    size_t   l;
+    size_t   l = 0;
     gchar   *folder;
     GDir    *dir;
+    const gchar    *file;
+    struct stat     filestat;
+    struct utimbuf  times;
+
+    if (tmp_dbpath)
+    {
+        gboolean same;
+
+        debug ("checking local db %s", tmp_dbpath);
+        l = strlen (_dbpath) - 1;
+
+        if (_dbpath[l] == '/')
+        {
+            same = strlen (pac_dbpath) == l && streqn (pac_dbpath, _dbpath, l);
+        }
+        else
+        {
+            same = streq (pac_dbpath, _dbpath);
+        }
+
+        if (same)
+        {
+            if (stat (tmp_dbpath, &filestat) == 0)
+            {
+                if (S_ISDIR (filestat.st_mode))
+                {
+                    debug ("..ok, re-using it");
+                    *newpath = g_strdup (tmp_dbpath);
+                    return TRUE;
+                }
+                else
+                {
+                    debug ("..not a folder");
+                }
+            }
+            else
+            {
+                debug ("..not found");
+            }
+        }
+        else
+        {
+            debug ("..for another dbpath (%s vs %s), removing", pac_dbpath, _dbpath);
+            rmrf (tmp_dbpath);
+        }
+        free (pac_dbpath);
+        pac_dbpath = NULL;
+        g_free (tmp_dbpath);
+        tmp_dbpath = NULL;
+    }
 
     debug ("creating local db");
 
@@ -105,7 +157,10 @@ create_local_db (const gchar *_dbpath, gchar **newpath, GError **error)
 
     /* dbpath will not be slash-terminated */
     dbpath = strdup (_dbpath);
-    l = strlen (dbpath) - 1;
+    if (l == 0)
+    {
+        l = strlen (dbpath) - 1;
+    }
     if (dbpath[l] == '/')
     {
         dbpath[l] = '\0';
@@ -142,10 +197,6 @@ create_local_db (const gchar *_dbpath, gchar **newpath, GError **error)
                 buf);
         goto error;
     }
-
-    const gchar    *file;
-    struct stat     filestat;
-    struct utimbuf  times;
 
     while ((file = g_dir_read_name (dir)))
     {
@@ -191,9 +242,10 @@ create_local_db (const gchar *_dbpath, gchar **newpath, GError **error)
         }
     }
     g_dir_close (dir);
-    free (dbpath);
 
-    *newpath = folder;
+    pac_dbpath = dbpath;
+    tmp_dbpath = folder;
+    *newpath = g_strdup (folder);
     return TRUE;
 
 error:
@@ -743,6 +795,21 @@ kalu_alpm_get_dbpath (void)
 }
 
 void
+kalu_alpm_rmdb (void)
+{
+    if (!tmp_dbpath)
+    {
+        return;
+    }
+
+    rmrf (tmp_dbpath);
+    g_free (tmp_dbpath);
+    tmp_dbpath = NULL;
+    free (pac_dbpath);
+    pac_dbpath = NULL;
+}
+
+void
 kalu_alpm_free (void)
 {
     if (alpm == NULL)
@@ -754,14 +821,7 @@ kalu_alpm_free (void)
     {
         alpm_release (alpm->handle);
     }
-
-    /* yes, we remove the dbpath. because we made a tmp copy of it */
-    if (alpm->dbpath)
-    {
-        rmrf (alpm->dbpath);
-    }
     free (alpm->dbpath);
-
     g_free (alpm);
     alpm = NULL;
 }

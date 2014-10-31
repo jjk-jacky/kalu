@@ -71,6 +71,7 @@ pgettext_aux (const char *domain,
 #define _UNUSED_                __attribute__ ((unused))
 
 #define streq(s1, s2)           (strcmp (s1, s2) == 0)
+#define streqn(s1, s2, n)       (strncmp (s1, s2, n) == 0)
 #define memzero(x, l)           (memset (x, 0, l))
 #define zero(x)                 (memzero (&(x), sizeof (x)))
 

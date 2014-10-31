@@ -76,6 +76,9 @@ const gchar *
 kalu_alpm_get_dbpath (void);
 
 void
+kalu_alpm_rmdb (void);
+
+void
 kalu_alpm_free (void);
 
 #endif /* _KALU_ALPM_H */
