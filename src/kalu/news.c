@@ -1175,7 +1175,6 @@ new_window (gboolean only_updates, GtkWidget **window, GtkWidget **textview)
             : _("Arch Linux News - kalu"));
     gtk_window_set_default_size (GTK_WINDOW (*window), 600, 230);
     gtk_container_set_border_width (GTK_CONTAINER (*window), 0);
-    gtk_window_set_has_resize_grip (GTK_WINDOW (*window), FALSE);
     g_signal_connect (G_OBJECT (*window), "destroy",
             G_CALLBACK (window_destroy_cb), NULL);
     /* add to list of open windows */

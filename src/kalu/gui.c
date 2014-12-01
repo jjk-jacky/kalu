@@ -1347,9 +1347,11 @@ set_status_icon (gboolean active)
          * use icon as fallback */
         if (icon)
 #endif
+        G_GNUC_BEGIN_IGNORE_DEPRECATIONS
         gtk_status_icon_set_from_icon_name (icon, (kalpm_state.is_paused)
                 ? "kalu-paused"
                 : "kalu");
+        G_GNUC_END_IGNORE_DEPRECATIONS
     }
     else
     {
@@ -1377,9 +1379,11 @@ set_status_icon (gboolean active)
          * use icon as fallback */
         if (icon)
 #endif
+        G_GNUC_BEGIN_IGNORE_DEPRECATIONS
         gtk_status_icon_set_from_icon_name (icon, (kalpm_state.is_paused)
                 ? "kalu-gray-paused"
                 : "kalu-gray");
+        G_GNUC_END_IGNORE_DEPRECATIONS
     }
     /* do NOT get called back */
     return FALSE;

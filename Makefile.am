@@ -33,7 +33,6 @@ endif
 AM_CFLAGS = \
 	-g \
 	-DDOCDIR='"$(docdir)"' \
-	-D_BSD_SOURCE \
 	${WARNING_CFLAGS}
 
 noinst_LTLIBRARIES = libshared.la

@@ -941,7 +941,8 @@ donna_image_menu_item_set_label (GtkMenuItem    *item,
     if (!child)
     {
         child = gtk_label_new (NULL);
-        gtk_misc_set_alignment ((GtkMisc *) child, 0.0, 0.5);
+        gtk_widget_set_halign (child, GTK_ALIGN_START);
+        gtk_widget_set_valign (child, GTK_ALIGN_CENTER);
         gtk_container_add ((GtkContainer *) item, child);
         gtk_widget_show (child);
     }

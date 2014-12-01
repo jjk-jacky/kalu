@@ -1846,8 +1846,8 @@ show_prefs (void)
     gtk_widget_show (spin_begin_minute);
 
     label = gtk_label_new (_c("skip-between", "and"));
-    gtk_widget_set_margin_left (label, 5);
-    gtk_widget_set_margin_right (label, 5);
+    gtk_widget_set_margin_start (label, 5);
+    gtk_widget_set_margin_end (label, 5);
     gtk_box_pack_start (GTK_BOX (box), label, FALSE, FALSE, 0);
     gtk_widget_show (label);
 

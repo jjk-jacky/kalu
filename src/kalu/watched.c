@@ -687,7 +687,6 @@ watched_new_window (w_type_t type)
             break;
     }
     gtk_container_set_border_width (GTK_CONTAINER (window), 0);
-    gtk_window_set_has_resize_grip (GTK_WINDOW (window), FALSE);
     /* add to list of open windows */
     add_open_window (window);
     /* icon */
@@ -802,7 +801,9 @@ watched_new_window (w_type_t type)
     GtkWidget *list;
     list = gtk_tree_view_new_with_model (GTK_TREE_MODEL (store));
     /* hint for alternate row colors */
+    G_GNUC_BEGIN_IGNORE_DEPRECATIONS
     gtk_tree_view_set_rules_hint (GTK_TREE_VIEW (list), TRUE);
+    G_GNUC_END_IGNORE_DEPRECATIONS
     if (!is_update)
     {
         /* selection */

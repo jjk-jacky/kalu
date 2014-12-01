@@ -1242,7 +1242,9 @@ on_select_provider (KaluUpdater *kupdater _UNUSED_, const gchar *pkg, alpm_list_
     list = gtk_tree_view_new_with_model (GTK_TREE_MODEL (store));
     g_object_unref (store);
     /* hint for alternate row colors */
+    G_GNUC_BEGIN_IGNORE_DEPRECATIONS
     gtk_tree_view_set_rules_hint (GTK_TREE_VIEW (list), TRUE);
+    G_GNUC_END_IGNORE_DEPRECATIONS
 
     /* scrolledwindow for list */
     GtkWidget *scrolled_window;
@@ -1314,7 +1316,9 @@ on_select_provider (KaluUpdater *kupdater _UNUSED_, const gchar *pkg, alpm_list_
     gtk_button_set_image (GTK_BUTTON (button), image);
     gtk_widget_set_sensitive (button, FALSE);
     gtk_widget_show (button);
+    G_GNUC_BEGIN_IGNORE_DEPRECATIONS
     box = gtk_dialog_get_action_area (GTK_DIALOG (dialog));
+    G_GNUC_END_IGNORE_DEPRECATIONS
     gtk_box_pack_start (GTK_BOX (box), button, FALSE, FALSE, 0);
 
     gpointer ptr1[2] = {dialog, list};
@@ -2811,7 +2815,6 @@ updater_run (const gchar *conffile, alpm_list_t *cmdline_post)
     gtk_window_set_title (GTK_WINDOW (window), (!run_simulation)
             ? _("System upgrade - kalu") : _("Upgrade simulation - kalu"));
     gtk_container_set_border_width (GTK_CONTAINER (window), 0);
-    gtk_window_set_has_resize_grip (GTK_WINDOW (window), FALSE);
     /* icon */
     gtk_window_set_icon_name (GTK_WINDOW (window), "kalu");
 
@@ -2846,8 +2849,8 @@ updater_run (const gchar *conffile, alpm_list_t *cmdline_post)
     /* action progress in a vbox */
     GtkWidget *vbox2;
     vbox2 = gtk_box_new (GTK_ORIENTATION_VERTICAL, 0);
-    gtk_widget_set_margin_left (vbox2, 10);
-    gtk_widget_set_margin_right (vbox2, 10);
+    gtk_widget_set_margin_start (vbox2, 10);
+    gtk_widget_set_margin_end (vbox2, 10);
     gtk_box_pack_start (GTK_BOX (vbox), vbox2, FALSE, FALSE, 5);
     gtk_widget_show (vbox2);
 
@@ -2904,7 +2907,9 @@ updater_run (const gchar *conffile, alpm_list_t *cmdline_post)
     updater->list = list;
     g_object_unref (store);
     /* hint for alternate row colors */
+    G_GNUC_BEGIN_IGNORE_DEPRECATIONS
     gtk_tree_view_set_rules_hint (GTK_TREE_VIEW (list), TRUE);
+    G_GNUC_END_IGNORE_DEPRECATIONS
     /* tooltip */
     gtk_widget_set_has_tooltip (list, TRUE);
     g_signal_connect (G_OBJECT(list), "query-tooltip",

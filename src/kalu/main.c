@@ -1116,6 +1116,7 @@ opt_debug (const gchar  *option _UNUSED_,
 static void
 create_status_icon (void)
 {
+    G_GNUC_BEGIN_IGNORE_DEPRECATIONS
     debug ("create GtkStatusIcon");
     icon = gtk_status_icon_new_from_icon_name ("kalu-gray");
     gtk_status_icon_set_name (icon, "kalu");
@@ -1130,6 +1131,7 @@ create_status_icon (void)
             G_CALLBACK (icon_press_cb), NULL);
 
     gtk_status_icon_set_visible (icon, TRUE);
+    G_GNUC_END_IGNORE_DEPRECATIONS
 }
 
 #ifdef ENABLE_STATUS_NOTIFIER
@@ -1142,7 +1144,9 @@ sn_state_cb (void)
         if (icon)
         {
             debug ("removing GtkStatusIcon");
+            G_GNUC_BEGIN_IGNORE_DEPRECATIONS
             gtk_status_icon_set_visible (icon, FALSE);
+            G_GNUC_END_IGNORE_DEPRECATIONS
             g_object_unref (icon);
             icon = NULL;
         }
@@ -1433,7 +1437,9 @@ main (int argc, char *argv[])
         sn_icon[SN_ICON_KALU] = g_object_ref (pixbuf_kalu);
 #endif
 
+        G_GNUC_BEGIN_IGNORE_DEPRECATIONS
         gtk_icon_theme_add_builtin_icon ("kalu", 48, pixbuf_kalu);
+        G_GNUC_END_IGNORE_DEPRECATIONS
     }
 
     /* kalu-paused */
@@ -1444,7 +1450,9 @@ main (int argc, char *argv[])
 
         debug ("No icon 'kalu-paused' -- creating it");
         pixbuf = get_paused_pixbuf (pixbuf_kalu);
+        G_GNUC_BEGIN_IGNORE_DEPRECATIONS
         gtk_icon_theme_add_builtin_icon ("kalu-paused", 48, pixbuf);
+        G_GNUC_END_IGNORE_DEPRECATIONS
 #ifdef ENABLE_STATUS_NOTIFIER
         sn_icon[SN_ICON_KALU_PAUSED] = g_object_ref (pixbuf);
 #endif
@@ -1459,7 +1467,9 @@ main (int argc, char *argv[])
 
         debug ("No icon 'kalu-gray' -- creating it");
         pixbuf = get_gray_pixbuf (pixbuf_kalu);
+        G_GNUC_BEGIN_IGNORE_DEPRECATIONS
         gtk_icon_theme_add_builtin_icon ("kalu-gray", 48, pixbuf);
+        G_GNUC_END_IGNORE_DEPRECATIONS
 #ifdef ENABLE_STATUS_NOTIFIER
         sn_icon[SN_ICON_KALU_GRAY] = g_object_ref (pixbuf);
 #endif
@@ -1476,7 +1486,9 @@ main (int argc, char *argv[])
 
         debug ("No icon 'kalu-gray-paused' -- creating it");
         pixbuf = get_paused_pixbuf (pixbuf_kalu);
+        G_GNUC_BEGIN_IGNORE_DEPRECATIONS
         gtk_icon_theme_add_builtin_icon ("kalu-gray-paused", 48, pixbuf);
+        G_GNUC_END_IGNORE_DEPRECATIONS
 #ifdef ENABLE_STATUS_NOTIFIER
         sn_icon[SN_ICON_KALU_GRAY_PAUSED] = g_object_ref (pixbuf);
 #endif
