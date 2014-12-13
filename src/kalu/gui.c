@@ -1054,12 +1054,15 @@ icon_press_click (gpointer data _UNUSED_)
 {
     icon_press_timeout = 0;
 
+    if (g_source_is_destroyed (g_main_current_source ()))
+        return G_SOURCE_REMOVE;
+
     process_click_action ((kalpm_state.is_paused
             && config->on_sgl_click_paused != DO_SAME_AS_ACTIVE)
         ? config->on_sgl_click_paused
         : config->on_sgl_click);
 
-    return FALSE;
+    return G_SOURCE_REMOVE;
 }
 
 #ifdef ENABLE_STATUS_NOTIFIER
