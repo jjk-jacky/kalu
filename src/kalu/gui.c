@@ -1113,7 +1113,12 @@ icon_press_cb (GtkStatusIcon *icon _UNUSED_, GdkEventButton *event, gpointer dat
              * second click and ca be ignored, GDK_2BUTTON_PRESS will handle it */
             if (icon_press_timeout == 0)
             {
-                icon_press_timeout = g_timeout_add (250, icon_press_click, NULL);
+                guint delay;
+
+                g_object_get (gtk_settings_get_default (),
+                        "gtk-double-click-time",    &delay,
+                        NULL);
+                icon_press_timeout = g_timeout_add (delay, icon_press_click, NULL);
             }
             return TRUE;
         }
