@@ -1139,8 +1139,6 @@ icon_press_cb (GtkStatusIcon *icon _UNUSED_, GdkEventButton *event, gpointer dat
     return FALSE;
 }
 
-#undef process_click_action
-
 #ifdef ENABLE_STATUS_NOTIFIER
 StatusNotifier *sn = NULL;
 GdkPixbuf *sn_icon[NB_SN_ICONS] = { NULL, };
