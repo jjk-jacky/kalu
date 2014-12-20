@@ -1113,6 +1113,7 @@ opt_debug (const gchar  *option _UNUSED_,
     return TRUE;
 }
 
+#ifndef DISABLE_GUI
 static void
 create_status_icon (void)
 {
@@ -1133,6 +1134,7 @@ create_status_icon (void)
     gtk_status_icon_set_visible (icon, TRUE);
     G_GNUC_END_IGNORE_DEPRECATIONS
 }
+#endif
 
 #ifdef ENABLE_STATUS_NOTIFIER
 static void
