@@ -1,4 +1,80 @@
 
+# 2014-12-20, v3.0.0
+
+With contributions from EmanueL Czirai.
+
+- Major version bump for compatibility with API changes of pacman 4.2
+
+- kalu-updater: Add $PACFILES to cmdlines
+
+When using kalu's updater, you can define one or more processes to be ran after
+a system upgrade was completed. In addition to $PACKAGES you can now also use
+variable $PACFILES, which will be replaced by the list of all .pacnew and
+.pacorig files created during the sysupgrade.
+
+This can be used to e.g. perform 3-way merge of .pacnew files. See man page for
+more, as well as [1] for an example of use.
+
+- simulation: Add button to download packages only
+
+- kalu-updater: Add ability to abort a transaction (e.g. downloading packages)
+
+- Keep temporary databases around to speed things up/save bandwidth
+
+Instead of removing the tmp dbs after the checks/simulation, they're now kept
+around. That way, for the next checks/simulation they can be re-used and might
+already be up-to-date (even though the system's ones aren't).
+
+If the DB path changed or the folder is gone they're just re-created, and of
+course it is cleaned up when exiting kalu.
+
+- Add KDE's StatusNotifierItem support
+
+With Plasma Next KDE doesn't support the good old xembed systray, and so
+GtkStatusIcon are "useless."
+
+Adding a new configure option --enable-status-notifier to enable support of
+KDE's interface via our small library, statusnotifier.
+
+- Use $XDG_CONFIG_HOME instead of $HOME/.config
+
+Likely to not change what's actually used, since it'll default to the same value
+should $XDG_CONFIG_HOME not be set, but it's better/proper/allows user
+customization.
+
+- Add config tweaks to define colors used in updater
+Useful in case (default) colors do not work well with the theme.
+
+- Add repo name in a column on kalu updater, as well as available via $REPO in
+package template for updates & watched packages.
+
+- simulation: Show ALPM log messages (e.g. warnings, etc)
+
+- Preferences: Unchecking a template field wasn't always remembered
+
+When unchecking a template field (to have it use its fallback value) it wouldn't
+be remembered when said field has a hard-coded default value in kalu, which
+would then be restored. (E.g. the Title field for packages not found in the AUR)
+
+Now such fields are saved to the .conf file without a value (e.g. "Title=") to
+preserve their disabled/falling-back state.
+
+- Force icon size on notifications
+
+Since GTK+3.14 the icon size might not be the requested one, so force it if
+necessary.
+
+- Add a 16x16 logo for use in menus/buttons
+
+Because GTK+3.14 won't resize the 48x48 one anymore, and gives us extra large
+icons on menus/buttons instead.
+
+- Some other fixes (see git log for details)
+
+
+[1] http://jjacky.com/2014-07-23-better-pacnew-handling-with-the-next-kalu/
+
+
 # 2014-05-05, v2.4.1
 
 - Fix possible endless loop when showing news
