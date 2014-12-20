@@ -76,11 +76,10 @@ gboolean kalu_auto_check (void);
 
 #ifdef ENABLE_STATUS_NOTIFIER
 void sn_cb (gpointer data);
-void icon_popup_cb (StatusNotifier *_sn, gint x, gint y, gpointer data);
-#else
+void sn_context_menu_cb (StatusNotifier *_sn, gint x, gint y, gpointer data);
+#endif
 void icon_popup_cb (GtkStatusIcon *_icon, guint button, guint activate_time,
                gpointer data);
-#endif
 
 void add_open_window (gpointer window);
 void remove_open_window (gpointer window);

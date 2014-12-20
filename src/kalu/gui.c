@@ -743,13 +743,8 @@ menu_unmap_cb (GtkWidget *menu, GdkEvent *event _UNUSED_, gpointer data _UNUSED_
 }
 
 void
-#ifdef ENABLE_STATUS_NOTIFIER
-icon_popup_cb (StatusNotifier *_sn _UNUSED_, gint x _UNUSED_, gint y _UNUSED_,
-               gpointer data _UNUSED_)
-#else
 icon_popup_cb (GtkStatusIcon *_icon _UNUSED_, guint button, guint activate_time,
                gpointer data _UNUSED_)
-#endif
 {
     GtkWidget   *menu;
     GtkWidget   *item;
@@ -944,14 +939,17 @@ icon_popup_cb (GtkStatusIcon *_icon _UNUSED_, guint button, guint activate_time,
     g_signal_connect (G_OBJECT (menu), "unmap-event",
             G_CALLBACK (menu_unmap_cb), NULL);
 
-    gtk_menu_popup (GTK_MENU (menu), NULL, NULL, NULL, NULL,
-#ifdef ENABLE_STATUS_NOTIFIER
-            0, gtk_get_current_event_time ()
-#else
-            button, activate_time
-#endif
-            );
+    gtk_menu_popup (GTK_MENU (menu), NULL, NULL, NULL, NULL, button, activate_time);
 }
+
+#ifdef ENABLE_STATUS_NOTIFIER
+void
+sn_context_menu_cb (StatusNotifier *_sn _UNUSED_, gint x _UNUSED_, gint y _UNUSED_,
+               gpointer data _UNUSED_)
+{
+    icon_popup_cb (NULL, 1, GDK_CURRENT_TIME, NULL);
+}
+#endif
 
 void
 process_fifo_command (const gchar *command)

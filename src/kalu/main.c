@@ -1518,7 +1518,7 @@ main (int argc, char *argv[])
     g_signal_connect (G_OBJECT (sn), "registration-failed",
             G_CALLBACK (sn_reg_failed), NULL);
     g_signal_connect (G_OBJECT (sn), "context-menu",
-            G_CALLBACK (icon_popup_cb), NULL);
+            G_CALLBACK (sn_context_menu_cb), NULL);
     g_signal_connect_swapped (G_OBJECT (sn), "activate",
             G_CALLBACK (sn_cb), GUINT_TO_POINTER (SN_ACTIVATE));
     g_signal_connect_swapped (G_OBJECT (sn), "secondary-activate",
