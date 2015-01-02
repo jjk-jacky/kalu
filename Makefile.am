@@ -186,4 +186,6 @@ kalu16.png: misc/arch_linux_48x48_icon_by_painlessrob_resized_16x16.png
 install-data-hook:
 	mkdir "$(DESTDIR)$(docdir)/html"
 	mv "$(DESTDIR)$(docdir)/index.html" "$(DESTDIR)$(docdir)/html/"
+if ! DISABLE_GUI
 	mv "$(DESTDIR)$(hicolor16dir)/kalu16.png" "$(DESTDIR)$(hicolor16dir)/kalu.png"
+endif
