@@ -286,10 +286,11 @@ kalu_alpm_load (kalu_simul_t *simulation, const gchar *conffile, GError **error)
     gchar              *newpath;
     enum _alpm_errno_t  err;
     pacman_config_t    *pac_conf = NULL;
+    gchar              *section = NULL;
 
     /* parse pacman.conf */
     debug ("parsing pacman.conf (%s) for options", conffile);
-    if (!parse_pacman_conf (conffile, NULL, 0, 0, &pac_conf, &local_err))
+    if (!parse_pacman_conf (conffile, &section, 0, 0, &pac_conf, &local_err))
     {
         g_propagate_error (error, local_err);
         free_pacman_config (pac_conf);

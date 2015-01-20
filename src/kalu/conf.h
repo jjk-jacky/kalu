@@ -74,7 +74,7 @@ typedef struct _pacman_config_t {
 
 gboolean
 parse_pacman_conf (const char       *file,
-                   char             *name,
+                   char            **name,
                    int               is_options,
                    int               depth,
                    pacman_config_t **pac_conf,

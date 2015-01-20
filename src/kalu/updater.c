@@ -3171,9 +3171,11 @@ updater_run (const gchar *conffile, alpm_list_t *cmdline_post)
     {
         /* parse pacman.conf */
         GError *error = NULL;
+        gchar *section = NULL;
+
         pacman_config_t *pac_conf = NULL;
         add_log (LOGTYPE_UNIMPORTANT, _("Parsing %s ..."), conffile);
-        if (!parse_pacman_conf (conffile, NULL, 0, 0, &pac_conf, &error))
+        if (!parse_pacman_conf (conffile, &section, 0, 0, &pac_conf, &error))
         {
             add_log (LOGTYPE_UNIMPORTANT, _(" failed\n"));
             _show_error (_("Unable to parse pacman.conf"), "%s: %s",

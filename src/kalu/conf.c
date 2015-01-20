@@ -222,7 +222,7 @@ process_siglevel (alpm_list_t *values, alpm_siglevel_t *storage,
 /** inspired from pacman's function */
 gboolean
 parse_pacman_conf (const char       *file,
-                   char             *name,
+                   char            **name,
                    int               is_options,
                    int               depth,
                    pacman_config_t **pacconf,
@@ -286,14 +286,14 @@ parse_pacman_conf (const char       *file,
                 goto cleanup;
             }
             /* new config section, skip the '[' */
-            if (name != NULL)
+            if (*name != NULL)
             {
-                free (name);
+                free (*name);
             }
-            name = strdup (line + 1);
-            name[line_len - 2] = '\0';
-            debug ("config: new section '%s'", name);
-            is_options = (strcmp(name, "options") == 0);
+            *name = strdup (line + 1);
+            (*name)[line_len - 2] = '\0';
+            debug ("config: new section '%s'", *name);
+            is_options = (strcmp(*name, "options") == 0);
             /* parsed a db/repo? if so we add it */
             if (cur_db != NULL)
             {
@@ -318,7 +318,7 @@ parse_pacman_conf (const char       *file,
             goto cleanup;
         }
         /* For each directive, compare to the camelcase string. */
-        if (name == NULL)
+        if (*name == NULL)
         {
             set_error ("%s", _("All directives must belong to a section."));
             success = FALSE;
@@ -512,7 +512,7 @@ parse_pacman_conf (const char       *file,
             if (cur_db == NULL)
             {
                 cur_db = new0 (database_t, 1);
-                cur_db->name = strdup (name);
+                cur_db->name = strdup (*name);
             }
 
             if (strcmp (key, "Server") == 0)
@@ -539,7 +539,7 @@ parse_pacman_conf (const char       *file,
             else
             {
                 set_error ("directive %s in section %s not recognized.",
-                        key, name);
+                        key, *name);
                 success = FALSE;
                 goto cleanup;
             }
@@ -614,10 +614,10 @@ cleanup:
     if (depth == 0)
     {
         /* section name is for internal processing only */
-        if (name != NULL)
+        if (*name != NULL)
         {
-            free (name);
-            name = NULL;
+            free (*name);
+            *name = NULL;
         }
         /* so are the siglevel_def of each & all databases */
         FOR_LIST (i, pac_conf->databases)
