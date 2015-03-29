@@ -28,6 +28,7 @@
 #include <string.h>
 
 #ifdef ENABLE_NLS
+#include <locale.h>
 #include <libintl.h>
 #define gettext_noop(s)         s
 #define N_(s)                   gettext_noop (s)
