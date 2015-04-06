@@ -747,7 +747,7 @@ init (GVariant *parameters)
     if (result == NULL)
     {
         free (sender);
-        method_failed ("Init", error->message);
+        method_failed ("Init", (error) ? error->message : _("No error message"));
         g_clear_error (&error);
         /* we have no reason to keep running */
         g_main_loop_quit (loop);
