@@ -411,14 +411,11 @@ rend_pbar_pb (GtkTreeViewColumn *column _UNUSED_, GtkCellRenderer *renderer,
 }
 
 static GtkTreeIter *
-get_iter_for_pkg (const gchar *pkg, gboolean has_version)
+get_iter_for_pkg (const gchar *pkg)
 {
     GtkTreeIter  *iter;
     GtkTreeModel *model;
     const gchar  *name;
-    const gchar  *version;
-    const gchar  *s;
-    gchar         buf[255];
 
     iter = new0 (GtkTreeIter, 1);
     model = GTK_TREE_MODEL (updater->store);
@@ -428,20 +425,9 @@ get_iter_for_pkg (const gchar *pkg, gboolean has_version)
     {
         gtk_tree_model_get (model, iter,
                 UCOL_PACKAGE,   &name,
-                UCOL_NEW,       &version,
                 -1);
-        if (has_version)
-        {
-            /* because from on_download we have package-version */
-            snprintf (buf, 255, "%s-%s", name, version);
-            s = buf;
-        }
-        else
-        {
-            s = name;
-        }
 
-        if (g_strcmp0 (pkg, s) == 0)
+        if (g_strcmp0 (pkg, name) == 0)
         {
             return iter;
         }
@@ -548,11 +534,8 @@ finish_pkg_install (const char *pkg, const char *version)
 
     if (g_strcmp0 (pkg, pkg_iter->filename) != 0)
     {
-        char buf[255];
-        snprintf (buf, 255, "%s-%s", pkg, version);
-
         /* locate pkg in tree */
-        pkg_iter->iter = get_iter_for_pkg (buf, TRUE);
+        pkg_iter->iter = get_iter_for_pkg (pkg);
         if (pkg_iter->iter == NULL)
         {
             debug ("finish_pkg_install: unable to find iter for %s", pkg);
@@ -704,22 +687,28 @@ on_event_pkgdownload_start (KaluUpdater *kupdater _UNUSED_, const gchar *filenam
     /* first, we need to find the package we're dealing with */
     pkg_iter_t *pkg_iter = updater->step_data;
     gchar *pkg, *s;
+    int i;
 
     free (pkg_iter->filename);
     pkg_iter->filename = NULL;
 
-    /* remove -arch.pkg.tar.xz from filename, to only have package-version */
-    pkg = strdup (filename);
-    if (NULL == (s = strrchr (pkg, '-')))
+    /* the third dash from the last is the one between pkgname and pkgver, since
+     * filenames follow: PACKAGE-[EPOCH:]PKGVER-PKGREL-ARCH.pkg.EXT (and no dash
+     * is allowed in PKGVER) */
+    s = pkg = strdup (filename);
+    for (i = 0; i < 3; ++i)
     {
-        free (pkg);
-        debug ("on_download: invalid filename: %s", filename);
-        return;
+        if (NULL == (s = strrchr (pkg, '-')))
+        {
+            free (pkg);
+            debug ("on_download: invalid filename: %s", filename);
+            return;
+        }
+        *s = '\0';
     }
-    *s = '\0';
 
     /* locate pkg in tree */
-    pkg_iter->iter = get_iter_for_pkg (pkg, TRUE);
+    pkg_iter->iter = get_iter_for_pkg (pkg);
     if (pkg_iter->iter == NULL)
     {
         free (pkg);
@@ -957,7 +946,7 @@ on_progress (KaluUpdater *kupdater _UNUSED_, event_t event, const gchar *pkg,
         if (g_strcmp0 (pkg, pkg_iter->filename) != 0)
         {
             /* locate pkg in tree */
-            pkg_iter->iter = get_iter_for_pkg (pkg, FALSE);
+            pkg_iter->iter = get_iter_for_pkg (pkg);
             if (pkg_iter->iter == NULL)
             {
                 debug ("on_progress: unable to find iter for %s", pkg);
