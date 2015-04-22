@@ -687,16 +687,24 @@ on_event_pkgdownload_start (KaluUpdater *kupdater _UNUSED_, const gchar *filenam
     /* first, we need to find the package we're dealing with */
     pkg_iter_t *pkg_iter = updater->step_data;
     gchar *pkg, *s;
+    int max;
     int i;
 
     free (pkg_iter->filename);
     pkg_iter->filename = NULL;
 
-    /* the third dash from the last is the one between pkgname and pkgver, since
-     * filenames follow: PACKAGE-[EPOCH:]PKGVER-PKGREL-ARCH.pkg.EXT (and no dash
-     * is allowed in PKGVER) */
+    /* we want the package name only: the third dash from the last is the one
+     * between pkgname and pkgver, since filenames follow:
+     * PACKAGE-[EPOCH:]PKGVER-PKGREL-ARCH.pkg.EXT (and no dash is allowed in
+     * PKGVER)
+     * If the filename ends in ".delta" there there are two version numbers. */
+    if (streq (filename + strlen (filename) - 6, ".delta"))
+        max = 4;
+    else
+        max = 3;
+
     s = pkg = strdup (filename);
-    for (i = 0; i < 3; ++i)
+    for (i = 0; i < max; ++i)
     {
         if (NULL == (s = strrchr (pkg, '-')))
         {
