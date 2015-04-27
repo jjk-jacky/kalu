@@ -75,6 +75,8 @@ enum {
     UCOL_DESC,
     UCOL_OLD,
     UCOL_NEW,
+    UCOL_CUR_DL_SIZE,
+    UCOL_TOT_DL_SIZE,
     UCOL_DL_SIZE,
     UCOL_OLD_SIZE,
     UCOL_NEW_SIZE,
@@ -394,7 +396,7 @@ rend_pbar_pb (GtkTreeViewColumn *column _UNUSED_, GtkCellRenderer *renderer,
         double size;
         const char *unit;
 
-        gtk_tree_model_get (store, iter, UCOL_DL_SIZE, &dl_size, -1);
+        gtk_tree_model_get (store, iter, UCOL_CUR_DL_SIZE, &dl_size, -1);
         size = humanize_size (dl_size, '\0', &unit);
         snprint_size (buf_tot, 23, size, unit);
         snprintf (buf, 255, _("%d%% of %s"), val, buf_tot);
@@ -736,12 +738,23 @@ on_event_pkgdownload_start (KaluUpdater *kupdater _UNUSED_, const gchar *filenam
             0,
             0);
 
-    /* pkg progress */
-    gtk_list_store_set (updater->store, pkg_iter->iter,
-            UCOL_PCTG,          0.0,
-            UCOL_DL_IS_ACTIVE,  TRUE,
-            UCOL_DL_IS_DONE,    FALSE,
+    {
+        guint size;
+
+        /* get download size as default/initial value. Most of the time, it'll
+         * stay the same, but in case of multiple deltas it might change once
+         * the download is initiated */
+        gtk_tree_model_get (GTK_TREE_MODEL (updater->store), pkg_iter->iter,
+            UCOL_DL_SIZE,       &size,
             -1);
+        /* pkg progress */
+        gtk_list_store_set (updater->store, pkg_iter->iter,
+                UCOL_PCTG,          0.0,
+                UCOL_CUR_DL_SIZE,   size,
+                UCOL_DL_IS_ACTIVE,  TRUE,
+                UCOL_DL_IS_DONE,    FALSE,
+                -1);
+    }
 }
 
 static void
@@ -756,12 +769,23 @@ on_event_pkgdownload_done (KaluUpdater *kupdater _UNUSED_,
     }
 
     pkg_iter_t *pkg_iter = updater->step_data;
+    guint dl_size, cur_size, tot_size;
+    gboolean dl_done;
+
+    gtk_tree_model_get (GTK_TREE_MODEL (updater->store), pkg_iter->iter,
+            UCOL_DL_SIZE,       &dl_size,
+            UCOL_CUR_DL_SIZE,   &cur_size,
+            UCOL_TOT_DL_SIZE,   &tot_size,
+            -1);
+    dl_done = (cur_size + tot_size == dl_size);
 
     /* pkg progress */
     gtk_list_store_set (updater->store, pkg_iter->iter,
             UCOL_DL_IS_ACTIVE,      FALSE,
             UCOL_DL_IS_DONE,        TRUE,
-            UCOL_DL_IS_DONE_COLOR,  config->color_info,
+            UCOL_CUR_DL_SIZE,       0,
+            UCOL_TOT_DL_SIZE,       cur_size + tot_size,
+            (dl_done) ? UCOL_DL_IS_DONE_COLOR : -1,  config->color_info,
             -1);
 
     /* free */
@@ -783,11 +807,19 @@ on_event_pkgdownload_failed (KaluUpdater *kupdater _UNUSED_,
     }
 
     pkg_iter_t *pkg_iter = updater->step_data;
+    guint cur_size, tot_size;
+
+    gtk_tree_model_get (GTK_TREE_MODEL (updater->store), pkg_iter->iter,
+            UCOL_CUR_DL_SIZE,   &cur_size,
+            UCOL_TOT_DL_SIZE,   &tot_size,
+            -1);
 
     /* pkg progress */
     gtk_list_store_set (updater->store, pkg_iter->iter,
             UCOL_DL_IS_ACTIVE,      FALSE,
             UCOL_DL_IS_DONE,        TRUE,
+            UCOL_CUR_DL_SIZE,       0,
+            UCOL_TOT_DL_SIZE,       cur_size + tot_size,
             UCOL_DL_IS_DONE_COLOR,  config->color_error,
             -1);
 
@@ -1444,6 +1476,7 @@ on_download (KaluUpdater *kupdater _UNUSED_, const gchar *filename,
                 /* pkg progress */
                 gtk_list_store_set (updater->store, pkg_iter->iter,
                         UCOL_PCTG,          pctg,
+                        UCOL_CUR_DL_SIZE,   total,
                         -1);
 
                 if (updater->total_dl > 0)
@@ -1900,6 +1933,8 @@ updater_get_packages_cb (KaluUpdater *kupdater _UNUSED_, const gchar *errmsg,
                 UCOL_DESC,              k_pkg->desc,
                 UCOL_OLD,               k_pkg->old_version,
                 UCOL_NEW,               k_pkg->new_version,
+                UCOL_CUR_DL_SIZE,       0,
+                UCOL_TOT_DL_SIZE,       0,
                 UCOL_DL_SIZE,           k_pkg->dl_size,
                 UCOL_OLD_SIZE,          k_pkg->old_size,
                 UCOL_NEW_SIZE,          k_pkg->new_size,
@@ -2885,6 +2920,8 @@ updater_run (const gchar *conffile, alpm_list_t *cmdline_post)
             G_TYPE_STRING,  /* UCOL_DESC */
             G_TYPE_STRING,  /* UCOL_OLD */
             G_TYPE_STRING,  /* UCOL_NEW */
+            G_TYPE_UINT,    /* UCOL_CUR_DL_SIZE */
+            G_TYPE_UINT,    /* UCOL_TOT_DL_SIZE */
             G_TYPE_UINT,    /* UCOL_DL_SIZE */
             G_TYPE_UINT,    /* UCOL_OLD_SIZE */
             G_TYPE_UINT,    /* UCOL_NEW_SIZE */
