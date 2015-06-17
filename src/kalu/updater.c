@@ -529,7 +529,7 @@ on_event (KaluUpdater *kupdater _UNUSED_, event_t event)
 }
 
 static void
-finish_pkg_install (const char *pkg, const char *version)
+finish_pkg_install (const char *pkg, const char *version _UNUSED_)
 {
     pkg_iter_t *pkg_iter = updater->step_data;
     guint size = 0;
