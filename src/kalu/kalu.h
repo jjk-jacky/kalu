@@ -190,6 +190,7 @@ typedef struct _config_t {
     char            *color_info;
     char            *color_warning;
     char            *color_error;
+    gboolean         auto_show_log;
 #endif
 } config_t;
 

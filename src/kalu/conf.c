@@ -1219,6 +1219,19 @@ parse_config_file (const char       *file,
 
                     debug ("config: set %s to %s", key, value);
                 }
+                else if (streq (key, "AutoShowLog"))
+                {
+                    if (value[0] == '1' && value[1] == '\0')
+                    {
+                        config->auto_show_log = TRUE;
+                        debug ("config: enable auto-show-log");
+                    }
+                    else if (value[0] != '0' || value[1] != '\0')
+                    {
+                        add_error ("unknown value for %s: %s", key, value);
+                        continue;
+                    }
+                }
 #endif
                 else
                 {

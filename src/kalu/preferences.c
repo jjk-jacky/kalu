@@ -882,6 +882,12 @@ btn_save_cb (GtkButton *button _UNUSED_, gpointer data _UNUSED_)
     add_color (info, "Info", "blue");
     add_color (warning, "Warning", "green");
     add_color (error, "Error", "red");
+
+    /* auto show log (no GUI) */
+    if (new_config.auto_show_log)
+    {
+        add_to_conf ("AutoShowLog = 1\n");
+    }
 #endif
 
     /* General */

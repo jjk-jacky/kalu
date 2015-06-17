@@ -888,6 +888,12 @@ color values. In the last two cases, r g and b are either integers in the range
 0 to 255 or precentage values in the range 0% to 100%, and a is a floating point
 value in the range 0 to 1.
 
+=item B<AutoShowLog = 1>
+
+This can be used so that the log in kalu's updater is visible by default; Else
+the pane is only opened when an important message is added (error, warning or
+info) or upon manual trigger.
+
 =back
 
 =head1 KDE STATUSNOTIFIERITEM SUPPORT

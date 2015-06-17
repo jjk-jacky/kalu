@@ -3199,6 +3199,9 @@ updater_run (const gchar *conffile, alpm_list_t *cmdline_post)
     g_signal_connect (G_OBJECT (expander), "notify::expanded",
             G_CALLBACK (expander_expanded_cb), scrolled_window);
 
+    if (config->auto_show_log)
+        gtk_expander_set_expanded (GTK_EXPANDER (updater->expander), TRUE);
+
     gtk_widget_show (window);
 
     if (!run_simulation)
