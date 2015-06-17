@@ -520,7 +520,7 @@ kalu_alpm_has_updates (alpm_list_t **packages, GError **error)
         return FALSE;
     }
 
-    if (!trans_init (alpm, alpm->flags, 1, &local_err) == -1)
+    if (!trans_init (alpm, alpm->flags, 1, &local_err))
     {
         g_propagate_error (error, local_err);
         return FALSE;
