@@ -167,8 +167,12 @@ create_local_db (const gchar *_dbpath, gchar **newpath, GError **error)
     }
 
     /* symlink local */
-    snprintf (buf, MAX_PATH - 1, "%s/local", dbpath);
-    snprintf (buf2, MAX_PATH - 1, "%s/local", folder);
+    if (snprintf (buf, MAX_PATH, "%s/local", dbpath) >= MAX_PATH
+            || snprintf (buf2, MAX_PATH, "%s/local", folder) >= MAX_PATH)
+    {
+        g_set_error (error, KALU_ERROR, 1, _("Internal error: Path too long"));
+        goto error;
+    }
     if (0 != symlink (buf, buf2))
     {
         g_set_error (error, KALU_ERROR, 1,
@@ -179,7 +183,11 @@ create_local_db (const gchar *_dbpath, gchar **newpath, GError **error)
     debug ("created symlink %s", buf2);
 
     /* copy databases in sync */
-    snprintf (buf, MAX_PATH - 1, "%s/sync", folder);
+    if (snprintf (buf, MAX_PATH, "%s/sync", folder) >= MAX_PATH)
+    {
+        g_set_error (error, KALU_ERROR, 1, _("Internal error: Path too long"));
+        goto error;
+    }
     if (0 != mkdir (buf, 0700))
     {
         g_set_error (error, KALU_ERROR, 1,
@@ -189,7 +197,11 @@ create_local_db (const gchar *_dbpath, gchar **newpath, GError **error)
     }
     debug ("created folder %s", buf);
 
-    snprintf (buf, MAX_PATH - 1, "%s/sync", dbpath);
+    if (snprintf (buf, MAX_PATH, "%s/sync", dbpath) >= MAX_PATH)
+    {
+        g_set_error (error, KALU_ERROR, 1, _("Internal error: Path too long"));
+        goto error;
+    }
     if (NULL == (dir = g_dir_open (buf, 0, NULL)))
     {
         g_set_error (error, KALU_ERROR, 1,
@@ -200,14 +212,23 @@ create_local_db (const gchar *_dbpath, gchar **newpath, GError **error)
 
     while ((file = g_dir_read_name (dir)))
     {
-        snprintf (buf, MAX_PATH - 1, "%s/sync/%s", dbpath, file);
+        if (snprintf (buf, MAX_PATH, "%s/sync/%s", dbpath, file) >= MAX_PATH)
+        {
+            g_set_error (error, KALU_ERROR, 1, _("Internal error"));
+            goto error;
+        }
+
         /* stat so we copy files only. also, we need to preserve modified date,
          * used to determine if DBs are up to date or not by libalpm */
         if (0 == stat (buf, &filestat))
         {
             if (S_ISREG (filestat.st_mode))
             {
-                snprintf (buf2, MAX_PATH - 1, "%s/sync/%s", folder, file);
+                if (snprintf (buf2, MAX_PATH, "%s/sync/%s", folder, file) >= MAX_PATH)
+                {
+                    g_set_error (error, KALU_ERROR, 1, _("Internal error: Path too long"));
+                    goto error;
+                }
                 if (!copy_file (buf, buf2))
                 {
                     g_set_error (error, KALU_ERROR, 1,
