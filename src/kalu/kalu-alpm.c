@@ -97,6 +97,7 @@ create_local_db (const gchar *_dbpath, gchar **newpath, GError **error)
     const gchar    *file;
     struct stat     filestat;
     struct utimbuf  times;
+    gboolean create_tmpdir = TRUE;
 
     if (tmp_dbpath)
     {
@@ -121,8 +122,7 @@ create_local_db (const gchar *_dbpath, gchar **newpath, GError **error)
                 if (S_ISDIR (filestat.st_mode))
                 {
                     debug ("..ok, re-using it");
-                    *newpath = g_strdup (tmp_dbpath);
-                    return TRUE;
+                    create_tmpdir = FALSE;
                 }
                 else
                 {
@@ -139,63 +139,77 @@ create_local_db (const gchar *_dbpath, gchar **newpath, GError **error)
             debug ("..for another dbpath (%s vs %s), removing", pac_dbpath, _dbpath);
             rmrf (tmp_dbpath);
         }
-        free (pac_dbpath);
-        pac_dbpath = NULL;
-        g_free (tmp_dbpath);
-        tmp_dbpath = NULL;
+
+        if (create_tmpdir)
+        {
+            free (pac_dbpath);
+            pac_dbpath = NULL;
+            g_free (tmp_dbpath);
+            tmp_dbpath = NULL;
+        }
     }
 
-    debug ("creating local db");
+    if (create_tmpdir)
+    {
+        debug ("creating local db");
 
-    /* create folder in tmp dir */
-    if (NULL == (folder = g_dir_make_tmp ("kalu-XXXXXX", NULL)))
-    {
-        g_set_error (error, KALU_ERROR, 1, _("Unable to create temp folder"));
-        return FALSE;
-    }
-    debug ("created tmp folder %s", folder);
+        /* create folder in tmp dir */
+        if (NULL == (folder = g_dir_make_tmp ("kalu-XXXXXX", NULL)))
+        {
+            g_set_error (error, KALU_ERROR, 1, _("Unable to create temp folder"));
+            return FALSE;
+        }
+        debug ("created tmp folder %s", folder);
 
-    /* dbpath will not be slash-terminated */
-    dbpath = strdup (_dbpath);
-    if (l == 0)
-    {
-        l = strlen (dbpath) - 1;
-    }
-    if (dbpath[l] == '/')
-    {
-        dbpath[l] = '\0';
-    }
+        /* dbpath will not be slash-terminated */
+        dbpath = strdup (_dbpath);
+        if (l == 0)
+        {
+            l = strlen (dbpath) - 1;
+        }
+        if (dbpath[l] == '/')
+        {
+            dbpath[l] = '\0';
+        }
 
-    /* symlink local */
-    if (snprintf (buf, MAX_PATH, "%s/local", dbpath) >= MAX_PATH
-            || snprintf (buf2, MAX_PATH, "%s/local", folder) >= MAX_PATH)
-    {
-        g_set_error (error, KALU_ERROR, 1, _("Internal error: Path too long"));
-        goto error;
-    }
-    if (0 != symlink (buf, buf2))
-    {
-        g_set_error (error, KALU_ERROR, 1,
-                _("Unable to create symlink %s"),
-                buf2);
-        goto error;
-    }
-    debug ("created symlink %s", buf2);
+        /* symlink local */
+        if (snprintf (buf, MAX_PATH, "%s/local", dbpath) >= MAX_PATH
+                || snprintf (buf2, MAX_PATH, "%s/local", folder) >= MAX_PATH)
+        {
+            g_set_error (error, KALU_ERROR, 1, _("Internal error: Path too long"));
+            goto error;
+        }
+        if (0 != symlink (buf, buf2))
+        {
+            g_set_error (error, KALU_ERROR, 1,
+                    _("Unable to create symlink %s"),
+                    buf2);
+            goto error;
+        }
+        debug ("created symlink %s", buf2);
 
-    /* copy databases in sync */
-    if (snprintf (buf, MAX_PATH, "%s/sync", folder) >= MAX_PATH)
-    {
-        g_set_error (error, KALU_ERROR, 1, _("Internal error: Path too long"));
-        goto error;
+        /* copy databases in sync */
+        if (snprintf (buf, MAX_PATH, "%s/sync", folder) >= MAX_PATH)
+        {
+            g_set_error (error, KALU_ERROR, 1, _("Internal error: Path too long"));
+            goto error;
+        }
+        if (0 != mkdir (buf, 0700))
+        {
+            g_set_error (error, KALU_ERROR, 1,
+                    _("Unable to create folder %s"),
+                    buf);
+            goto error;
+        }
+        debug ("created folder %s", buf);
     }
-    if (0 != mkdir (buf, 0700))
+    else
     {
-        g_set_error (error, KALU_ERROR, 1,
-                _("Unable to create folder %s"),
-                buf);
-        goto error;
+        /* re-using tmp folder; we assume local symlinks and sync folders have
+         * already been taken care of last time, as they should */
+        folder = tmp_dbpath;
+        dbpath = pac_dbpath;
     }
-    debug ("created folder %s", buf);
 
     if (snprintf (buf, MAX_PATH, "%s/sync", dbpath) >= MAX_PATH)
     {
@@ -212,7 +226,8 @@ create_local_db (const gchar *_dbpath, gchar **newpath, GError **error)
 
     while ((file = g_dir_read_name (dir)))
     {
-        if (snprintf (buf, MAX_PATH, "%s/sync/%s", dbpath, file) >= MAX_PATH)
+        l = (size_t) snprintf (buf, MAX_PATH, "%s/sync/%s", dbpath, file);
+        if (l >= MAX_PATH)
         {
             g_set_error (error, KALU_ERROR, 1, _("Internal error"));
             goto error;
@@ -224,30 +239,117 @@ create_local_db (const gchar *_dbpath, gchar **newpath, GError **error)
         {
             if (S_ISREG (filestat.st_mode))
             {
-                if (snprintf (buf2, MAX_PATH, "%s/sync/%s", folder, file) >= MAX_PATH)
+                gboolean do_copy = TRUE;
+                int l2 = 0;
+
+                for (;;)
                 {
-                    g_set_error (error, KALU_ERROR, 1, _("Internal error: Path too long"));
-                    goto error;
+                    struct stat st2;
+
+                    /* when re-using tmpdir, for DBs we have some special
+                     * handling to see whether to preserve existing file or not */
+                    if (create_tmpdir ||
+                            (!streq (buf + l - 3, ".db")
+                             && !streq (buf +l - 7, ".db.sig")))
+                    {
+                        break;
+                    }
+
+                    /* construct name of our timestamp file for that db */
+                    l2 = snprintf (buf2, MAX_PATH, "%s/sync/%s.ts", folder, file);
+                    if (l2 >= MAX_PATH)
+                    {
+                        g_set_error (error, KALU_ERROR, 1, _("Internal error: Path too long"));
+                        goto error;
+                    }
+
+                    /* first see if we already have that db */
+                    buf2[l2 - 3] = '\0';
+                    if (stat (buf2, &st2) < 0)
+                    {
+                        break;
+                    }
+                    /* then check there's a timestamp file */
+                    buf2[l2 - 3] = '.';
+                    if (stat (buf2, &st2) < 0)
+                    {
+                        break;
+                    }
+                    /* check if DB was modified since last time */
+                    if (filestat.st_mtime != st2.st_mtime)
+                    {
+                        break;
+                    }
+
+                    /* we already have a DB, with a timestamp file indicating it
+                     * hasn't changed since last time, so we'll keep our
+                     * version (which might have been sync-d since) */
+                    do_copy = FALSE;
+                    break;
                 }
-                if (!copy_file (buf, buf2))
+
+                if (do_copy)
                 {
-                    g_set_error (error, KALU_ERROR, 1,
-                            _("Copy failed for %s"),
-                            buf);
-                    g_dir_close (dir);
-                    goto error;
-                }
-                /* preserve time */
-                times.actime = filestat.st_atime;
-                times.modtime = filestat.st_mtime;
-                if (0 != utime (buf2, &times))
-                {
-                    /* sucks, but no fail, we'll just have to download this db */
-                    debug ("Unable to change time of %s", buf2);
+                    if (l2 == 0)
+                    {
+                        l2 = snprintf (buf2, MAX_PATH, "%s/sync/%s.ts", folder, file);
+                        if (l2 >= MAX_PATH)
+                        {
+                            g_set_error (error, KALU_ERROR, 1,
+                                    _("Internal error: Path too long"));
+                            goto error;
+                        }
+                    }
+                    buf2[l2 - 3] = '\0';
+                    if (!copy_file (buf, buf2))
+                    {
+                        g_set_error (error, KALU_ERROR, 1,
+                                _("Copy failed for %s"),
+                                buf);
+                        g_dir_close (dir);
+                        goto error;
+                    }
+                    if (streq (buf + l - 3, ".db") || streq (buf + l - 7, ".db.sig"))
+                    {
+                        gint fd;
+
+                        /* preserve time */
+                        times.actime = filestat.st_atime;
+                        times.modtime = filestat.st_mtime;
+                        if (0 != utime (buf2, &times))
+                        {
+                            /* sucks, but no fail, we'll just have to download this db */
+                            debug ("Unable to change time of %s", buf2);
+                        }
+                        else
+                        {
+                            debug ("updated time for %s", buf2);
+                        }
+                        /* create our timestamp file */
+                        buf2[l2 - 3] = '.';
+                        do
+                            fd = open (buf2, O_RDONLY | O_CREAT, 0644);
+                        while (fd < 0 && errno == EINTR);
+                        if (fd >= 0)
+                        {
+                            close (fd);
+                        }
+                        /* set time on our timestamp file */
+                        if (0 != utime (buf2, &times))
+                        {
+                            /* sucks, but no fail, we'll just have to download this db */
+                            debug ("Unable to change time of %s", buf2);
+                        }
+                        else
+                        {
+                            debug ("updated time for %s", buf2);
+                        }
+                    }
                 }
                 else
                 {
-                    debug ("updated time for %s", buf2);
+                    buf2[l2 - 3] = '\0';
+                    debug ("keeping current %s", buf2);
                 }
             }
             else
@@ -264,14 +366,20 @@ create_local_db (const gchar *_dbpath, gchar **newpath, GError **error)
     }
     g_dir_close (dir);
 
-    pac_dbpath = dbpath;
-    tmp_dbpath = folder;
+    if (create_tmpdir)
+    {
+        pac_dbpath = dbpath;
+        tmp_dbpath = folder;
+    }
     *newpath = g_strdup (folder);
     return TRUE;
 
 error:
-    free (dbpath);
-    g_free (folder);
+    if (create_tmpdir)
+    {
+        free (dbpath);
+        g_free (folder);
+    }
     return FALSE;
 }
 
