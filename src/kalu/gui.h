@@ -93,7 +93,8 @@ gboolean icon_query_tooltip_cb (GtkWidget *icon, gint x, gint y,
 void process_fifo_command (const gchar *command);
 
 void set_kalpm_nb (check_t type, gint nb, gboolean update_icon);
-void set_kalpm_nb_syncdbs (gint nb);
+GString **get_kalpm_synced_dbs (void);
+void reset_kalpm_synced_dbs (void);
 void set_kalpm_busy (gboolean busy);
 void reset_timeout (void);
 gboolean skip_next_timeout (void);

@@ -55,7 +55,7 @@ static gchar *tmp_dbpath = NULL;
 
 static gboolean copy_file (const gchar *from, const gchar *to);
 static gboolean create_local_db (const gchar *dbpath, gchar **newpath,
-        GError **error);
+        GString **_synced_dbs, GError **error);
 
 
 
@@ -86,7 +86,7 @@ copy_file (const gchar *from, const gchar *to)
 }
 
 static gboolean
-create_local_db (const gchar *_dbpath, gchar **newpath, GError **error)
+create_local_db (const gchar *_dbpath, gchar **newpath, GString **_synced_dbs, GError **error)
 {
     gchar    buf[MAX_PATH];
     gchar    buf2[MAX_PATH];
@@ -146,6 +146,9 @@ create_local_db (const gchar *_dbpath, gchar **newpath, GError **error)
             pac_dbpath = NULL;
             g_free (tmp_dbpath);
             tmp_dbpath = NULL;
+            /* reset_kalpm_synced_dbs */
+            if (_synced_dbs && *_synced_dbs)
+                (*_synced_dbs)->len = 0;
         }
     }
 
@@ -344,6 +347,25 @@ create_local_db (const gchar *_dbpath, gchar **newpath, GError **error)
                         {
                             debug ("updated time for %s", buf2);
                         }
+
+                        /* if this was a synced db, reset it */
+                        if (_synced_dbs && *_synced_dbs && (*_synced_dbs)->len > 0
+                                /* i.e. it's a file.db (not file.db.sig) */
+                                && buf[l - 1] == 'b')
+                        {
+                            GString *str = *_synced_dbs;
+                            size_t len = strlen (file) - 3;
+                            gchar *dbname = buf + l - len - 3;
+                            size_t j;
+
+                            buf[l - 3] = '\0';
+                            for (j = 0; j <= str->len; j += strlen (str->str + j) + 1)
+                                if (streq (dbname, str->str + j))
+                                {
+                                    g_string_erase (str, (gssize) j, (gssize) len + 1);
+                                    break;
+                                }
+                        }
                     }
                 }
                 else
@@ -409,7 +431,10 @@ log_cb (alpm_loglevel_t level, const char *fmt, va_list args)
 }
 
 gboolean
-kalu_alpm_load (kalu_simul_t *simulation, const gchar *conffile, GError **error)
+kalu_alpm_load (kalu_simul_t    *simulation,
+                const gchar     *conffile,
+                GString        **_synced_dbs,
+                GError         **error)
 {
     GError             *local_err = NULL;
     gchar              *newpath;
@@ -430,7 +455,7 @@ kalu_alpm_load (kalu_simul_t *simulation, const gchar *conffile, GError **error)
     alpm = new0 (kalu_alpm_t, 1);
 
     /* create tmp copy of db (so we can sync w/out being root) */
-    if (!create_local_db (pac_conf->dbpath, &newpath, &local_err))
+    if (!create_local_db (pac_conf->dbpath, &newpath, _synced_dbs, &local_err))
     {
         g_set_error (error, KALU_ERROR, 1,
                 _("Unable to create local copy of database: %s"),
@@ -570,7 +595,7 @@ kalu_alpm_load (kalu_simul_t *simulation, const gchar *conffile, GError **error)
 }
 
 gboolean
-kalu_alpm_syncdbs (gint *nb_dbs_synced, GError **error)
+kalu_alpm_syncdbs (GString **_synced_dbs, GError **error)
 {
     alpm_list_t     *sync_dbs   = NULL;
     alpm_list_t     *i;
@@ -584,8 +609,6 @@ kalu_alpm_syncdbs (gint *nb_dbs_synced, GError **error)
     }
 
     sync_dbs = alpm_get_syncdbs (alpm->handle);
-    if (nb_dbs_synced)
-        *nb_dbs_synced = 0;
 #ifndef DISABLE_UPDATER
     if (alpm->simulation)
         alpm->simulation->on_sync_dbs (NULL, (gint) alpm_list_count (sync_dbs));
@@ -613,8 +636,25 @@ kalu_alpm_syncdbs (gint *nb_dbs_synced, GError **error)
         }
         else
         {
-            if (nb_dbs_synced)
-                ++*nb_dbs_synced;
+            if (_synced_dbs)
+            {
+                GString *str = *_synced_dbs;
+                const char *dbname = alpm_db_get_name (db);
+                size_t j;
+
+                if (!str)
+                    str = *_synced_dbs = g_string_sized_new (63);
+
+                for (j = 0; j <= str->len; j += strlen (str->str + j) + 1)
+                    if (streq (dbname, str->str + j))
+                        break;
+
+                if (j > str->len)
+                {
+                    g_string_append (str, dbname);
+                    g_string_append_c (str, '\0');
+                }
+            }
             debug ("%s was updated", alpm_db_get_name (db));
         }
 #ifndef DISABLE_UPDATER

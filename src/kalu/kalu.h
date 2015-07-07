@@ -224,7 +224,7 @@ typedef struct _kalpm_state_t {
     guint       timeout;
     guint       timeout_icon;
     GDateTime  *last_check;
-    gint        nb_syncdbs;
+    GString    *synced_dbs;
     gint        nb_upgrades;
     gint        nb_watched;
     gint        nb_aur;

@@ -58,10 +58,10 @@ typedef struct _kalu_alpm_t {
 extern unsigned short alpm_verbose;
 
 gboolean
-kalu_alpm_load (kalu_simul_t *simulation, const gchar *conffile, GError **error);
+kalu_alpm_load (kalu_simul_t *simulation, const gchar *conffile, GString **_synced_dbs, GError **error);
 
 gboolean
-kalu_alpm_syncdbs (gint *nb_dbs_synced, GError **error);
+kalu_alpm_syncdbs (GString **_synced_dbs, GError **error);
 
 gboolean
 kalu_alpm_has_updates (alpm_list_t **packages, GError **error);

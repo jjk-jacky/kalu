@@ -1240,12 +1240,25 @@ static void make_tooltip (gchar *s, gint *max, guint tt)
         }
     }
 
-    if (config->syncdbs_in_tooltip && kalpm_state.nb_syncdbs > 0)
+    if (config->syncdbs_in_tooltip)
     {
-        addstr (_n( "\nsync possible for 1 db",
-                    "\nsync possible for %d dbs",
-                    (long unsigned int) kalpm_state.nb_syncdbs),
-                kalpm_state.nb_syncdbs);
+        long unsigned int nb_syncdbs = 0;
+
+        if (kalpm_state.synced_dbs && kalpm_state.synced_dbs->len > 0)
+        {
+            gsize i;
+
+            for (i = 0; i < kalpm_state.synced_dbs->len; ++i)
+                if (kalpm_state.synced_dbs->str[i] == '\0')
+                    ++nb_syncdbs;
+        }
+        if (nb_syncdbs > 0)
+        {
+            addstr (_n( "\nsync possible for 1 db",
+                        "\nsync possible for %d dbs",
+                        nb_syncdbs),
+                    (int) nb_syncdbs);
+        }
     }
 
     if (kalpm_state.nb_news > 0)
@@ -1449,10 +1462,17 @@ set_kalpm_nb (check_t type, gint nb, gboolean update_icon)
     }
 }
 
-inline void
-set_kalpm_nb_syncdbs (gint nb)
+inline GString **
+get_kalpm_synced_dbs (void)
 {
-    kalpm_state.nb_syncdbs = nb;
+    return &kalpm_state.synced_dbs;
+}
+
+void
+reset_kalpm_synced_dbs (void)
+{
+    if (kalpm_state.synced_dbs)
+        kalpm_state.synced_dbs->len = 0;
 }
 
 static gboolean

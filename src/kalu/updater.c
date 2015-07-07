@@ -2123,7 +2123,7 @@ updater_sync_dbs_cb (KaluUpdater *kupdater, const gchar *errmsg, gpointer data _
 
     gtk_progress_bar_set_fraction (GTK_PROGRESS_BAR (updater->pbar_main), 1);
     add_log (LOGTYPE_NORMAL, _("Databases synchronized\n"));
-    set_kalpm_nb_syncdbs (0);
+    reset_kalpm_synced_dbs ();
 
     add_log (LOGTYPE_UNIMPORTANT, _("Getting packages list\n"));
     gtk_label_set_text (GTK_LABEL (updater->lbl_main),
@@ -3260,7 +3260,7 @@ updater_run (const gchar *conffile, alpm_list_t *cmdline_post)
             gtk_main_iteration ();
 
         updater->kupdater = NULL;
-        if (!kalu_alpm_load (&simulation, config->pacmanconf, &err))
+        if (!kalu_alpm_load (&simulation, config->pacmanconf, get_kalpm_synced_dbs (), &err))
         {
             _show_error (_("Failed to initialize simulation"),
                     err->message);
@@ -3284,7 +3284,7 @@ updater_run (const gchar *conffile, alpm_list_t *cmdline_post)
 
         updater->step = STEP_SYNC_DBS;
         updater->step_data = &sync_dbs;
-        if (!kalu_alpm_syncdbs (NULL, &err))
+        if (!kalu_alpm_syncdbs (get_kalpm_synced_dbs (), &err))
         {
             _show_error (_("Failed to synchronize databases"),
                     err->message);

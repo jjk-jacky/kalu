@@ -441,7 +441,6 @@ kalu_check_work (gboolean is_auto)
     alpm_list_t *aur_pkgs;
     gchar       *xml_news;
     gboolean     got_something      = FALSE;
-    gint         nb_syncdbs         = -1;
 #ifndef DISABLE_GUI
     gint         nb_upgrades        = -1;
     gint         nb_watched         = -1;
@@ -498,7 +497,13 @@ kalu_check_work (gboolean is_auto)
      * packages from localdb (however we can skip sync-ing dbs then) */
     if (checks & (CHECK_UPGRADES | CHECK_WATCHED | CHECK_AUR))
     {
-        if (!kalu_alpm_load (NULL, config->pacmanconf, &error))
+        if (!kalu_alpm_load (NULL, config->pacmanconf,
+#ifndef DISABLE_GUI
+                    get_kalpm_synced_dbs (),
+#else
+                    NULL,
+#endif
+                    &error))
         {
             do_notify_error (
                     _("Unable to check for updates -- loading alpm library failed"),
@@ -515,7 +520,13 @@ kalu_check_work (gboolean is_auto)
 
         /* syncdbs only if needed */
         if (checks & (CHECK_UPGRADES | CHECK_WATCHED)
-                && !kalu_alpm_syncdbs (&nb_syncdbs, &error))
+                && !kalu_alpm_syncdbs (
+#ifndef DISABLE_GUI
+                    get_kalpm_synced_dbs (),
+#else
+                    NULL,
+#endif
+                    &error))
         {
             do_notify_error (
                     _("Unable to check for updates -- could not synchronize databases"),
@@ -530,12 +541,6 @@ kalu_check_work (gboolean is_auto)
 #endif
             return;
         }
-#ifndef DISABLE_GUI
-        if (nb_syncdbs >= 0)
-        {
-            set_kalpm_nb_syncdbs (nb_syncdbs);
-        }
-#endif
 
         if (checks & CHECK_UPGRADES)
         {
@@ -1561,6 +1566,10 @@ eop:
     }
     free_config ();
 #ifndef DISABLE_GUI
+    if (kalpm_state.synced_dbs)
+    {
+        g_string_free (kalpm_state.synced_dbs, TRUE);
+    }
     if (open_windows)
     {
         g_ptr_array_free (open_windows, TRUE);
