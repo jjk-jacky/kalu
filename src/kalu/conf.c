@@ -737,6 +737,8 @@ parse_config_file (const char       *file,
     int         success         = TRUE;
     GString    *err_msg         = NULL;
     GError     *local_err       = NULL;
+    int         tpl;
+    int         fld;
 
     debug ("config: attempting to read file %s", file);
     if (!g_file_get_contents (file, &data, NULL, &local_err))
@@ -1241,32 +1243,17 @@ parse_config_file (const char       *file,
             }
             else
             {
-                templates_t *t;
-                if (streq ("template-upgrades", section))
+                int is_sce = 0;
+
+                if (!streqn ("template-", section, 9))
                 {
-                    t = config->tpl_upgrades;
+                    add_error ("unknown section: %s", section);
+                    continue;
                 }
-                else if (streq ("template-watched", section))
-                {
-                    t = config->tpl_watched;
-                }
-                else if (streq ("template-aur", section))
-                {
-                    t = config->tpl_aur;
-                }
-                else if (streq ("template-aur-not-found", section))
-                {
-                    t = config->tpl_aur_not_found;
-                }
-                else if (streq ("template-watched-aur", section))
-                {
-                    t = config->tpl_watched_aur;
-                }
-                else if (streq ("template-news", section))
-                {
-                    t = config->tpl_news;
-                }
-                else
+                for (tpl = 0; tpl < _NB_TPL; ++tpl)
+                    if (streq (tpl_names[tpl], section + 9))
+                        break;
+                if (tpl >= _NB_TPL)
                 {
                     add_error ("unknown section: %s", section);
                     continue;
@@ -1274,17 +1261,61 @@ parse_config_file (const char       *file,
 
                 /* we're in a valid template */
 
-                if (streq (key, "Title"))
+                for (fld = 0; fld < _NB_FLD; ++fld)
                 {
-                    setstringoption (value, "title", &(t->title), TRUE);
+                    size_t e = strlen (fld_names[fld]);
+                    if (streqn (key, fld_names[fld], e)
+                            && (key[e] == '\0' || streq (key + e, "Sce")))
+                    {
+                        is_sce = key[e] == 'S';
+                        break;
+                    }
                 }
-                else if (streq (key, "Package"))
+                if (fld >= _NB_FLD)
                 {
-                    setstringoption (value, "package", &(t->package), TRUE);
+                    add_error ("unknown template option: %s", key);
+                    continue;
                 }
-                else if (streq (key, "Sep"))
+
+                if (is_sce)
                 {
-                    setstringoption (value, "sep", &(t->sep), TRUE);
+                    int i;
+
+                    /* skip 0 == TPL_SCE_UNDEFINED */
+                    for (i = 1; i < _NB_TPL_SCE; ++i)
+                    {
+                        /* FLD_TITLE has no FALLBACK nor NONE */
+                        if (fld == FLD_TITLE
+                                && (i == TPL_SCE_FALLBACK || i == TPL_SCE_NONE))
+                            continue;
+
+                        if (streq (value, tpl_sce_names[i]))
+                        {
+                            config->templates[tpl].fields[fld].source = i;
+                            break;
+                        }
+                    }
+                    if (i >= _NB_TPL_SCE)
+                    {
+                        add_error ("unknown value for %s: %s", key, value);
+                        continue;
+                    }
+                    debug ("config: %s: %d",
+                            key, config->templates[tpl].fields[fld].source);
+                }
+                else
+                {
+                    setstringoption (value, key,
+                            &(config->templates[tpl].fields[fld].custom), TRUE);
+                    if (config->templates[tpl].fields[fld].source == TPL_SCE_UNDEFINED)
+                    {
+                        if (config->templates[tpl].fields[fld].custom)
+                            config->templates[tpl].fields[fld].source = TPL_SCE_CUSTOM;
+                        else if (fld != FLD_TITLE)
+                            config->templates[tpl].fields[fld].source = TPL_SCE_FALLBACK;
+                        debug ("config: auto-set %sSce: %d",
+                                key, config->templates[tpl].fields[fld].source);
+                    }
                 }
             }
         }
@@ -1340,6 +1371,27 @@ parse_config_file (const char       *file,
             }
         }
     }
+
+    /* ensure templates sources are valid */
+    for (tpl = 0; tpl < _NB_TPL; ++tpl)
+        for (fld = 0; fld < _NB_FLD; ++fld)
+        {
+            struct field *f = &config->templates[tpl].fields[fld];
+            tpl_sce_t sce = f->source;
+
+            if (f->source == TPL_SCE_UNDEFINED)
+                f->source = TPL_SCE_DEFAULT;
+            if (f->source == TPL_SCE_CUSTOM && !f->custom)
+                f->source = TPL_SCE_DEFAULT;
+            if (f->source == TPL_SCE_DEFAULT && !f->def)
+                f->source = TPL_SCE_FALLBACK;
+            if (f->source == TPL_SCE_FALLBACK && config->templates[tpl].fallback == NO_TPL)
+                f->source = TPL_SCE_DEFAULT;
+
+            if (f->source != sce)
+                debug ("config: auto-correct source for field %d in template %d: %d -> %d",
+                        fld, tpl, sce, f->source);
+        }
 
 cleanup:
     g_strfreev (lines);

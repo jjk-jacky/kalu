@@ -249,7 +249,9 @@ This files uses B<[sections]>, as common in conf/INI files. The main section
 templates : [template-upgrades], [template-watched], [template-aur],
 [template-watched-aur] and [template-news]
 
-Each of those support the same keys: I<Title>, I<Package> and I<Sep>
+Each of those support the same keys: I<TitleSce>, I<Title>, I<PackageSce>,
+I<Package>, I<SepSce> and I<Sep> See L<B<PREFERENCES>|/PREFERENCES> below for
+more.
 
 =item - I<watched.conf> : the list of watched packages
 
@@ -287,30 +289,50 @@ Preferences are presented under a few tabs. Most of those represent a type of
 check/notification supported by kalu, and as such include a template definition
 allowing you to tweak the content of said notifications.
 
-The only required template is I<Upgrades>. All others, or more specifically,
-each of their fields, are optional.
-
-If a field is not defined, kalu will simply fall back and use the corresponding
-field from the I<Upgrades> template. One exception: the template I<Watched AUR>
-will fall back to the I<AUR> template, and only if nothing was defined there will
-I<Upgrades> be used.
-
 All templates are made of 3 fields: Title, Package (or News item), and Separator.
-B<Title> will be the title of the notification. B<Package> (B<News item>) is the
-text corresponding to one package/news item. It will be repeated for each
-package/news item, separated using B<Separator>, to make the body of the
-notification.
+B<Title> will be the title of the notification. B<Package> is the text
+corresponding to one package/news item. It will be repeated for each
+package/news item, separated using B<Sep>, to make the body of the notification.
 
-Each field can have none, one or more variables. They are not the same for all
-templates, so they'll be described in each of them below.
+Each field can make use of none, one or more variables. They are not the same
+for all templates, so they'll be described in each of them below.
 
 In addition to \n for a new line, you can use some markup tags, but only in
 the body of the notification (i.e. in the fields B<Package/News item> and
-B<Separator> but not in B<Title>), such as <b> ... </b> for bold, <i> ... </i> for
-italic or <u> ... </u> for underline.
+B<Separator> but not in B<Title>), such as <b> ... </b> for bold, <i> ... </i>
+for italic or <u> ... </u> for underline.
 
 Note that though support is recommended, whether or not those will actually be
 applied on the notifications depends on your notification daemon.
+
+For each of the fields, a "source" to use must be defined. Title fields
+(B<TitleSce> option) can either use B<DEFAULT> or B<CUSTOM> as source. The
+former will use an internal default value, the later use whatever is specified
+as option B<Title>.
+
+For other fields (B<PackageSce> and B<SepSce> options) it can be one of
+B<DEFAULT>, B<FALLBACK>, B<CUSTOM> or B<NONE>. All those fields have a default
+and/or a fallback, i.e. not always both.
+
+The fallback source means that the value of the same field from another template
+will be used. Template fallbacks are recursive and work as such:
+
+- Upgrades : No fall back
+- Watched : falls back to Upgrades
+- AUR: falls back to Upgrades
+- AUR not found : falls back to Upgrades
+- Watched AUR : falls back to AUR
+- News : falls back to Upgrades
+
+When a template has a field using B<FALLBACK> as source, the value from its fall
+back template will be used (which can also come from its own fallback template).
+
+Note that custom values are required. When a field is optional, a source B<NONE>
+will be available. Obviously, titles are required.
+
+Use B<NONE> as source for B<Package> will result in a notification with only a
+title (no body/text).
+
 
 Preferences are presented under the following tabs :
 

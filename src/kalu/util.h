@@ -67,7 +67,7 @@ void
 snprint_size (char *buf, int buflen, double size, const char *unit);
 
 void
-parse_tpl (char *tpl, char **text, unsigned int *len, unsigned int *alloc,
+parse_tpl (const char *tpl, char **text, unsigned int *len, unsigned int *alloc,
            replacement_t **replacements, gboolean escaping);
 
 int
