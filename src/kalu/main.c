@@ -63,6 +63,28 @@
 /* global variable */
 config_t *config = NULL;
 
+const gchar *tpl_names[_NB_TPL] = {
+    "upgrades",
+    "watched",
+    "aur",
+    "aur-not-found",
+    "watched-aur",
+    "news"
+};
+const gchar *fld_names[_NB_FLD] = {
+    "Title",
+    "Package",
+    "Sep"
+};
+const gchar *tpl_sce_names[_NB_TPL_SCE] = {
+    "", /* TPL_SCE_UNDEFINED */
+    "DEFAULT",
+    "FALLBACK",
+    "CUSTOM",
+    "NONE"
+};
+
+
 static void notify_updates (alpm_list_t *packages, check_t type,
         gchar *xml_news, gboolean show_it);
 static void free_config (void);
@@ -136,6 +158,29 @@ do_show_error (const gchar *message, const gchar *submessage, GtkWindow *parent)
 
 #endif /* DISABLE_GUI*/
 
+static const char *
+get_fld_value (tpl_t tpl, unsigned int fld)
+{
+    templates_t *t = &config->templates[tpl];
+
+    switch (t->fields[fld].source)
+    {
+        case TPL_SCE_DEFAULT:
+            return t->fields[fld].def;
+
+        case TPL_SCE_FALLBACK:
+            return get_fld_value (t->fallback, fld);
+
+        case TPL_SCE_CUSTOM:
+            return t->fields[fld].custom;
+
+        case TPL_SCE_NONE:
+        case TPL_SCE_UNDEFINED: /* silence warning */
+        default: /* silence warning */
+            return NULL;
+    }
+}
+
 static void
 notify_updates (
         alpm_list_t *packages,
@@ -146,20 +191,21 @@ notify_updates (
 {
     alpm_list_t     *i;
 
-    int              nb          = 0;
+    unsigned int     nb          = 0;
     int              net_size;
     off_t            dsize       = 0;
     off_t            isize       = 0;
     off_t            nsize       = 0;
 
     gchar           *summary;
-    gchar           *text;
+    gchar           *text = NULL;
     unsigned int     alloc;
     unsigned int     len;
     char             buf[255];
     char            *s;
-    char            *b;
-    templates_t      template;
+    const char      *b;
+    const char      *fields[_NB_FLD];
+    tpl_t            tpl;
     const char      *unit;
     double           size_h;
     replacement_t   *replacements[9];
@@ -173,162 +219,146 @@ notify_updates (
     escaping = !is_cli;
 #endif
 
-    templates_t *t, *tt;
-    /* tpl_upgrades is the ref/fallback for pretty much everything */
-    t = config->tpl_upgrades;
-    tt = NULL;
     if (type & CHECK_UPGRADES)
-    {
-        tt = config->tpl_upgrades;
-    }
+        tpl = TPL_UPGRADES;
     else if (type & CHECK_WATCHED)
-    {
-        tt = config->tpl_watched;
-    }
+        tpl = TPL_WATCHED;
     else if (type & CHECK_AUR)
     {
-        tt = config->tpl_aur;
+        tpl = TPL_AUR;
         /* if needed, init the string that will hold the list of packages */
         if (config->cmdline_aur)
-        {
             string_pkgs = g_string_sized_new (255);
-        }
     }
     else if (type & CHECK_WATCHED_AUR)
-    {
-        tt = config->tpl_watched_aur;
-        /* watched-aur uses aur as fallback */
-        t = config->tpl_aur;
-    }
+        tpl = TPL_WATCHED_AUR;
     else if (type & CHECK_NEWS)
-    {
-        tt = config->tpl_news;
-    }
+        tpl = TPL_NEWS;
     else /* _CHECK_AUR_NOT_FOUND */
-    {
-        tt = config->tpl_aur_not_found;
-    }
-    /* set the templates to use */
-    template.title = (tt && tt->title) ? tt->title : t->title;
-    template.package = (tt && tt->package) ? tt->package : t->package;
-    template.sep = (tt && tt->sep) ? tt->sep : t->sep;
-    /* watched-aur might have fallen back to aur, which itself needs to fallback */
-    if (type & CHECK_WATCHED_AUR)
-    {
-        t = config->tpl_upgrades;
-        template.title = (template.title) ? template.title : t->title;
-        template.package = (template.package) ? template.package : t->package;
-        template.sep = (template.sep) ? template.sep : t->sep;
-    }
+        tpl = TPL_AUR_NOT_FOUND;
 
-    alloc = 1024;
-    text = new (gchar, alloc + 1);
-    len = 0;
+    fields[FLD_TITLE]   = get_fld_value (tpl, FLD_TITLE);
+    fields[FLD_PACKAGE] = get_fld_value (tpl, FLD_PACKAGE);
+    fields[FLD_SEP]     = get_fld_value (tpl, FLD_SEP);
 
-    FOR_LIST (i, packages)
+    if (fields[FLD_PACKAGE] || string_pkgs)
     {
-        ++nb;
-        if (type & CHECK_NEWS)
+        if (fields[FLD_PACKAGE])
         {
-            replacements[0] = new0 (replacement_t, 1);
-            replacements[0]->name = "NEWS";
-            replacements[0]->value = i->data;
-            replacements[0]->need_escaping = TRUE;
-            replacements[1] = NULL;
-
-            /* add separator? */
-            if (nb > 1)
-            {
-                s = text + len;
-                for (b = template.sep; *b; ++b, ++s, ++len)
-                {
-                    *s = *b;
-                }
-            }
-
-            parse_tpl (template.package, &text, &len, &alloc,
-                    replacements, escaping);
-
-            free (replacements[0]);
-
-            debug ("-> %s", (char *) i->data);
+            alloc = 1024;
+            text = new (gchar, alloc + 1);
+            len = 0;
         }
-        else
+
+        FOR_LIST (i, packages)
         {
-            kalu_package_t *pkg = i->data;
-            int j;
-
-            net_size = (int) (pkg->new_size - pkg->old_size);
-            dsize += pkg->dl_size;
-            isize += pkg->new_size;
-            nsize += net_size;
-
-            replacements[0] = new0 (replacement_t, 1);
-            replacements[0]->name = "REPO";
-            replacements[0]->value = (pkg->repo) ? pkg->repo : (char *) "-";
-            replacements[0]->need_escaping = TRUE;
-            replacements[1] = new0 (replacement_t, 1);
-            replacements[1]->name = "PKG";
-            replacements[1]->value = pkg->name;
-            replacements[1]->need_escaping = TRUE;
-            replacements[2] = new0 (replacement_t, 1);
-            replacements[2]->name = "OLD";
-            replacements[2]->value = pkg->old_version;
-            replacements[3] = new0 (replacement_t, 1);
-            replacements[3]->name = "NEW";
-            replacements[3]->value = pkg->new_version;
-            replacements[4] = new0 (replacement_t, 1);
-            replacements[4]->name = "DL";
-            size_h = humanize_size (pkg->dl_size, '\0', &unit);
-            snprint_size (buf, 255, size_h, unit);
-            replacements[4]->value = strdup (buf);
-            replacements[5] = new0 (replacement_t, 1);
-            replacements[5]->name = "INS";
-            size_h = humanize_size (pkg->new_size, '\0', &unit);
-            snprint_size (buf, 255, size_h, unit);
-            replacements[5]->value = strdup (buf);
-            replacements[6] = new0 (replacement_t, 1);
-            replacements[6]->name = "NET";
-            size_h = humanize_size (net_size, '\0', &unit);
-            snprint_size (buf, 255, size_h, unit);
-            replacements[6]->value = strdup (buf);
-            replacements[7] = new0 (replacement_t, 1);
-            replacements[7]->name = "DESC";
-            replacements[7]->value = pkg->desc;
-            replacements[7]->need_escaping = TRUE;
-            replacements[8] = NULL;
-
-            /* add separator? */
-            if (nb > 1)
+            ++nb;
+            if (type & CHECK_NEWS)
             {
-                s = text + len;
-                for (b = template.sep; *b; ++b, ++s, ++len)
+                replacements[0] = new0 (replacement_t, 1);
+                replacements[0]->name = "NEWS";
+                replacements[0]->value = i->data;
+                replacements[0]->need_escaping = TRUE;
+                replacements[1] = NULL;
+
+                /* add separator? */
+                if (nb > 1 && fields[FLD_SEP])
                 {
-                    *s = *b;
+                    s = text + len;
+                    for (b = fields[FLD_SEP]; *b; ++b, ++s, ++len)
+                    {
+                        *s = *b;
+                    }
                 }
+
+                parse_tpl (fields[FLD_PACKAGE], &text, &len, &alloc,
+                        replacements, escaping);
+
+                free (replacements[0]);
+
+                debug ("-> %s", (char *) i->data);
             }
-
-            parse_tpl (template.package, &text, &len, &alloc,
-                    replacements, escaping);
-
-            free (replacements[4]->value);
-            free (replacements[5]->value);
-            free (replacements[6]->value);
-            for (j = 0; j < 7; ++j)
-                free (replacements[j]);
-
-            debug ("-> %s %s -> %s [dl=%d; ins=%d]",
-                    pkg->name,
-                    pkg->old_version,
-                    pkg->new_version,
-                    (int) pkg->dl_size,
-                    (int) pkg->new_size);
-
-            /* construct list of packages, for use in cmdline */
-            if (string_pkgs)
+            else
             {
-                string_pkgs = g_string_append (string_pkgs, pkg->name);
-                string_pkgs = g_string_append_c (string_pkgs, ' ');
+                kalu_package_t *pkg = i->data;
+
+                if (fields[FLD_PACKAGE])
+                {
+                    int j;
+
+                    net_size = (int) (pkg->new_size - pkg->old_size);
+                    dsize += pkg->dl_size;
+                    isize += pkg->new_size;
+                    nsize += net_size;
+
+                    replacements[0] = new0 (replacement_t, 1);
+                    replacements[0]->name = "REPO";
+                    replacements[0]->value = (pkg->repo) ? pkg->repo : (char *) "-";
+                    replacements[0]->need_escaping = TRUE;
+                    replacements[1] = new0 (replacement_t, 1);
+                    replacements[1]->name = "PKG";
+                    replacements[1]->value = pkg->name;
+                    replacements[1]->need_escaping = TRUE;
+                    replacements[2] = new0 (replacement_t, 1);
+                    replacements[2]->name = "OLD";
+                    replacements[2]->value = pkg->old_version;
+                    replacements[3] = new0 (replacement_t, 1);
+                    replacements[3]->name = "NEW";
+                    replacements[3]->value = pkg->new_version;
+                    replacements[4] = new0 (replacement_t, 1);
+                    replacements[4]->name = "DL";
+                    size_h = humanize_size (pkg->dl_size, '\0', &unit);
+                    snprint_size (buf, 255, size_h, unit);
+                    replacements[4]->value = strdup (buf);
+                    replacements[5] = new0 (replacement_t, 1);
+                    replacements[5]->name = "INS";
+                    size_h = humanize_size (pkg->new_size, '\0', &unit);
+                    snprint_size (buf, 255, size_h, unit);
+                    replacements[5]->value = strdup (buf);
+                    replacements[6] = new0 (replacement_t, 1);
+                    replacements[6]->name = "NET";
+                    size_h = humanize_size (net_size, '\0', &unit);
+                    snprint_size (buf, 255, size_h, unit);
+                    replacements[6]->value = strdup (buf);
+                    replacements[7] = new0 (replacement_t, 1);
+                    replacements[7]->name = "DESC";
+                    replacements[7]->value = pkg->desc;
+                    replacements[7]->need_escaping = TRUE;
+                    replacements[8] = NULL;
+
+                    /* add separator? */
+                    if (nb > 1 && fields[FLD_SEP])
+                    {
+                        s = text + len;
+                        for (b = fields[FLD_SEP]; *b; ++b, ++s, ++len)
+                        {
+                            *s = *b;
+                        }
+                    }
+
+                    parse_tpl (fields[FLD_PACKAGE], &text, &len, &alloc,
+                            replacements, escaping);
+
+                    free (replacements[4]->value);
+                    free (replacements[5]->value);
+                    free (replacements[6]->value);
+                    for (j = 0; j < 7; ++j)
+                        free (replacements[j]);
+
+                    debug ("-> %s %s -> %s [dl=%d; ins=%d]",
+                            pkg->name,
+                            pkg->old_version,
+                            pkg->new_version,
+                            (int) pkg->dl_size,
+                            (int) pkg->new_size);
+                }
+
+                /* construct list of packages, for use in cmdline */
+                if (string_pkgs)
+                {
+                    string_pkgs = g_string_append (string_pkgs, pkg->name);
+                    string_pkgs = g_string_append_c (string_pkgs, ' ');
+                }
             }
         }
     }
@@ -365,7 +395,7 @@ notify_updates (
         replacements[4] = NULL;
     }
 
-    parse_tpl (template.title, &summary, &len, &alloc,
+    parse_tpl (fields[FLD_TITLE], &summary, &len, &alloc,
             replacements, escaping);
 
     free (replacements[0]->value);
@@ -385,7 +415,8 @@ notify_updates (
     {
 #endif
         puts (summary);
-        puts (text);
+        if (text)
+            puts (text);
         free (summary);
         free (text);
         return;
@@ -800,6 +831,8 @@ kalu_check_work (gboolean is_auto)
 static void
 free_config (void)
 {
+    int tpl, fld;
+
     if (config == NULL)
     {
         return;
@@ -807,23 +840,10 @@ free_config (void)
 
     free (config->pacmanconf);
 
-    /* tpl */
-    free (config->tpl_upgrades->title);
-    free (config->tpl_upgrades->package);
-    free (config->tpl_upgrades->sep);
-    free (config->tpl_upgrades);
-
-    /* tpl watched */
-    free (config->tpl_watched->title);
-    free (config->tpl_watched->package);
-    free (config->tpl_watched->sep);
-    free (config->tpl_watched);
-
-    /* tpl aur */
-    free (config->tpl_aur->title);
-    free (config->tpl_aur->package);
-    free (config->tpl_aur->sep);
-    free (config->tpl_aur);
+    /* templates: custom values */
+    for (tpl = 0; tpl < _NB_TPL; ++tpl)
+        for (fld = 0; fld < _NB_FLD; ++fld)
+            free (config->templates[tpl].fields[fld].custom);
 
     /* watched */
     FREE_WATCHED_PACKAGE_LIST (config->watched);
@@ -1295,28 +1315,39 @@ main (int argc, char *argv[])
     config->cmdline_link = strdup ("xdg-open '$URL'");
 #endif
 
-    config->tpl_upgrades = new0 (templates_t, 1);
-    config->tpl_upgrades->title = strdup (_("$NB updates available (D: $DL; N: $NET)"));
-    config->tpl_upgrades->package = strdup (_("- <b>$PKG</b> $OLD > <b>$NEW</b> (D: $DL; N: $NET)"));
-    config->tpl_upgrades->sep = strdup ("\n");
+    config->templates[TPL_UPGRADES].fallback = NO_TPL;
+    config->templates[TPL_UPGRADES].fields[FLD_TITLE].def
+        = _("$NB updates available (D: $DL; N: $NET)");
+    config->templates[TPL_UPGRADES].fields[FLD_PACKAGE].def
+        = _("- <b>$PKG</b> $OLD > <b>$NEW</b> (D: $DL; N: $NET)");
+    config->templates[TPL_UPGRADES].fields[FLD_SEP].def
+        = "\n";
 
-    config->tpl_watched = new0 (templates_t, 1);
-    config->tpl_watched->title = strdup (_("$NB watched packages updated (D: $DL; N: $NET)"));
+    config->templates[TPL_WATCHED].fallback = TPL_UPGRADES;
+    config->templates[TPL_WATCHED].fields[FLD_TITLE].def
+        = _("$NB watched packages updated (D: $DL; N: $NET)");
 
-    config->tpl_aur = new0 (templates_t, 1);
-    config->tpl_aur->title = strdup (_("AUR: $NB packages updated"));
-    config->tpl_aur->package = strdup ("- <b>$PKG</b> $OLD > <b>$NEW</b>");
+    config->templates[TPL_AUR].fallback = TPL_UPGRADES;
+    config->templates[TPL_AUR].fields[FLD_TITLE].def
+        = _("AUR: $NB packages updated");
+    config->templates[TPL_AUR].fields[FLD_PACKAGE].def
+        = "- <b>$PKG</b> $OLD > <b>$NEW</b>";
 
-    config->tpl_aur_not_found = new0 (templates_t, 1);
-    config->tpl_aur_not_found->title = strdup (_("$NB packages not found in AUR"));
-    config->tpl_aur_not_found->package = strdup (_("- <b>$PKG</b> ($OLD)"));
+    config->templates[TPL_AUR_NOT_FOUND].fallback = TPL_UPGRADES;
+    config->templates[TPL_AUR_NOT_FOUND].fields[FLD_TITLE].def
+        = _("$NB packages not found in AUR");
+    config->templates[TPL_AUR_NOT_FOUND].fields[FLD_PACKAGE].def
+        = _("- <b>$PKG</b> ($OLD)");
 
-    config->tpl_watched_aur = new0 (templates_t, 1);
-    config->tpl_watched_aur->title = strdup (_("AUR: $NB watched packages updated"));
+    config->templates[TPL_WATCHED_AUR].fallback = TPL_AUR;
+    config->templates[TPL_WATCHED_AUR].fields[FLD_TITLE].def
+        = _("AUR: $NB watched packages updated");
 
-    config->tpl_news = new0 (templates_t, 1);
-    config->tpl_news->title = strdup (_("$NB unread news"));
-    config->tpl_news->package = strdup ("- $NEWS");
+    config->templates[TPL_NEWS].fallback = TPL_UPGRADES;
+    config->templates[TPL_NEWS].fields[FLD_TITLE].def
+        = _("$NB unread news");
+    config->templates[TPL_NEWS].fields[FLD_PACKAGE].def
+        = "- $NEWS";
 
 #ifndef DISABLE_UPDATER
     config->color_unimportant = strdup ("gray");

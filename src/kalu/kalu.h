@@ -123,10 +123,51 @@ enum {
 #define SN_SECONDARY_ACTIVATE   2
 #endif
 
+typedef enum {
+    NO_TPL = -1, /* to indicate no fallback */
+    TPL_UPGRADES,
+    TPL_WATCHED,
+    TPL_AUR,
+    TPL_AUR_NOT_FOUND,
+    TPL_WATCHED_AUR,
+    TPL_NEWS,
+    _NB_TPL
+} tpl_t;
+
+/* template names in config (prefixed w/ "template-") */
+const gchar *tpl_names[_NB_TPL];
+
+typedef enum {
+    FLD_TITLE,
+    FLD_PACKAGE,
+    FLD_SEP,
+    _NB_FLD
+} fld_t;
+
+/* field names in config */
+const gchar *fld_names[_NB_FLD];
+
+typedef enum {
+    TPL_SCE_UNDEFINED = 0,
+    TPL_SCE_DEFAULT,
+    TPL_SCE_FALLBACK,
+    TPL_SCE_CUSTOM,
+    TPL_SCE_NONE,
+    _NB_TPL_SCE
+} tpl_sce_t;
+
+/* source names in config */
+const gchar *tpl_sce_names[_NB_TPL_SCE];
+
+struct field {
+    const char *def;
+    char *custom;
+    tpl_sce_t source;
+};
+
 typedef struct _templates_t {
-    char *title;
-    char *package;
-    char *sep;
+    tpl_t fallback;
+    struct field fields[_NB_TPL];
 } templates_t;
 
 typedef struct _config_t {
@@ -163,12 +204,7 @@ typedef struct _config_t {
     gboolean         auto_notifs;
     gboolean         notif_buttons;
 
-    templates_t     *tpl_upgrades;
-    templates_t     *tpl_watched;
-    templates_t     *tpl_aur;
-    templates_t     *tpl_aur_not_found;
-    templates_t     *tpl_watched_aur;
-    templates_t     *tpl_news;
+    templates_t      templates[_NB_TPL];
 
     alpm_list_t     *aur_ignore;
 

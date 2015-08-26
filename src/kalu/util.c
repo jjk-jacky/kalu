@@ -412,7 +412,7 @@ snprint_size (char *buf, int buflen, double size, const char *unit)
 
 void
 parse_tpl (
-        char             *tpl,
+        const char       *tpl,
         char            **text,
         unsigned int     *len,
         unsigned int     *alloc,
@@ -421,7 +421,7 @@ parse_tpl (
         )
 {
     replacement_t *r, **replacements;
-    char *t;
+    const char *t;
     char *s;
     char *b;
     size_t l;

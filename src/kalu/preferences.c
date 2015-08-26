@@ -65,9 +65,6 @@ static GtkWidget *manual_watched_aur        = NULL;
 static GtkWidget *manual_news               = NULL;
 /* News */
 static GtkWidget *cmdline_link_entry        = NULL;
-static GtkWidget *news_title_entry          = NULL;
-static GtkWidget *news_package_entry        = NULL;
-static GtkWidget *news_sep_entry            = NULL;
 /* Upgrades */
 static GtkWidget *check_pacman_conflict     = NULL;
 static GtkWidget *button_upg_action         = NULL;
@@ -81,26 +78,11 @@ static GtkWidget *cmdline_post_hbox         = NULL;
 static GtkListStore *cmdline_post_store     = NULL;
 static GtkWidget *confirm_post              = NULL;
 #endif
-static GtkWidget *upg_title_entry           = NULL;
-static GtkWidget *upg_package_entry         = NULL;
-static GtkWidget *upg_sep_entry             = NULL;
 /* Watched */
-static GtkWidget *watched_title_entry       = NULL;
-static GtkWidget *watched_package_entry     = NULL;
-static GtkWidget *watched_sep_entry         = NULL;
 /* AUR */
 static GtkWidget *aur_cmdline_entry         = NULL;
 static GtkListStore *aur_ignore_store       = NULL;
-static GtkWidget *aur_title_entry           = NULL;
-static GtkWidget *aur_package_entry         = NULL;
-static GtkWidget *aur_sep_entry             = NULL;
-static GtkWidget *aur_nf_title_entry        = NULL;
-static GtkWidget *aur_nf_package_entry      = NULL;
-static GtkWidget *aur_nf_sep_entry          = NULL;
 /* Watched */
-static GtkWidget *watched_aur_title_entry   = NULL;
-static GtkWidget *watched_aur_package_entry = NULL;
-static GtkWidget *watched_aur_sep_entry     = NULL;
 /* Misc */
 static GtkWidget *syncdbs_in_tooltip        = NULL;
 static GtkWidget *on_sgl_click              = NULL;
@@ -109,16 +91,15 @@ static GtkWidget *on_mdl_click              = NULL;
 static GtkWidget *on_sgl_click_paused       = NULL;
 static GtkWidget *on_dbl_click_paused       = NULL;
 static GtkWidget *on_mdl_click_paused       = NULL;
+/* templates */
+struct _tpl_widgets {
+    GtkWidget *source;
+    GtkWidget *entry;
+};
+static struct _tpl_widgets tpl_widgets[_NB_TPL * _NB_FLD] = { NULL, };
+static templates_t tpl_config[_NB_TPL];
+static int tpl_pg[_NB_TPL] = { 2, 3, 4, 4, 5, 1 };
 
-/* we keep a copy of templates like so, so that we can use it when refreshing
- * the different templates. that is, values shown when a template is not set
- * and therefore fallsback to another one.
- * And because we only ever fallback on aur (for watched-aur) and upgrades, we
- * only need to keep those two. */
-static struct _fallback_templates {
-    templates_t *tpl_upgrades;
-    templates_t *tpl_aur;
-} fallback_templates;
 
 
 static char *
@@ -132,16 +113,23 @@ escape_text (const char *text)
 }
 
 static void
+free_tpl_if_differ_from (templates_t tpl_to_free[],
+                         templates_t tpl_ref[])
+{
+    int tpl, fld;
+
+    for (tpl = 0; tpl < _NB_TPL; ++tpl)
+        for (fld = 0; fld < _NB_FLD; ++fld)
+            if (tpl_to_free[tpl].fields[fld].custom
+                    != tpl_ref[tpl].fields[fld].custom)
+                free (tpl_to_free[tpl].fields[fld].custom);
+}
+
+static void
 destroy_cb (GtkWidget *widget _UNUSED_)
 {
-    free (fallback_templates.tpl_upgrades->title);
-    free (fallback_templates.tpl_upgrades->package);
-    free (fallback_templates.tpl_upgrades->sep);
-    free (fallback_templates.tpl_upgrades);
-    free (fallback_templates.tpl_aur->title);
-    free (fallback_templates.tpl_aur->package);
-    free (fallback_templates.tpl_aur->sep);
-    free (fallback_templates.tpl_aur);
+    /* free our own (unsaved) custom values */
+    free_tpl_if_differ_from (tpl_config, config->templates);
 
     /* remove from list of open windows */
     remove_open_window (window);
@@ -370,251 +358,265 @@ timeout_format_value (GtkScale *scale _UNUSED_, gdouble val, gpointer data _UNUS
     }
 }
 
-#define refresh_entry_text(entry, tpl, tpl_item)     do {   \
-    if (!gtk_widget_get_sensitive (entry))                  \
-    {                                                       \
-        s = escape_text (fallback_templates.tpl->tpl_item); \
-        gtk_entry_set_text (GTK_ENTRY (entry), s);          \
-        free (s);                                           \
-    }                                                       \
-} while (0)
-#define refresh_entry_text_watched_aur(entry, tpl_item) do {    \
-    if (!gtk_widget_get_sensitive (entry))                      \
-    {                                                           \
-        s = NULL;                                               \
-        if (NULL != fallback_templates.tpl_aur->tpl_item)       \
-        {                                                       \
-            s = fallback_templates.tpl_aur->tpl_item;           \
-        }                                                       \
-        if (NULL == s)                                          \
-        {                                                       \
-            s = fallback_templates.tpl_upgrades->tpl_item;      \
-        }                                                       \
-        s = escape_text (s);                                    \
-        gtk_entry_set_text (GTK_ENTRY (entry), s);              \
-        free (s);                                               \
-    }                                                           \
-} while (0)
 static void
-refresh_tpl_widgets (void)
+set_combo_tooltip (GtkWidget *w, int tpl, int fld)
 {
-    char *s;
+    GString *str;
 
-    refresh_entry_text (news_title_entry, tpl_upgrades, title);
-    refresh_entry_text (news_package_entry, tpl_upgrades, package);
-    refresh_entry_text (news_sep_entry, tpl_upgrades, sep);
+    str = g_string_new (_("Select the source for this field:\n"));
+    if (tpl_config[tpl].fields[fld].def)
+        g_string_append (str, _("- Default: use default value\n"));
+    if (fld != FLD_TITLE && tpl_config[tpl].fallback != NO_TPL)
+        g_string_append_printf (str, _("- Fall back: use value from template '%s'\n"),
+                gtk_notebook_get_tab_label_text ((GtkNotebook *) notebook,
+                    gtk_notebook_get_nth_page ((GtkNotebook *) notebook,
+                        tpl_pg[tpl_config[tpl].fallback])));
+    g_string_append (str, _("- Custom: specify a custom value\n"));
+    if (fld != FLD_TITLE)
+        g_string_append (str, _("- None: no value\n"));
 
-    refresh_entry_text (watched_title_entry, tpl_upgrades, title);
-    refresh_entry_text (watched_package_entry, tpl_upgrades, package);
-    refresh_entry_text (watched_sep_entry, tpl_upgrades, sep);
-
-    refresh_entry_text (aur_title_entry, tpl_upgrades, title);
-    refresh_entry_text (aur_package_entry, tpl_upgrades, package);
-    refresh_entry_text (aur_sep_entry, tpl_upgrades, sep);
-
-    refresh_entry_text (aur_nf_title_entry, tpl_upgrades, title);
-    refresh_entry_text (aur_nf_package_entry, tpl_upgrades, package);
-    refresh_entry_text (aur_nf_sep_entry, tpl_upgrades, sep);
-
-    /* watched-aur: falls back to aur first, then upgrades */
-    refresh_entry_text_watched_aur (watched_aur_title_entry, title);
-    refresh_entry_text_watched_aur (watched_aur_package_entry, package);
-    refresh_entry_text_watched_aur (watched_aur_sep_entry, sep);
+    g_string_truncate (str, str->len - 1);
+    gtk_widget_set_tooltip_markup (w, str->str);
+    g_string_free (str, TRUE);
 }
-#undef refresh_entry_text_watched_aur
-#undef refresh_entry_text
 
 static void
-tpl_toggled_cb (GtkToggleButton *button, GtkWidget *entry)
+fill_combo (GtkWidget *w, int tpl, int fld)
 {
-    gboolean is_active = gtk_toggle_button_get_active (button);
-    char **tpl_item = g_object_get_data (G_OBJECT (entry), "tpl-item");
-    char *old, **fallback, *s;
+    if (tpl_config[tpl].fields[fld].def)
+        gtk_combo_box_text_append ((GtkComboBoxText *) w, "DEFAULT", "Default");
+    if (fld != FLD_TITLE && tpl_config[tpl].fallback != NO_TPL)
+        gtk_combo_box_text_append ((GtkComboBoxText *) w, "FALLBACK", "Fall back");
+    gtk_combo_box_text_append ((GtkComboBoxText *) w, "CUSTOM", "Custom");
+    if (fld != FLD_TITLE)
+        gtk_combo_box_text_append ((GtkComboBoxText *) w, "NONE", "None");
+}
 
-    /* switch entry's sensitive state */
-    gtk_widget_set_sensitive (entry, is_active);
+static const char *
+get_fld_value (tpl_t tpl, int fld)
+{
+    struct field *f = &tpl_config[tpl].fields[fld];
 
-    if (is_active)
+    switch (f->source)
     {
-        /* try to restore old-value if there's one */
-        old = g_object_get_data (G_OBJECT (entry), "old-value");
-        if (NULL != old)
-        {
-            s = old;
-        }
-        else
-        {
-            s = (char *) "";
-        }
-        gtk_entry_set_text (GTK_ENTRY (entry), s);
+        case TPL_SCE_DEFAULT:
+            return f->def;
 
-        /* if this entry has a tpl-item we need to update it as well */
-        if (NULL != tpl_item)
-        {
-            free (*tpl_item);
-            *tpl_item = strdup (s);
-        }
+        case TPL_SCE_FALLBACK:
+            return get_fld_value (tpl_config[tpl].fallback, fld);
+
+        case TPL_SCE_CUSTOM:
+            return f->custom;
+
+        case TPL_SCE_NONE:
+        case TPL_SCE_UNDEFINED: /* silence warning */
+        default: /* silence warning */
+            return NULL;
+    }
+}
+
+static void
+update_custom_for_id (int id)
+{
+    int tpl, fld;
+    gchar *cur;
+    const gchar *new;
+
+    tpl = id / _NB_FLD;
+    fld = id - tpl * 3;
+
+    cur = tpl_config[tpl].fields[fld].custom;
+    new = gtk_entry_get_text ((GtkEntry *) tpl_widgets[id].entry);
+
+    if (!streq (cur, new))
+    {
+        if (config->templates[tpl].fields[fld].custom != cur)
+            free (cur);
+        tpl_config[tpl].fields[fld].custom = strdup (new);
+    }
+}
+
+static void
+set_entry_text_for_id (int id, const gchar *s)
+{
+    GtkEntryBuffer *buffer;
+
+    buffer = gtk_entry_get_buffer ((GtkEntry *) tpl_widgets[id].entry);
+    gtk_entry_buffer_delete_text (buffer, 0, -1);
+    if (s)
+    {
+        s = escape_text (s);
+        gtk_entry_buffer_insert_text (buffer, 0, s, -1);
+        free ((char *) s);
+    }
+}
+
+static void
+sce_changed_cb (GtkComboBox *combo, gpointer data)
+{
+    int id, tpl, fld;
+    const gchar *sce;
+    const gchar *s;
+
+    id = GPOINTER_TO_INT (g_object_get_data ((GObject *) combo, "id"));
+    tpl = id / _NB_FLD;
+    fld = id - tpl * 3;
+
+    /* if it was CUSTOM before the change, we need to update the custom value.
+     * This could happen w/out focus_out_cb() called when e.g. using mouse wheel
+     * over the combobox whilst editing the entry.
+     * data is set when called on window creation, i.e. we shall skip the
+     * update_custom_for_id() call since it obviously is empty for now. */
+    if (!data && tpl_config[tpl].fields[fld].source == TPL_SCE_CUSTOM)
+        update_custom_for_id (id);
+
+    sce = gtk_combo_box_get_active_id (combo);
+    if (streq (sce, "DEFAULT"))
+    {
+        tpl_config[tpl].fields[fld].source = TPL_SCE_DEFAULT;
+        s = tpl_config[tpl].fields[fld].def;
+    }
+    else if (streq (sce, "FALLBACK"))
+    {
+        tpl_config[tpl].fields[fld].source = TPL_SCE_FALLBACK;
+        s = get_fld_value (tpl_config[tpl].fallback, fld);
+    }
+    else if (streq (sce, "CUSTOM"))
+    {
+        tpl_config[tpl].fields[fld].source = TPL_SCE_CUSTOM;
+        s = tpl_config[tpl].fields[fld].custom;
+    }
+    else /* NONE */
+    {
+        tpl_config[tpl].fields[fld].source = TPL_SCE_NONE;
+        s = NULL;
+    }
+
+    set_entry_text_for_id (id, s);
+
+    if (tpl_config[tpl].fields[fld].source == TPL_SCE_CUSTOM)
+    {
+        gtk_widget_set_sensitive (tpl_widgets[id].entry, TRUE);
+        gtk_editable_set_editable ((GtkEditable *) tpl_widgets[id].entry, TRUE);
+        gtk_entry_set_icon_from_icon_name ((GtkEntry *) tpl_widgets[id].entry,
+                GTK_ENTRY_ICON_PRIMARY, NULL);
+    }
+    else if (tpl_config[tpl].fields[fld].source == TPL_SCE_NONE)
+    {
+        gtk_widget_set_sensitive (tpl_widgets[id].entry, FALSE);
+        gtk_entry_set_icon_from_icon_name ((GtkEntry *) tpl_widgets[id].entry,
+                GTK_ENTRY_ICON_PRIMARY, NULL);
     }
     else
     {
-        /* store old value */
-        old = (char *) gtk_entry_get_text (GTK_ENTRY (entry));
-        g_object_set_data_full (G_OBJECT (entry), "old-value",
-                strdup (old), (GDestroyNotify) free);
-        /* now, replace the text with whatever we fall back on.
-         * watched-aur falls back to aur first, then, as others, to upgrades */
-        check_t type = (check_t) g_object_get_data (G_OBJECT (entry), "type");
-        fallback = NULL;
-        if (type & CHECK_WATCHED_AUR)
-        {
-            fallback = g_object_get_data (G_OBJECT (entry), "fallback-aur");
-        }
-        if (NULL == fallback || NULL == *fallback)
-        {
-            fallback = g_object_get_data (G_OBJECT (entry), "fallback");
-        }
-        s = escape_text (*fallback);
-        gtk_entry_set_text (GTK_ENTRY (entry), s);
-        free (s);
-
-        /* if this entry has a tpl-item we need to reset it as well */
-        if (NULL != tpl_item)
-        {
-            free (*tpl_item);
-            *tpl_item = NULL;
-        }
-    }
-    /* if this entry has a tpl-item, we need te refresh every unsensitive
-     * widget (which might be falling back to it) */
-    if (NULL != tpl_item)
-    {
-        refresh_tpl_widgets ();
+        gtk_widget_set_sensitive (tpl_widgets[id].entry, TRUE);
+        gtk_editable_set_editable ((GtkEditable *) tpl_widgets[id].entry, FALSE);
+        gtk_entry_set_icon_from_icon_name ((GtkEntry *) tpl_widgets[id].entry,
+                GTK_ENTRY_ICON_PRIMARY, "gtk-edit");
+        gtk_entry_set_icon_tooltip_text ((GtkEntry *) tpl_widgets[id].entry,
+                GTK_ENTRY_ICON_PRIMARY, _("Edit as custom value"));
     }
 }
 
 static gboolean
 focus_out_cb (GtkWidget *entry, GdkEvent *event _UNUSED_, gpointer data _UNUSED_)
 {
-    char **tpl_item = (char **) g_object_get_data (G_OBJECT (entry), "tpl-item");
-    if (NULL == tpl_item)
-    {
-        return FALSE;
-    }
+    int id, tpl, fld;
 
-    /* update fallback_templates item value */
-    free (*tpl_item);
-    *tpl_item = strdup (gtk_entry_get_text (GTK_ENTRY (entry)));
+    id = GPOINTER_TO_INT (g_object_get_data ((GObject *) entry, "id"));
+    tpl = id / _NB_FLD;
+    fld = id - tpl * 3;
 
-    /* now update every unsensitive widget, so they're up-to-date when user
-     * switches pages */
-    refresh_tpl_widgets ();
+    if (tpl_config[tpl].fields[fld].source == TPL_SCE_CUSTOM)
+        update_custom_for_id (id);
 
     /* keep processing */
     return FALSE;
 }
 
-#define add_label(text, tpl_item)    do {                           \
-    if (type & CHECK_UPGRADES)                                      \
-    {                                                               \
-        label = gtk_label_new (text);                               \
-    }                                                               \
-    else                                                            \
-    {                                                               \
-        label = gtk_check_button_new_with_label (text);             \
-        gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON (label),    \
-                NULL != template->tpl_item);                        \
-    }                                                               \
-    gtk_grid_attach (GTK_GRID (grid), label, 0, top, 1, 1);         \
-    gtk_widget_show (label);                                        \
+static void
+entry_icon_press_cb (GtkEntry               *entry,
+                     GtkEntryIconPosition    pos _UNUSED_,
+                     GdkEvent               *event _UNUSED_,
+                     gpointer                data _UNUSED_)
+{
+    int id, tpl, fld;
+    gchar *s;
+
+    id = GPOINTER_TO_INT (g_object_get_data ((GObject *) entry, "id"));
+    tpl = id / _NB_FLD;
+    fld = id - tpl * 3;
+
+    s = escape_text (get_fld_value (tpl, fld));
+    gtk_combo_box_set_active_id ((GtkComboBox *) tpl_widgets[id].source, "CUSTOM");
+    gtk_entry_set_text (entry, s);
+    free (s);
+    gtk_widget_grab_focus ((GtkWidget *) entry);
+}
+
+#define add_label(text)    do {                                     \
+    w = gtk_label_new (text);                                       \
+    gtk_grid_attach (GTK_GRID (grid), w, 0, top, 1, 1);             \
+    gtk_widget_show (w);                                            \
 } while (0)
-#define set_entry(entry, tpl_item)   do {                               \
-    g_object_set_data (G_OBJECT (entry), "type",                        \
-            (gpointer) type);                                           \
-    g_object_set_data (G_OBJECT (entry), "fallback",                    \
-            (gpointer) &(fallback_templates.tpl_upgrades->tpl_item));   \
-    if (type & CHECK_WATCHED_AUR)                                       \
-    {                                                                   \
-        g_object_set_data (G_OBJECT (entry), "fallback-aur",            \
-                (gpointer) &(fallback_templates.tpl_aur->tpl_item));    \
-    }                                                                   \
-    if (type & (CHECK_UPGRADES | CHECK_AUR))                            \
-    {                                                                   \
-        gpointer ptr;                                                   \
-        if (type & CHECK_UPGRADES)                                      \
-        {                                                               \
-            ptr = &(fallback_templates.tpl_upgrades->tpl_item);         \
-        }                                                               \
-        else                                                            \
-        {                                                               \
-            ptr = &(fallback_templates.tpl_aur->tpl_item);              \
-        }                                                               \
-        g_object_set_data (G_OBJECT (entry), "tpl-item", ptr);          \
-        gtk_widget_add_events (entry, GDK_FOCUS_CHANGE_MASK);           \
-        g_signal_connect (G_OBJECT (entry), "focus-out-event",          \
-                G_CALLBACK (focus_out_cb), NULL);                       \
-    }                                                                   \
-    if (NULL != template->tpl_item)                                     \
-    {                                                                   \
-        s = template->tpl_item;                                         \
-    }                                                                   \
-    else                                                                \
-    {                                                                   \
-        gtk_widget_set_sensitive (entry, FALSE);                        \
-        s = NULL;                                                       \
-        if (type & CHECK_WATCHED_AUR                                    \
-                && NULL != config->tpl_aur->tpl_item)                   \
-        {                                                               \
-            s = config->tpl_aur->tpl_item;                              \
-        }                                                               \
-        if (s == NULL)                                                  \
-        {                                                               \
-            s = config->tpl_upgrades->tpl_item;                         \
-        }                                                               \
-    }                                                                   \
-    s = escape_text (s);                                                \
-    gtk_entry_set_text (GTK_ENTRY (entry), s);                          \
-    free (s);                                                           \
+#define add_combo(fld)     do {                                     \
+    w = gtk_combo_box_text_new ();                                  \
+    fill_combo (w, tpl, fld);                                       \
+    g_object_set_data (G_OBJECT (w), "id",                          \
+            GINT_TO_POINTER (tpl * 3 + fld));                       \
+    gtk_combo_box_set_active_id ((GtkComboBox *) w,                 \
+            tpl_sce_names[tpl_config[tpl].fields[fld].source]);     \
+    g_signal_connect (G_OBJECT (w), "changed",                      \
+            G_CALLBACK (sce_changed_cb), NULL);                     \
+    gtk_grid_attach (GTK_GRID (grid), w, 1, top, 1, 1);             \
+    gtk_widget_show (w);                                            \
+    tpl_widgets[tpl * 3 + fld].source = w;                          \
 } while (0)
-#define connect_signal(entry)   do {                    \
-    if (!(type & CHECK_UPGRADES))                       \
-    {                                                   \
-        g_signal_connect (G_OBJECT (label), "toggled",  \
-                G_CALLBACK (tpl_toggled_cb),            \
-                (gpointer) entry);                      \
-    }                                                   \
+#define set_entry(fld)   do {                                       \
+    gtk_entry_set_width_chars ((GtkEntry *) w, 42);                 \
+    g_object_set_data (G_OBJECT (w), "type",                        \
+            GINT_TO_POINTER (type));                                \
+    g_object_set_data (G_OBJECT (w), "id",                          \
+            GINT_TO_POINTER (tpl * 3 + fld));                       \
+    gtk_widget_add_events (w, GDK_FOCUS_CHANGE_MASK);               \
+    g_signal_connect (G_OBJECT (w), "focus-out-event",              \
+            G_CALLBACK (focus_out_cb), NULL);                       \
+    g_signal_connect (G_OBJECT (w), "icon-press",                   \
+            G_CALLBACK (entry_icon_press_cb), NULL);                \
+    tpl_widgets[tpl * 3 + fld].entry = w;                           \
+    sce_changed_cb ((GtkComboBox *) tpl_widgets[tpl * 3 + fld].source,  \
+            GINT_TO_POINTER (1));                                   \
 } while (0)
 #define add_to_grid(entry)   do {                           \
-    gtk_grid_attach (GTK_GRID (grid), entry, 1, top, 3, 1); \
+    gtk_grid_attach (GTK_GRID (grid), entry, 2, top, 2, 1); \
     gtk_widget_show (entry);                                \
 } while (0)
 static void
 add_template (GtkWidget    *grid,
               int           top,
-              GtkWidget   **title_entry,
-              GtkWidget   **package_entry,
-              GtkWidget   **sep_entry,
-              templates_t  *template,
+              int           tpl,
               check_t       type)
 {
-    char *s, *tooltip;
-    GtkWidget *label;
+    char *tooltip;
+    GtkWidget *w;
 
     /* notification template */
-    label = gtk_label_new (NULL);
-    gtk_widget_set_size_request (label, 420, -1);
+    w = gtk_label_new (NULL);
+    gtk_widget_set_size_request (w, 500, -1);
     if (type & _CHECK_AUR_NOT_FOUND)
-        gtk_label_set_markup (GTK_LABEL (label), _("<b>When packages are not found:</b>"));
+        gtk_label_set_markup (GTK_LABEL (w), _("<b>When packages are not found:</b>"));
     else
-        gtk_label_set_markup (GTK_LABEL (label), _("<b>Notification template</b>"));
-    gtk_widget_set_margin_top (label, 15);
-    gtk_grid_attach (GTK_GRID (grid), label, 0, top, 4, 1);
-    gtk_widget_show (label);
+        gtk_label_set_markup (GTK_LABEL (w), _("<b>Notification template</b>"));
+    gtk_widget_set_margin_top (w, 15);
+    gtk_grid_attach (GTK_GRID (grid), w, 0, top, 4, 1);
+    gtk_widget_show (w);
 
     /* Title */
     ++top;
-    add_label (_("Title :"), title);
+    add_label (_("Title :"));
+    add_combo (FLD_TITLE);
 
-    *title_entry = gtk_entry_new ();
+    w = gtk_entry_new ();
     /* set tooltip */
     tooltip = g_strconcat (
             _(  "The following variables are available :"
@@ -625,22 +627,20 @@ add_template (GtkWidget    *grid,
                 "\n- <b>$NET</b> : total net (post-install difference) size")
             : NULL,
             NULL);
-    gtk_widget_set_tooltip_markup (*title_entry, tooltip);
+    gtk_widget_set_tooltip_markup (w, tooltip);
     g_free (tooltip);
     /* set value if any, else unsensitive */
-    set_entry (*title_entry, title);
-    /* if it's a check-button, connect to toggled (now that we have the related entry) */
-    connect_signal (*title_entry);
+    set_entry (FLD_TITLE);
     /* add to grid */
-    add_to_grid (*title_entry);
+    add_to_grid (w);
 
 
     /* Package */
     ++top;
-    add_label ((type & CHECK_NEWS) ? _("News item :") : _("Package :"),
-            package);
+    add_label ((type & CHECK_NEWS) ? _("News item :") : _("Package :"));
+    add_combo (FLD_PACKAGE);
 
-    *package_entry = gtk_entry_new ();
+    w = gtk_entry_new ();
     /* set tooltip */
     if (type & CHECK_NEWS)
         tooltip = g_strconcat (
@@ -663,35 +663,30 @@ add_template (GtkWidget    *grid,
             _("\n- <b>$NET</b> : net (post-install difference) size"),
             NULL);
     }
-    gtk_widget_set_tooltip_markup (*package_entry, tooltip);
+    gtk_widget_set_tooltip_markup (w, tooltip);
     g_free (tooltip);
     /* set value if any, else unsensitive */
-    set_entry (*package_entry, package);
-    /* if it's a check-button, connect to toggled (now that we have the related
-     * entry) */
-    connect_signal (*package_entry);
+    set_entry (FLD_PACKAGE);
     /* add to grid */
-    add_to_grid (*package_entry);
+    add_to_grid (w);
 
 
     /* Separator */
     ++top;
-    add_label (_("Separator :"), sep);
+    add_label (_("Separator :"));
+    add_combo (FLD_SEP);
 
-    *sep_entry = gtk_entry_new ();
+    w = gtk_entry_new ();
     /* set tooltip */
-    gtk_widget_set_tooltip_text (*sep_entry, _("No variables available."));
+    gtk_widget_set_tooltip_text (w, _("No variables available."));
     /* set value if any, else unsensitive */
-    set_entry (*sep_entry, sep);
-    /* if it's a check-button, connect to toggled (now that we have the related
-     * entry) */
-    connect_signal (*sep_entry);
+    set_entry (FLD_SEP);
     /* add to grid */
-    add_to_grid (*sep_entry);
+    add_to_grid (w);
 }
 #undef add_to_grid
-#undef connect_signal
 #undef set_entry
+#undef add_combo
 #undef add_label
 
 static void
@@ -722,48 +717,6 @@ btn_manage_watched_cb (GtkButton *button _UNUSED_, gboolean is_aur)
     show_error (_("Unable to apply/save preferences"), errmsg,          \
             GTK_WINDOW (window));                                       \
     goto clean_on_error;                                                \
-} while (0)
-#define tpl_field(tpl_name, tpl_key, name, key, entry, field, page) do {    \
-    if (gtk_widget_get_sensitive (entry))                                   \
-    {                                                                       \
-        s = (char *) gtk_entry_get_text (GTK_ENTRY (entry));                \
-        if (*s == '\0')                                                     \
-        {                                                                   \
-            error_on_page (page, _("Template missing field " field "."));   \
-        }                                                                   \
-        if (!has_tpl)                                                       \
-        {                                                                   \
-            add_to_conf ("[template-" name "]\n");                          \
-        }                                                                   \
-        add_to_conf (key " = \"%s\"\n", s);                                 \
-        new_config.tpl_name->tpl_key = strreplace (s, "\\n", "\n");         \
-        has_tpl = TRUE;                                                     \
-    }                                                                       \
-    else                                                                    \
-    {                                                                       \
-        if (!has_tpl)                                                       \
-        {                                                                   \
-            add_to_conf ("[template-" name "]\n");                          \
-        }                                                                   \
-        add_to_conf (key " =\n");                                           \
-        new_config.tpl_name->tpl_key = NULL;                                \
-        has_tpl = TRUE;                                                     \
-    }                                                                       \
-} while (0)
-#define free_tpl(tpl)  do {     \
-    if (tpl->title)             \
-    {                           \
-        free (tpl->title);      \
-    }                           \
-    if (tpl->package)           \
-    {                           \
-        free (tpl->package);    \
-    }                           \
-    if (tpl->sep)               \
-    {                           \
-        free (tpl->sep);        \
-    }                           \
-    free (tpl);                 \
 } while (0)
 #define do_click(name, confname, is_paused)    do {                         \
     s = (gchar *) gtk_combo_box_get_active_id (GTK_COMBO_BOX (name));       \
@@ -827,7 +780,6 @@ btn_save_cb (GtkButton *button _UNUSED_, gpointer data _UNUSED_)
     gchar *s;
     gint nb, begin_hour, begin_minute, end_hour, end_minute;
     check_t type;
-    gboolean has_tpl;
     GtkTreeModel *model;
     GtkTreeIter iter;
     config_t new_config;
@@ -837,6 +789,8 @@ btn_save_cb (GtkButton *button _UNUSED_, gpointer data _UNUSED_)
     add_to_conf ("[options]\n");
     /* also init the new config_t: copy the actual one */
     memcpy (&new_config, config, sizeof (config_t));
+    /* "import" current templates */
+    memcpy (&new_config.templates, &tpl_config, sizeof (templates_t) * _NB_TPL);
     /* and set to NULL all that matters (strings/lists/templates we'll re-set) */
     new_config.pacmanconf       = NULL;
     new_config.notif_icon_user  = NULL;
@@ -846,12 +800,6 @@ btn_save_cb (GtkButton *button _UNUSED_, gpointer data _UNUSED_)
 #ifndef DISABLE_UPDATER
     new_config.cmdline_post     = NULL;
 #endif
-    new_config.tpl_upgrades     = new0 (templates_t, 1);
-    new_config.tpl_watched      = new0 (templates_t, 1);
-    new_config.tpl_aur          = new0 (templates_t, 1);
-    new_config.tpl_aur_not_found= new0 (templates_t, 1);
-    new_config.tpl_watched_aur  = new0 (templates_t, 1);
-    new_config.tpl_news         = new0 (templates_t, 1);
     new_config.aur_ignore       = NULL;
 
     /* re-use the UseIP value (cannot be set via GUI) */
@@ -1183,149 +1131,25 @@ btn_save_cb (GtkButton *button _UNUSED_, gpointer data _UNUSED_)
 
     /* ** TEMPLATES ** */
 
-    /* Upgrades */
-    has_tpl = FALSE;
-    tpl_field (tpl_upgrades,
-            title,
-            "upgrades",
-            "Title",
-            upg_title_entry,
-            "Title",
-            2);
-    tpl_field (tpl_upgrades,
-            package,
-            "upgrades",
-            "Package",
-            upg_package_entry,
-            "Package",
-            2);
-    tpl_field (tpl_upgrades,
-            sep,
-            "upgrades",
-            "Sep",
-            upg_sep_entry,
-            "Separator",
-            2);
-
-    /* Watched */
-    has_tpl = FALSE;
-    tpl_field (tpl_watched,
-            title,
-            "watched",
-            "Title",
-            watched_title_entry,
-            "Title",
-            3);
-    tpl_field (tpl_watched,
-            package,
-            "watched",
-            "Package",
-            watched_package_entry,
-            "Package",
-            3);
-    tpl_field (tpl_watched,
-            sep,
-            "watched",
-            "Sep",
-            watched_sep_entry,
-            "Separator",
-            3);
-
-    /* AUR */
-    has_tpl = FALSE;
-    tpl_field (tpl_aur,
-            title,
-            "aur",
-            "Title",
-            aur_title_entry,
-            "Title",
-            4);
-    tpl_field (tpl_aur,
-            package,
-            "aur",
-            "Package",
-            aur_package_entry,
-            "Package",
-            4);
-    tpl_field (tpl_aur,
-            sep,
-            "aur",
-            "Sep",
-            aur_sep_entry,
-            "Separator",
-            4);
-
-    /* AUR Not Found */
-    has_tpl = FALSE;
-    tpl_field (tpl_aur_not_found,
-            title,
-            "aur-not-found",
-            "Title",
-            aur_nf_title_entry,
-            "Title",
-            4);
-    tpl_field (tpl_aur_not_found,
-            package,
-            "aur-not-found",
-            "Package",
-            aur_nf_package_entry,
-            "Package",
-            4);
-    tpl_field (tpl_aur_not_found,
-            sep,
-            "aur-not-found",
-            "Sep",
-            aur_nf_sep_entry,
-            "Separator",
-            4);
-
-    /* Watched AUR */
-    has_tpl = FALSE;
-    tpl_field (tpl_watched_aur,
-            title,
-            "watched-aur",
-            "Title",
-            watched_aur_title_entry,
-            "Title",
-            5);
-    tpl_field (tpl_watched_aur,
-            package,
-            "watched-aur",
-            "Package",
-            watched_aur_package_entry,
-            "Package",
-            5);
-    tpl_field (tpl_watched_aur,
-            sep,
-            "watched-aur",
-            "Sep",
-            watched_aur_sep_entry,
-            "Separator",
-            5);
-
-    /* News */
-    has_tpl = FALSE;
-    tpl_field (tpl_news,
-            title,
-            "news",
-            "Title",
-            news_title_entry,
-            "Title",
-            1);
-    tpl_field (tpl_news,
-            package,
-            "news",
-            "Package",
-            news_package_entry,
-            "News item",
-            1);
-    tpl_field (tpl_news,
-            sep,
-            "news",
-            "Sep",
-            news_sep_entry,
-            "Separator",
-            1);
+    int tpl, fld;
+    for (tpl = 0; tpl < _NB_TPL; ++tpl)
+    {
+        add_to_conf ("[template-%s]\n", tpl_names[tpl]);
+        for (fld = 0; fld < _NB_FLD; ++fld)
+        {
+            add_to_conf ("%sSce = %s\n",
+                    fld_names[fld],
+                    tpl_sce_names[new_config.templates[tpl].fields[fld].source]);
+            if (new_config.templates[tpl].fields[fld].custom
+                    && *new_config.templates[tpl].fields[fld].custom != '\0')
+                add_to_conf ("%s = \"%s\"\n",
+                        fld_names[fld],
+                        /* so we get it w/ LF-s escaped */
+                        gtk_entry_get_text ((GtkEntry *) tpl_widgets[tpl * 3 + fld].entry));
+            else if (new_config.templates[tpl].fields[fld].source == TPL_SCE_CUSTOM)
+                error_on_page (tpl_pg[tpl], _("Custom value is required."));
+        }
+    }
 
     /* save file */
     char conffile[MAX_PATH];
@@ -1354,6 +1178,7 @@ btn_save_cb (GtkButton *button _UNUSED_, gpointer data _UNUSED_)
     g_free (conf);
 
     /* free the now unneeded strings/lists */
+    free_tpl_if_differ_from (config->templates, new_config.templates);
     free (config->pacmanconf);
     free (config->notif_icon_user);
     free (config->cmdline);
@@ -1362,12 +1187,6 @@ btn_save_cb (GtkButton *button _UNUSED_, gpointer data _UNUSED_)
 #ifndef DISABLE_UPDATER
     FREELIST (config->cmdline_post);
 #endif
-    free_tpl (config->tpl_upgrades);
-    free_tpl (config->tpl_watched);
-    free_tpl (config->tpl_aur);
-    free_tpl (config->tpl_aur_not_found);
-    free_tpl (config->tpl_watched_aur);
-    free_tpl (config->tpl_news);
     FREELIST (config->aur_ignore);
     /* copy new ones over */
     memcpy (config, &new_config, sizeof (config_t));
@@ -1391,12 +1210,6 @@ clean_on_error:
         FREELIST (new_config.cmdline_post);
     }
 #endif
-    free_tpl (new_config.tpl_upgrades);
-    free_tpl (new_config.tpl_watched);
-    free_tpl (new_config.tpl_aur);
-    free_tpl (new_config.tpl_aur_not_found);
-    free_tpl (new_config.tpl_watched_aur);
-    free_tpl (new_config.tpl_news);
     if (new_config.aur_ignore)
     {
         FREELIST (new_config.aur_ignore);
@@ -1630,6 +1443,44 @@ add_on_click_actions (
     }
 }
 
+static void
+refresh_tpl_fallbacks (int tpl)
+{
+    int fld;
+
+    for (fld = 0; fld < _NB_FLD; ++fld)
+        if (tpl_config[tpl].fields[fld].source == TPL_SCE_FALLBACK)
+            set_entry_text_for_id (tpl * 3 + fld,
+                    get_fld_value (tpl_config[tpl].fallback, fld));
+}
+
+static void
+switch_page_cb (GtkNotebook *nb     _UNUSED_,
+                GtkWidget   *w      _UNUSED_,
+                guint        page,
+                gpointer     data   _UNUSED_)
+{
+    switch (page)
+    {
+        case 1:
+            refresh_tpl_fallbacks (TPL_NEWS);
+            break;
+        case 2:
+            refresh_tpl_fallbacks (TPL_UPGRADES);
+            break;
+        case 3:
+            refresh_tpl_fallbacks (TPL_WATCHED);
+            break;
+        case 4:
+            refresh_tpl_fallbacks (TPL_AUR);
+            refresh_tpl_fallbacks (TPL_AUR_NOT_FOUND);
+            break;
+        case 5:
+            refresh_tpl_fallbacks (TPL_WATCHED_AUR);
+            break;
+    }
+}
+
 void
 show_prefs (void)
 {
@@ -1638,6 +1489,9 @@ show_prefs (void)
         gtk_window_present (GTK_WINDOW (window));
         return;
     }
+
+    /* "import" templates from config */
+    memcpy (&tpl_config, &config->templates, sizeof (templates_t) * _NB_TPL);
 
     /* the window */
     window = gtk_window_new (GTK_WINDOW_TOPLEVEL);
@@ -1971,29 +1825,6 @@ show_prefs (void)
 
     /*******************************************/
 
-    /* set the copy of those templates to be used for falling back. that is,
-     * they'll be updated whenever they're changed on prefs window, whereaas
-     * config if only updated upon (and if) saving changes */
-    fallback_templates.tpl_upgrades = new0 (templates_t, 1);
-    fallback_templates.tpl_upgrades->title = strdup (config->tpl_upgrades->title);
-    fallback_templates.tpl_upgrades->package = strdup (config->tpl_upgrades->package);
-    fallback_templates.tpl_upgrades->sep = strdup (config->tpl_upgrades->sep);
-    fallback_templates.tpl_aur = new0 (templates_t, 1);
-    if (NULL != config->tpl_aur->title)
-    {
-        fallback_templates.tpl_aur->title = strdup (config->tpl_aur->title);
-    }
-    if (NULL != config->tpl_aur->package)
-    {
-        fallback_templates.tpl_aur->package = strdup (config->tpl_aur->package);
-    }
-    if (NULL != config->tpl_aur->sep)
-    {
-        fallback_templates.tpl_aur->sep = strdup (config->tpl_aur->sep);
-    }
-
-    /*******************************************/
-
     /* [ News ] */
     top = 0;
     grid = gtk_grid_new ();
@@ -2010,16 +1841,11 @@ show_prefs (void)
     {
         gtk_entry_set_text (GTK_ENTRY (cmdline_link_entry), config->cmdline_link);
     }
-    gtk_grid_attach (GTK_GRID (grid), cmdline_link_entry, 1, top, 1, 1);
+    gtk_grid_attach (GTK_GRID (grid), cmdline_link_entry, 1, top, 3, 1);
     gtk_widget_show (cmdline_link_entry);
 
     ++top;
-    add_template (grid, top,
-            &news_title_entry,
-            &news_package_entry,
-            &news_sep_entry,
-            config->tpl_news,
-            CHECK_NEWS);
+    add_template (grid, top, TPL_NEWS, CHECK_NEWS);
 
     /* add page */
     gtk_widget_show (grid);
@@ -2148,12 +1974,7 @@ show_prefs (void)
 #endif
 
     ++top;
-    add_template (grid, top,
-            &upg_title_entry,
-            &upg_package_entry,
-            &upg_sep_entry,
-            config->tpl_upgrades,
-            CHECK_UPGRADES);
+    add_template (grid, top, TPL_UPGRADES, CHECK_UPGRADES);
 
     /* add page */
     gtk_widget_show (grid);
@@ -2174,12 +1995,7 @@ show_prefs (void)
             G_CALLBACK (btn_manage_watched_cb), GINT_TO_POINTER (FALSE));
 
     ++top;
-    add_template (grid, top,
-            &watched_title_entry,
-            &watched_package_entry,
-            &watched_sep_entry,
-            config->tpl_watched,
-            CHECK_WATCHED);
+    add_template (grid, top, TPL_WATCHED, CHECK_WATCHED);
 
     /* add page */
     gtk_widget_show (grid);
@@ -2241,20 +2057,10 @@ show_prefs (void)
 
     /* template */
     ++top;
-    add_template (grid, top,
-            &aur_title_entry,
-            &aur_package_entry,
-            &aur_sep_entry,
-            config->tpl_aur,
-            CHECK_AUR);
+    add_template (grid, top, TPL_AUR, CHECK_AUR);
     top += 3; /* for template above */
     ++top;
-    add_template (grid, top,
-            &aur_nf_title_entry,
-            &aur_nf_package_entry,
-            &aur_nf_sep_entry,
-            config->tpl_aur_not_found,
-            _CHECK_AUR_NOT_FOUND);
+    add_template (grid, top, TPL_AUR_NOT_FOUND, _CHECK_AUR_NOT_FOUND);
 
     /* add page */
     gtk_widget_show (grid);
@@ -2275,12 +2081,7 @@ show_prefs (void)
             G_CALLBACK (btn_manage_watched_cb), GINT_TO_POINTER (TRUE));
 
     ++top;
-    add_template (grid, top,
-            &watched_aur_title_entry,
-            &watched_aur_package_entry,
-            &watched_aur_sep_entry,
-            config->tpl_watched_aur,
-            CHECK_WATCHED_AUR);
+    add_template (grid, top, TPL_WATCHED_AUR, CHECK_WATCHED_AUR);
 
     /* add page */
     gtk_widget_show (grid);
@@ -2348,6 +2149,13 @@ show_prefs (void)
 
     /*******************************************/
 
+    /* templates combo tooltip -- needs to be done after all pages have been
+     * added */
+    int tpl, fld;
+    for (tpl = 0; tpl < _NB_TPL; ++tpl)
+        for (fld = 0; fld < _NB_FLD; ++fld)
+            set_combo_tooltip (tpl_widgets[tpl * 3 + fld].source, tpl, fld);
+
     /* buttons */
     hbox = gtk_box_new (GTK_ORIENTATION_HORIZONTAL, 2);
     gtk_box_pack_start (GTK_BOX (vbox), hbox, FALSE, FALSE, 0);
@@ -2374,6 +2182,8 @@ show_prefs (void)
     gtk_widget_show (button);
 
     /* signals */
+    g_signal_connect (G_OBJECT (notebook), "switch-page",
+            G_CALLBACK (switch_page_cb), NULL);
     g_signal_connect (G_OBJECT (window), "destroy",
             G_CALLBACK (destroy_cb), NULL);
 
