@@ -242,6 +242,9 @@ aur_has_updates (alpm_list_t **packages,
                 /* AUR */
                 pkgname = cJSON_GetObjectItem (package, "Name")->valuestring;
                 pkgdesc = cJSON_GetObjectItem (package, "Description")->valuestring;
+                /* because desc is not required */
+                if (!pkgdesc)
+                    pkgdesc = "";
                 pkgver = cJSON_GetObjectItem (package, "Version")->valuestring;
                 /* ALPM/watched */
                 pkg = get_pkg_from_list (pkgname, aur_pkgs, is_watched);
