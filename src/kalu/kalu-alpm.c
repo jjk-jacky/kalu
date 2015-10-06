@@ -866,10 +866,25 @@ kalu_alpm_has_updates_watched (alpm_list_t **packages, alpm_list_t *watched,
         alpm_pkg_t *pkg = NULL;
         watched_package_t *w_pkg = i->data;
         kalu_package_t *package;
+        const char *s;
+
+        /* is the name actually a repo/name to restrict to a specific repo? */
+        s = strchr (w_pkg->name, '/');
 
         FOR_LIST (j, sync_dbs)
         {
-            pkg = alpm_db_get_pkg ((alpm_db_t *) j->data, w_pkg->name);
+            if (s)
+            {
+                const char *dbname = alpm_db_get_name ((alpm_db_t *) j->data);
+                size_t len = strlen (dbname);
+
+                /* we only want the package in a specific repo */
+                if (len != s - w_pkg->name || !streqn (w_pkg->name, dbname, len))
+                    continue;
+                ++s;
+            }
+
+            pkg = alpm_db_get_pkg ((alpm_db_t *) j->data, (s) ? s : w_pkg->name);
             if (pkg)
             {
                 if (alpm_pkg_vercmp (alpm_pkg_get_version (pkg),
@@ -878,7 +893,11 @@ kalu_alpm_has_updates_watched (alpm_list_t **packages, alpm_list_t *watched,
                     package = new0 (kalu_package_t, 1);
 
                     package->repo = strdup (alpm_db_get_name (alpm_pkg_get_db (pkg)));
-                    package->name = strdup (alpm_pkg_get_name (pkg));
+                    /* we want to keep the name as "repo/name" (despite the
+                     * "oddity" of it) so it is processed correctly in the
+                     * watched list, as well as to indicate it was restricted to
+                     * this specific repo */
+                    package->name = strdup ((s) ? w_pkg->name : alpm_pkg_get_name (pkg));
                     package->desc = strdup (alpm_pkg_get_desc (pkg));
                     package->old_version = strdup (w_pkg->version);
                     package->new_version = strdup (alpm_pkg_get_version (pkg));

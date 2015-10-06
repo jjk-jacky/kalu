@@ -102,6 +102,16 @@ foreign packages which you know are not in the AUR (and therefore checking
 for them is useless), you can put them on an ignore list, see L<B<PREFERENCES>|/PREFERENCES>
 below.
 
+As a special trick, it is possible to specify a package name in the form
+"repo/package" to have kalu specificaly check for that package in that repo.
+
+For instance, if using I<testing> as repo that comes first, you may want to keep
+an eye on a package, e.g. I<pacman>, from the I<core> repo. Using
+I<core/pacman> as package name will allow that.
+
+Note that in that case the name of the package - i.e. B<$PKG> in templates -
+will remain in the form I<repo/package> to indicate the restriction.
+
 =item B<* AUR packages>
 
 kalu will compile the list of foreign packages on the system (i.e. not found
