@@ -342,7 +342,7 @@ Preferences are presented under the following tabs :
 
 =item I<Configuration file (pacman.conf)>
 
-=item PacmanConf = path/to/file
+=item PacmanConf = /path/to/file
 
 This is the configuration file used to initialize the Arch Linux Package
 Management (ALPM) library (whose most famous front end is no other than
