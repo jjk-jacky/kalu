@@ -26,6 +26,7 @@
 #include <locale.h>
 #include <string.h>
 #include <time.h> /* for debug() */
+#include <signal.h>
 #ifndef DISABLE_GUI
 /* FIFO */
 #include <errno.h>
@@ -1203,6 +1204,26 @@ sn_reg_failed (StatusNotifier *_sn _UNUSED_, GError *error)
 }
 #endif
 
+static void
+sig_handler (int sig _UNUSED_)
+{
+    if (kalpm_state.is_busy)
+        return;
+    gtk_main_quit ();
+}
+
+static inline void
+set_sighandlers (void)
+{
+    struct sigaction sa;
+
+    sa.sa_handler = sig_handler;
+    sigemptyset (&sa.sa_mask);
+    sa.sa_flags = 0;
+    sigaction (SIGINT,  &sa, NULL);
+    sigaction (SIGTERM, &sa, NULL);
+}
+
 int
 main (int argc, char *argv[])
 {
@@ -1573,6 +1594,7 @@ main (int argc, char *argv[])
     skip_next_timeout ();
 #endif
 
+    set_sighandlers ();
     notify_init ("kalu");
     gtk_main ();
 eop:
