@@ -1947,7 +1947,7 @@ show_prefs (void)
     add_list (grid, top, &cmdline_post_store, &cmdline_post_hbox,
             _("After completing a system upgrade, start the following :"),
             _("You can use <b>$PACKAGES</b> to be replaced by the list of upgraded packages; "
-                "And <b>$PACFILES</b> to be replaced by the list of pacnew/pacorig files "
+                "And <b>$PACFILES</b> to be replaced by the list of pacnew files "
                 "(See manual for more information)"),
             _("Add a new command-line"),
             _("Edit selected command-line"),

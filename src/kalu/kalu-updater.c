@@ -123,11 +123,6 @@ struct _KaluUpdaterClass
                                      const gchar        *version,
                                      const gchar        *file);
 
-    void (*event_pacorig_created)   (KaluUpdater        *kupdater,
-                                     const gchar        *pkg,
-                                     const gchar        *version,
-                                     const gchar        *file);
-
     void (*event_delta_generating)  (KaluUpdater        *kupdater,
                                      const gchar        *delta,
                                      const gchar        *dest);
@@ -208,7 +203,6 @@ enum
   SIGNAL_EVENT_OPTDEP_REMOVAL,
   SIGNAL_EVENT_PACNEW_CREATED,
   SIGNAL_EVENT_PACSAVE_CREATED,
-  SIGNAL_EVENT_PACORIG_CREATED,
   SIGNAL_PROGRESS,
   /* questions */
   SIGNAL_INSTALL_IGNOREPKG,
@@ -712,20 +706,6 @@ kalu_updater_g_signal (GDBusProxy   *proxy,
         free (version);
         free (file);
     }
-    else if (g_strcmp0 (signal_name, "EventPacorigCreated") == 0)
-    {
-        gchar *pkg, *version, *file;
-
-        g_variant_get (parameters, "(sss)",
-                &pkg,
-                &version,
-                &file);
-        g_signal_emit (kupdater, signals[SIGNAL_EVENT_PACORIG_CREATED], 0,
-                pkg, version, file);
-        free (pkg);
-        free (version);
-        free (file);
-    }
     else if (g_strcmp0 (signal_name, "EventDeltaGenerating") == 0)
     {
         gchar *delta, *dest;
@@ -1147,20 +1127,6 @@ kalu_updater_class_init (KaluUpdaterClass *klass)
             KALU_TYPE_UPDATER,
             G_SIGNAL_RUN_LAST,
             G_STRUCT_OFFSET (KaluUpdaterClass, event_pacsave_created),
-            NULL,
-            NULL,
-            g_cclosure_user_marshal_VOID__STRING_STRING_STRING,
-            G_TYPE_NONE,
-            3,
-            G_TYPE_STRING,
-            G_TYPE_STRING,
-            G_TYPE_STRING);
-
-    signals[SIGNAL_EVENT_PACORIG_CREATED] = g_signal_new (
-            "event-pacorig-created",
-            KALU_TYPE_UPDATER,
-            G_SIGNAL_RUN_LAST,
-            G_STRUCT_OFFSET (KaluUpdaterClass, event_pacorig_created),
             NULL,
             NULL,
             g_cclosure_user_marshal_VOID__STRING_STRING_STRING,

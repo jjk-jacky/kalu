@@ -152,11 +152,6 @@
         <arg type='s' name='version' />
         <arg type='s' name='file' />
     </signal>
-    <signal name='EventPacorigCreated'>
-        <arg type='s' name='pkg' />
-        <arg type='s' name='version' />
-        <arg type='s' name='file' />
-    </signal>
     <signal name='EventDeltaGenerating'>
       <arg type='s' name='delta' />
       <arg type='s' name='dest' />

@@ -141,15 +141,8 @@ typedef enum {
     STEP_KEYRING,
 } steps_t;
 
-enum
-{
-    PACNEW = 1,
-    PACORIG
-};
-
 struct pacfile
 {
-    guint which;
     gchar *pkg;
     gchar *oldver;
     gchar *file;
@@ -837,8 +830,7 @@ on_event_scriptlet (KaluUpdater *kupdater _UNUSED_, const gchar *msg)
 }
 
 static void
-add_pacfile (guint which, const gchar *pkg, const gchar *old_version,
-             const gchar *oldfile)
+add_pacnew (const gchar *pkg, const gchar *old_version, const gchar *oldfile)
 {
     struct pacfile pf = { 0, };
     gchar buf[255], *b = buf;
@@ -847,15 +839,12 @@ add_pacfile (guint which, const gchar *pkg, const gchar *old_version,
     if (!updater->pacfile)
         updater->pacfile = g_array_new (FALSE, FALSE, sizeof (struct pacfile));
 
-    pf.which = which;
     pf.pkg = g_strdup (pkg);
     pf.oldver = g_strdup (old_version);
-    len = snprintf (buf, 255, "%s.%s",
-            oldfile, (which == PACNEW) ? "pacnew" : "pacorig");
+    len = snprintf (buf, 255, "%s.pacnew", oldfile);
     if (G_UNLIKELY (len >= 255))
     {
-        b = g_strdup_printf ("%s.%s",
-                oldfile, (which == PACNEW) ? "pacnew" : "pacorig");
+        b = g_strdup_printf ("%s.pacnew", oldfile);
     }
     pf.file = g_shell_quote (b);
     if (G_UNLIKELY (b != buf))
@@ -871,7 +860,7 @@ on_event_pacnew_created (KaluUpdater *kupdater _UNUSED_,
                          const gchar *old_version, const gchar *new_version _UNUSED_,
                          const gchar *file)
 {
-    add_pacfile (PACNEW, pkg, old_version, file);
+    add_pacnew (pkg, old_version, file);
     add_log (LOGTYPE_WARNING, _("Warning: %s installed as %s.pacnew\n"),
             file, file);
 }
@@ -881,15 +870,6 @@ on_event_pacsave_created (KaluUpdater *kupdater _UNUSED_, const gchar *pkg _UNUS
                           const gchar *version _UNUSED_, const gchar *file)
 {
     add_log (LOGTYPE_WARNING, _("Warning: %s saved as %s.pacsave\n"),
-            file, file);
-}
-
-static void
-on_event_pacorig_created (KaluUpdater *kupdater _UNUSED_, const gchar *pkg _UNUSED_,
-                          const gchar *version _UNUSED_, const gchar *file)
-{
-    add_pacfile (PACORIG, NULL, NULL, file);
-    add_log (LOGTYPE_WARNING, _("Warning: %s saved as %s.pacorig\n"),
             file, file);
 }
 
@@ -1810,13 +1790,10 @@ updater_sysupgrade_cb (KaluUpdater *kupdater _UNUSED_, const gchar *errmsg)
                     pf = &g_array_index (updater->pacfile, struct pacfile, n);
                     g_string_append (str_pacfiles, pf->file);
                     g_string_append_c (str_pacfiles, ' ');
-                    if (pf->which == PACNEW)
-                    {
-                        g_string_append (str_pacfiles, pf->pkg);
-                        g_string_append_c (str_pacfiles, '-');
-                        g_string_append (str_pacfiles, pf->oldver);
-                        g_string_append_c (str_pacfiles, ' ');
-                    }
+                    g_string_append (str_pacfiles, pf->pkg);
+                    g_string_append_c (str_pacfiles, '-');
+                    g_string_append (str_pacfiles, pf->oldver);
+                    g_string_append_c (str_pacfiles, ' ');
                 }
                 g_string_truncate (str_pacfiles, str_pacfiles->len - 1);
             }
@@ -2428,10 +2405,6 @@ updater_new_cb (GObject *source _UNUSED_, GAsyncResult *res,
     g_signal_connect (kalu_updater,
             "event-pacsave-created",
             G_CALLBACK (on_event_pacsave_created),
-            NULL);
-    g_signal_connect (kalu_updater,
-            "event-pacorig-created",
-            G_CALLBACK (on_event_pacorig_created),
             NULL);
     g_signal_connect (kalu_updater,
             "event-delta-generating",
