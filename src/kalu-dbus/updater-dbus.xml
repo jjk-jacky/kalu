@@ -8,6 +8,7 @@
       <arg type='s'  name='dbpath'       direction='in'/>
       <arg type='s'  name='logfile'      direction='in'/>
       <arg type='s'  name='gpgdir'       direction='in'/>
+      <arg type='as' name='hookdirs'     direction='in'/>
       <arg type='as' name='cachedirs'    direction='in'/>
       <arg type='i'  name='siglevel'     direction='in'/>
       <arg type='s'  name='arch'         direction='in'/>
@@ -102,6 +103,13 @@
     </signal>
     <signal name='Event'>
       <arg type='i' name='type' />
+    </signal>
+    <signal name='EventHookRun'>
+      <arg type='i' name='type' />
+      <arg type='i' name='total' />
+      <arg type='i' name='position' />
+      <arg type='s' name='hook' />
+      <arg type='s' name='desc' />
     </signal>
     <signal name='EventInstalled'>
       <arg type='s'  name='pkg' />

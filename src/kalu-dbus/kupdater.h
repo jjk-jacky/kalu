@@ -52,6 +52,9 @@ typedef enum _event_t {
     EVENT_RETRIEVING_PKGS_DONE,
     EVENT_RETRIEVING_PKGS_FAILED,
     EVENT_KEY_DOWNLOAD,
+    EVENT_HOOKS_PRE,
+    EVENT_HOOKS_POST,
+    EVENT_TRANSACTION,
     /* Progress */
     EVENT_INSTALLING,
     EVENT_REINSTALLING,
@@ -64,5 +67,10 @@ typedef enum _event_t {
     EVENT_LOAD_PKGFILES,
     EVENT_KEYRING,
 } event_t;
+
+typedef enum _event_type_t {
+    EVENT_TYPE_START,
+    EVENT_TYPE_DONE
+} event_type_t;
 
 #endif /* _KALU_KUPDATER_H */

@@ -53,6 +53,7 @@ typedef struct _pacman_config_t {
     char            *dbpath;
     char            *logfile;
     char            *gpgdir;
+    alpm_list_t     *hookdirs;
     alpm_list_t     *cachedirs;
     alpm_siglevel_t  siglevel;
     char            *arch;

@@ -470,6 +470,8 @@ static void
 on_event (KaluUpdater *kupdater _UNUSED_, event_t event)
 {
     const gchar *msg = NULL;
+    int upd_action = updater->step == STEP_NONE;
+
     switch (event)
     {
         case EVENT_RETRIEVING_PKGS:
@@ -490,6 +492,17 @@ on_event (KaluUpdater *kupdater _UNUSED_, event_t event)
             break;
         case EVENT_INTERCONFLICTS:
             msg = _("Checking inter-conflict...");
+            break;
+        case EVENT_TRANSACTION:
+            msg = _("Processing package changes...");
+            break;
+        case EVENT_HOOKS_PRE:
+            msg = _("Running pre-transaction hooks...");
+            upd_action = 1;
+            break;
+        case EVENT_HOOKS_POST:
+            msg = _("Running post-transaction hooks...");
+            upd_action = 1;
             break;
         case EVENT_DELTA_INTEGRITY:
             msg = _("Checking delta integrity...");
@@ -513,12 +526,33 @@ on_event (KaluUpdater *kupdater _UNUSED_, event_t event)
     {
         add_log (LOGTYPE_NORMAL, "%s\n", msg);
     }
-    if (updater->step == STEP_NONE)
+    if (upd_action)
     {
         gtk_label_set_text (GTK_LABEL (updater->lbl_action), msg);
         gtk_widget_show (updater->lbl_action);
         gtk_widget_hide (updater->pbar_action);
     }
+}
+
+static void
+on_event_hookrun (KaluUpdater *kupdater _UNUSED_, event_type_t type, int total,
+                  int position, const gchar *hook, const gchar *desc)
+{
+    double pctg;
+
+    if (type == EVENT_TYPE_START)
+    {
+        pctg = ((double) position - 1.0) / total;
+        if (*desc != '\0')
+            add_log (LOGTYPE_NORMAL, _("Running '%s' (%s)...\n"), hook, desc);
+        else
+            add_log (LOGTYPE_NORMAL, _("Running '%s'...\n"), hook);
+    }
+    else
+        pctg = (double) position / total;
+
+    gtk_progress_bar_set_fraction (GTK_PROGRESS_BAR (updater->pbar_action), pctg);
+    gtk_widget_show (updater->pbar_action);
 }
 
 static void
@@ -2282,6 +2316,7 @@ updater_method_cb (KaluUpdater *kupdater, const gchar *errmsg,
                 ? pac_conf->dbpath : (gchar *) kalu_alpm_get_dbpath (),
                 (!updater->downloadonly) ? pac_conf->logfile : (gchar *) "/dev/null",
                 pac_conf->gpgdir,
+                pac_conf->hookdirs,
                 pac_conf->cachedirs,
                 pac_conf->siglevel,
                 pac_conf->arch,
@@ -2361,6 +2396,10 @@ updater_new_cb (GObject *source _UNUSED_, GAsyncResult *res,
     g_signal_connect (kalu_updater,
             "event",
             G_CALLBACK (on_event),
+            NULL);
+    g_signal_connect (kalu_updater,
+            "event-hookrun",
+            G_CALLBACK (on_event_hookrun),
             NULL);
     g_signal_connect (kalu_updater,
             "event-installed",

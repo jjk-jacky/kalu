@@ -74,6 +74,13 @@ struct _KaluUpdaterClass
     void (*event)                   (KaluUpdater        *kupdater,
                                      event_t             event);
 
+    void (*event_hookrun)           (KaluUpdater        *kupdater,
+                                     event_type_t        type,
+                                     int                 total,
+                                     int                 position,
+                                     const gchar        *hook,
+                                     const gchar        *desc);
+
     void (*event_installed)         (KaluUpdater        *kupdater,
                                      const gchar        *pkg,
                                      const gchar        *version,
@@ -187,6 +194,7 @@ enum
   SIGNAL_LOG,
   SIGNAL_TOTAL_DOWNLOAD,
   SIGNAL_EVENT,
+  SIGNAL_EVENT_HOOKRUN,
   SIGNAL_EVENT_INSTALLED,
   SIGNAL_EVENT_REINSTALLED,
   SIGNAL_EVENT_REMOVED,
@@ -545,6 +553,18 @@ kalu_updater_g_signal (GDBusProxy   *proxy,
 
         g_variant_get (parameters, "(i)", &event);
         g_signal_emit (kupdater, signals[SIGNAL_EVENT], 0, (event_t) event);
+    }
+    else if (g_strcmp0 (signal_name, "EventHookRun") == 0)
+    {
+        event_type_t type;
+        gint total, pos;
+        gchar *hook, *desc;
+
+        g_variant_get (parameters, "(iiiss)", &type, &total, &pos, &hook, &desc);
+        g_signal_emit (kupdater, signals[SIGNAL_EVENT_HOOKRUN], 0,
+                type, total, pos, hook, desc);
+        free (hook);
+        free (desc);
     }
     else if (g_strcmp0 (signal_name, "EventInstalled") == 0)
     {
@@ -975,6 +995,22 @@ kalu_updater_class_init (KaluUpdaterClass *klass)
             1,
             G_TYPE_INT);
 
+    signals[SIGNAL_EVENT_HOOKRUN] = g_signal_new (
+            "event-hookrun",
+            KALU_TYPE_UPDATER,
+            G_SIGNAL_RUN_LAST,
+            G_STRUCT_OFFSET (KaluUpdaterClass, event_hookrun),
+            NULL,
+            NULL,
+            g_cclosure_user_marshal_VOID__UINT_INT_INT_STRING_STRING,
+            G_TYPE_NONE,
+            5,
+            G_TYPE_UINT,
+            G_TYPE_INT,
+            G_TYPE_INT,
+            G_TYPE_STRING,
+            G_TYPE_STRING);
+
     signals[SIGNAL_EVENT_INSTALLED] = g_signal_new (
             "event-installed",
             KALU_TYPE_UPDATER,
@@ -1365,6 +1401,7 @@ gboolean    kalu_updater_init_alpm          (KaluUpdater         *kupdater,
                                              gchar               *dbpath,
                                              gchar               *logfile,
                                              gchar               *gpgdir,
+                                             alpm_list_t         *hookdirs,
                                              alpm_list_t         *cachedirs,
                                              alpm_siglevel_t     siglevel,
                                              gchar               *arch,
@@ -1383,12 +1420,19 @@ gboolean    kalu_updater_init_alpm          (KaluUpdater         *kupdater,
     GVariant *variant;
     check ("InitAlpm");
 
+    GVariantBuilder *hookdirs_builder;
     GVariantBuilder *cachedirs_builder;
     GVariantBuilder *ignorepkgs_builder;
     GVariantBuilder *ignoregroups_builder;
     GVariantBuilder *noupgrades_builder;
     GVariantBuilder *noextracts_builder;
     alpm_list_t *i;
+
+    hookdirs_builder = g_variant_builder_new (G_VARIANT_TYPE ("as"));
+    for (i = hookdirs; i; i = alpm_list_next (i))
+    {
+        g_variant_builder_add (hookdirs_builder, "s", i->data);
+    }
 
     cachedirs_builder = g_variant_builder_new (G_VARIANT_TYPE ("as"));
     for (i = cachedirs; i; i = alpm_list_next (i))
@@ -1422,11 +1466,12 @@ gboolean    kalu_updater_init_alpm          (KaluUpdater         *kupdater,
 
     variant = g_dbus_proxy_call_sync (G_DBUS_PROXY (kupdater),
             "InitAlpm",
-            g_variant_new ("(ssssasisbbdasasasas)",
+            g_variant_new ("(ssssasasisbbdasasasas)",
                 rootdir,
                 dbpath,
                 logfile,
                 gpgdir,
+                hookdirs_builder,
                 cachedirs_builder,
                 siglevel,
                 arch,
@@ -1442,6 +1487,7 @@ gboolean    kalu_updater_init_alpm          (KaluUpdater         *kupdater,
             cancellable,
             error);
 
+    g_variant_builder_unref (hookdirs_builder);
     g_variant_builder_unref (cachedirs_builder);
     g_variant_builder_unref (ignorepkgs_builder);
     g_variant_builder_unref (ignoregroups_builder);

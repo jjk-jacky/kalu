@@ -373,6 +373,27 @@ event_cb (alpm_event_t *event)
         /* Retrieving packages */
         emit_signal ("Event", "i", EVENT_RETRIEVING_PKGS_FAILED);
     }
+    else if (event->type == ALPM_EVENT_TRANSACTION_START)
+    {
+        emit_signal ("Event", "i", EVENT_TRANSACTION);
+    }
+    else if (event->type == ALPM_EVENT_HOOK_START)
+    {
+        emit_signal ("Event", "i",
+                (event->hook.when == ALPM_HOOK_PRE_TRANSACTION)
+                ? EVENT_HOOKS_PRE : EVENT_HOOKS_POST);
+    }
+    else if (event->type == ALPM_EVENT_HOOK_RUN_START
+            || event->type == ALPM_EVENT_HOOK_RUN_DONE)
+    {
+        emit_signal ("EventHookRun", "iiiss",
+                (event->type == ALPM_EVENT_HOOK_RUN_START)
+                ? EVENT_TYPE_START : EVENT_TYPE_DONE,
+                event->hook_run.total,
+                event->hook_run.position,
+                event->hook_run.name,
+                (event->hook_run.desc) ? event->hook_run.desc : "");
+    }
     else if (event->type == ALPM_EVENT_CHECKDEPS_START)
     {
         /* checking dependencies */
@@ -771,6 +792,7 @@ init_alpm (GVariant *parameters)
     const gchar  *dbpath;
     const gchar  *logfile;
     const gchar  *gpgdir;
+    GVariantIter *hookdirs_iter;
     GVariantIter *cachedirs_iter;
     alpm_list_t  *cachedirs = NULL;
     int           siglevel;
@@ -799,11 +821,12 @@ init_alpm (GVariant *parameters)
     state = STATE_INIT;
 
     debug ("getting alpm params");
-    g_variant_get (parameters, "(ssssasisbbdasasasas)",
+    g_variant_get (parameters, "(ssssasasisbbdasasasas)",
         &rootdir,
         &dbpath,
         &logfile,
         &gpgdir,
+        &hookdirs_iter,
         &cachedirs_iter,
         &siglevel,
         &arch,
@@ -864,6 +887,20 @@ init_alpm (GVariant *parameters)
         state = STATE_INVALID;
         return G_SOURCE_REMOVE;
     }
+
+    /* hookdirs */
+    while (g_variant_iter_loop (hookdirs_iter, "s", &s))
+    {
+        if (alpm_option_add_hookdir (handle, s) != 0)
+        {
+            method_failed ("InitAlpm", _("Unable to add hook dir '%s': %s\n"),
+                    s,
+                    alpm_strerror (alpm_errno (handle)));
+            state = STATE_INVALID;
+            return G_SOURCE_REMOVE;
+        }
+    }
+    g_variant_iter_free (hookdirs_iter);
 
     /* cachedirs */
     while (g_variant_iter_loop (cachedirs_iter, "s", &s))

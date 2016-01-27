@@ -1,8 +1,8 @@
 /**
- * kalu - Copyright (C) 2012-2014 Olivier Brunel
+ * kalu - Copyright (C) 2012-2016 Olivier Brunel
  *
  * closures.h
- * Copyright (C) 2012-2014 Olivier Brunel <jjk@jjacky.com>
+ * Copyright (C) 2012-2016 Olivier Brunel <jjk@jjacky.com>
  *
  * This file is part of kalu.
  *
@@ -138,6 +138,14 @@ extern void g_cclosure_user_marshal_VOID__STRING_STRING_STRING (GClosure     *cl
                                                                 const GValue *param_values,
                                                                 gpointer      invocation_hint,
                                                                 gpointer      marshal_data);
+
+/* VOID:UINT,INT,INT,STRING,STRING (closures.def:15) */
+extern void g_cclosure_user_marshal_VOID__UINT_INT_INT_STRING_STRING (GClosure     *closure,
+                                                                      GValue       *return_value,
+                                                                      guint         n_param_values,
+                                                                      const GValue *param_values,
+                                                                      gpointer      invocation_hint,
+                                                                      gpointer      marshal_data);
 
 G_END_DECLS
 

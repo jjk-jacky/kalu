@@ -433,6 +433,11 @@ parse_pacman_conf (const char       *file,
                     setrepeatingoption (value, "SyncFirst",
                             &(pac_conf->syncfirst));
                 }
+                else if (streq (key, "HookDir"))
+                {
+                    setrepeatingoption (value, "HookDir",
+                            &(pac_conf->hookdirs));
+                }
                 else if (streq (key, "CacheDir"))
                 {
                     setrepeatingoption (value, "CacheDir",
