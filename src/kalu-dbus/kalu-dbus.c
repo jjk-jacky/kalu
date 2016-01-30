@@ -411,14 +411,6 @@ event_cb (alpm_event_t *event)
                 alpm_pkg_get_version (e->oldpkg),
                 e->file);
     }
-    else if (event->type == ALPM_EVENT_PACORIG_CREATED)
-    {
-        alpm_event_pacorig_created_t *e = (alpm_event_pacorig_created_t *) event;
-        emit_signal ("EventPacorigCreated", "sss",
-                alpm_pkg_get_name (e->newpkg),
-                alpm_pkg_get_version (e->newpkg),
-                e->file);
-    }
     else if (event->type == ALPM_EVENT_KEY_DOWNLOAD_START)
     {
         emit_signal ("Event", "i", EVENT_KEY_DOWNLOAD);
