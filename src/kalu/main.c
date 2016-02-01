@@ -1204,6 +1204,7 @@ sn_reg_failed (StatusNotifier *_sn _UNUSED_, GError *error)
 }
 #endif
 
+#ifndef DISABLE_GUI
 static void
 sig_handler (int sig _UNUSED_)
 {
@@ -1223,6 +1224,7 @@ set_sighandlers (void)
     sigaction (SIGINT,  &sa, NULL);
     sigaction (SIGTERM, &sa, NULL);
 }
+#endif
 
 int
 main (int argc, char *argv[])
