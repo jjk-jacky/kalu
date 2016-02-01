@@ -1,4 +1,74 @@
 
+# 2016-02-01, v4.0.0
+
+- Major version bump for compatibility with API changes of pacman 5.0
+
+- Fix possible double-free memory when parsing config
+
+When processing "Include" directives from pacman.conf with multiple
+matches there was a risk of double-free memory attempt.
+
+- updater: Show download progress for deltas; Support multiple downloads
+(deltas) for one package
+
+It is possible that the download size for a package upgrade isn't that
+of one file, but multiple - in case of deltas.
+
+Make sure the progress bar reflect the actual size of the current
+download, and only toggle the color once all downloads are done.
+
+- Add AutoShowLog tweak for kalu's updater
+
+- Fix nb of sync dbs in tooltip
+
+- Watched AUR: Fix segfault when no description (Thanks to 0strodamus)
+
+- watched: Add support for repo/package
+
+This allows to have kalu watch for a given package in a specific repo, instead
+of using the usual "first repo where package is found" logic.
+
+This could be useful when e.g. one has a repo like testing enabled, but wants
+to watch packages from core.
+
+Note that the package name (i.e. $PKG) will be kept as "repo/package" to
+indicate the "restriction" that was in effect.
+
+- Rework how templates are saved/shown in preferences
+
+Couple things happened here. First off, the way things worked wasn't
+how things were happening in the preferences window:
+
+  * in kalu.conf, no option meant default, or fallback if there's none; an
+  option w/out value meant fallback; and an option w/ a value to use
+  said custom value.
+
+  * However, in Prefs. it was only a custom value, or fallback. Any default
+  being saved as custom value instead.
+
+This was fixed, making the Prefs. window actually reflect how things actually
+work in the conf file.
+
+Also, we now introduce for each field a new "source" option (e.g. TitleSce) that
+can be DEFAULT or CUSTOM for titles, because titles do not have fallbacks
+anymore (it never really made sense anyways) and always have a default (for that
+same reason).
+
+For other fields (Package & Sep) it can be DEFAULT, FALLBACK, CUSTOM or
+NONE. (Noting that they all have a default and/or a fallback, i.e. not always
+both.)
+
+Setting Package to NONE will mean the notification is only a title.
+
+- Handle SIGINT/SIGTERM to cleanly exit
+
+Gives us a chance to e.g. remove FIFO
+
+Thanks to 0strodamus for the report.
+
+- Some other fixes (see git log for details)
+
+
 # 2014-12-20, v3.0.0
 
 With contributions from EmanueL Czirai.
