@@ -1377,6 +1377,7 @@ parse_config_file (const char       *file,
         }
     }
 
+cleanup:
     /* ensure templates sources are valid */
     for (tpl = 0; tpl < _NB_TPL; ++tpl)
         for (fld = 0; fld < _NB_FLD; ++fld)
@@ -1398,7 +1399,6 @@ parse_config_file (const char       *file,
                         fld, tpl, sce, f->source);
         }
 
-cleanup:
     g_strfreev (lines);
     free (section);
     if (config->action == UPGRADE_ACTION_CMDLINE && config->cmdline == NULL)
