@@ -365,7 +365,7 @@ notify_updates (
     }
 
     alloc = 255;
-    summary = new (gchar, alloc + 1);
+    summary = new0 (gchar, alloc + 1);
     len = 0;
 
     replacements[0] = new0 (replacement_t, 1);
