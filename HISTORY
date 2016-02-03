@@ -1,4 +1,12 @@
 
+# 2016-02-03, v4.0.1
+
+- Fix segfault when no config file exists
+
+Templates weren't properly initialized if no config file was found/read.
+Thanks to Adrien Jacquet.
+
+
 # 2016-02-01, v4.0.0
 
 - Major version bump for compatibility with API changes of pacman 5.0
