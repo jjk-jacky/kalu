@@ -1,4 +1,10 @@
 
+# 2016-02-04, v4.0.2
+
+- Fix stupid typo, leading to empty notifications since 4.0.1
+Thanks to adam777.
+
+
 # 2016-02-03, v4.0.1
 
 - Fix segfault when no config file exists
