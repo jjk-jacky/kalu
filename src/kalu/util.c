@@ -427,7 +427,7 @@ parse_tpl (
     size_t l;
     char found;
 
-    if (*tpl)
+    if (!tpl)
         return;
 
     for (t = tpl, s = *text + *len; *t; ++t)
