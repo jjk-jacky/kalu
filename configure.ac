@@ -41,7 +41,7 @@ AC_ARG_WITH([news-rss-url],
 # Options for AUR URL
 AC_ARG_WITH([url-aur-prefix],
         AC_HELP_STRING([--with-url-aur-prefix=URL], [set the prefix for the AUR URL]),
-        [AUR_URL_PREFIX=$withval], [AUR_URL_PREFIX="https://aur.archlinux.org/rpc.php?type=multiinfo"])
+        [AUR_URL_PREFIX=$withval], [AUR_URL_PREFIX="https://aur.archlinux.org/rpc/?v=5&type=info"])
 AC_ARG_WITH([url-aur-prefix-pkg],
 	AC_HELP_STRING([--with-url-aur-prefix-pkg=PREFIX],
 		[set the prefix before each package for the AUR URL]),
