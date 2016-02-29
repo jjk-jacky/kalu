@@ -384,12 +384,12 @@ static void
 fill_combo (GtkWidget *w, int tpl, int fld)
 {
     if (tpl_config[tpl].fields[fld].def)
-        gtk_combo_box_text_append ((GtkComboBoxText *) w, "DEFAULT", "Default");
+        gtk_combo_box_text_append ((GtkComboBoxText *) w, "DEFAULT", _("Default"));
     if (fld != FLD_TITLE && tpl_config[tpl].fallback != NO_TPL)
-        gtk_combo_box_text_append ((GtkComboBoxText *) w, "FALLBACK", "Fall back");
-    gtk_combo_box_text_append ((GtkComboBoxText *) w, "CUSTOM", "Custom");
+        gtk_combo_box_text_append ((GtkComboBoxText *) w, "FALLBACK", _("Fall back"));
+    gtk_combo_box_text_append ((GtkComboBoxText *) w, "CUSTOM", _("Custom"));
     if (fld != FLD_TITLE)
-        gtk_combo_box_text_append ((GtkComboBoxText *) w, "NONE", "None");
+        gtk_combo_box_text_append ((GtkComboBoxText *) w, "NONE", _("None"));
 }
 
 static const char *
