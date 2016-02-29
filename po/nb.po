@@ -7,8 +7,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: kalu 4.0.2\n"
 "Report-Msgid-Bugs-To: https://github.com/jjk-jacky/kalu/issues\n"
-"POT-Creation-Date: 2016-02-29 14:46+0100\n"
-"PO-Revision-Date: 2016-02-29 15:45+0100\n"
+"POT-Creation-Date: 2016-02-29 19:13+0100\n"
+"PO-Revision-Date: 2016-02-29 19:17+0100\n"
 "Last-Translator: Kim Nordmo <kim.nordmo@gmail.com>\n"
 "Language-Team: Norwegian Bokmal\n"
 "Language: nb\n"
@@ -910,6 +910,23 @@ msgstr "Tilpasset: angi en egendefinert verdi\n"
 #: src/kalu/preferences.c:376
 msgid "- None: no value\n"
 msgstr "- None: ingen verdi\n"
+
+#: src/kalu/preferences.c:387
+msgid "Default"
+msgstr "Standard"
+
+#: src/kalu/preferences.c:389
+#, fuzzy
+msgid "Fall back"
+msgstr "Fall back"
+
+#: src/kalu/preferences.c:390
+msgid "Custom"
+msgstr "Tilpasset"
+
+#: src/kalu/preferences.c:392
+msgid "None"
+msgstr "Ingen"
 
 #: src/kalu/preferences.c:517
 msgid "Edit as custom value"
