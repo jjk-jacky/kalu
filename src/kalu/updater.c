@@ -76,6 +76,7 @@ enum {
     UCOL_OLD,
     UCOL_NEW,
     UCOL_CUR_DL_SIZE,
+    UCOL_CUR_XFRD_SIZE,
     UCOL_TOT_DL_SIZE,
     UCOL_DL_SIZE,
     UCOL_OLD_SIZE,
@@ -778,6 +779,7 @@ on_event_pkgdownload_start (KaluUpdater *kupdater _UNUSED_, const gchar *filenam
         gtk_list_store_set (updater->store, pkg_iter->iter,
                 UCOL_PCTG,          0.0,
                 UCOL_CUR_DL_SIZE,   size,
+                UCOL_CUR_XFRD_SIZE, 0,
                 UCOL_DL_IS_ACTIVE,  TRUE,
                 UCOL_DL_IS_DONE,    FALSE,
                 -1);
@@ -801,7 +803,7 @@ on_event_pkgdownload_done (KaluUpdater *kupdater _UNUSED_,
 
     gtk_tree_model_get (GTK_TREE_MODEL (updater->store), pkg_iter->iter,
             UCOL_DL_SIZE,       &dl_size,
-            UCOL_CUR_DL_SIZE,   &cur_size,
+            UCOL_CUR_XFRD_SIZE, &cur_size,
             UCOL_TOT_DL_SIZE,   &tot_size,
             -1);
     dl_done = (cur_size + tot_size == dl_size);
@@ -811,6 +813,7 @@ on_event_pkgdownload_done (KaluUpdater *kupdater _UNUSED_,
             UCOL_DL_IS_ACTIVE,      FALSE,
             UCOL_DL_IS_DONE,        TRUE,
             UCOL_CUR_DL_SIZE,       0,
+            UCOL_CUR_XFRD_SIZE,     0,
             UCOL_TOT_DL_SIZE,       cur_size + tot_size,
             (dl_done) ? UCOL_DL_IS_DONE_COLOR : -1,  config->color_info,
             -1);
@@ -837,7 +840,7 @@ on_event_pkgdownload_failed (KaluUpdater *kupdater _UNUSED_,
     guint cur_size, tot_size;
 
     gtk_tree_model_get (GTK_TREE_MODEL (updater->store), pkg_iter->iter,
-            UCOL_CUR_DL_SIZE,   &cur_size,
+            UCOL_CUR_XFRD_SIZE, &cur_size,
             UCOL_TOT_DL_SIZE,   &tot_size,
             -1);
 
@@ -846,6 +849,7 @@ on_event_pkgdownload_failed (KaluUpdater *kupdater _UNUSED_,
             UCOL_DL_IS_ACTIVE,      FALSE,
             UCOL_DL_IS_DONE,        TRUE,
             UCOL_CUR_DL_SIZE,       0,
+            UCOL_CUR_XFRD_SIZE,     0,
             UCOL_TOT_DL_SIZE,       cur_size + tot_size,
             UCOL_DL_IS_DONE_COLOR,  config->color_error,
             -1);
@@ -1488,10 +1492,54 @@ on_download (KaluUpdater *kupdater _UNUSED_, const gchar *filename,
                 }
 
                 /* pkg progress */
-                gtk_list_store_set (updater->store, pkg_iter->iter,
-                        UCOL_PCTG,          pctg,
-                        UCOL_CUR_DL_SIZE,   total,
-                        -1);
+
+                /* story goes like this: in UCOL_DL_SIZE we have the download
+                 * size as reported by ALPM. This might be the size of the file
+                 * to download, or the combined sizes of all deltas.
+                 * UCOL_TOT_DL_SIZE is the size of previous downloads, i.e.
+                 * previous deltas for that package, or when resuming from
+                 * another mirror (see below).
+                 *
+                 * So, we use xfered & total as UCOL_CUR_{XFRD,DL}_SIZE to keep
+                 * track of the sizes for the current download (file). However,
+                 * in case of a download failure, ALPM doesn't trigger the
+                 * pkgdownload_failed event, but instead moves on to (resumes
+                 * from) the next mirror. (Only when out of mirrors does the
+                 * pkgdownload_failed occurs.)
+                 *
+                 * So, here the xfered size might be reset (and the total size
+                 * shrunken) as we're (silectly) resuming the download (from
+                 * another mirror), and because we try to keep track of how much
+                 * was downloaded so we can tell when the download is "fully"
+                 * done (as in, all deltas), we need to keep track.
+                 */
+                {
+                    guint old_xfered, old_total, tot_size;
+
+                    gtk_tree_model_get (GTK_TREE_MODEL (updater->store), pkg_iter->iter,
+                            UCOL_CUR_XFRD_SIZE, &old_xfered,
+                            UCOL_CUR_DL_SIZE,   &old_total,
+                            UCOL_TOT_DL_SIZE,   &tot_size,
+                            -1);
+                    if (xfered < old_xfered && total < old_total)
+                    {
+                        gtk_list_store_set (updater->store, pkg_iter->iter,
+                                UCOL_PCTG,          pctg,
+                                UCOL_CUR_XFRD_SIZE, xfered,
+                                UCOL_CUR_DL_SIZE,   total,
+                                UCOL_TOT_DL_SIZE,   tot_size + old_xfered,
+                                -1);
+                        updater->step_done += old_xfered;
+                    }
+                    else
+                    {
+                        gtk_list_store_set (updater->store, pkg_iter->iter,
+                                UCOL_PCTG,          pctg,
+                                UCOL_CUR_XFRD_SIZE, xfered,
+                                UCOL_CUR_DL_SIZE,   total,
+                                -1);
+                    }
+                }
 
                 if (updater->total_dl > 0)
                 {
@@ -1945,6 +1993,7 @@ updater_get_packages_cb (KaluUpdater *kupdater _UNUSED_, const gchar *errmsg,
                 UCOL_OLD,               k_pkg->old_version,
                 UCOL_NEW,               k_pkg->new_version,
                 UCOL_CUR_DL_SIZE,       0,
+                UCOL_CUR_XFRD_SIZE,     0,
                 UCOL_TOT_DL_SIZE,       0,
                 UCOL_DL_SIZE,           k_pkg->dl_size,
                 UCOL_OLD_SIZE,          k_pkg->old_size,
@@ -2933,6 +2982,7 @@ updater_run (const gchar *conffile, alpm_list_t *cmdline_post)
             G_TYPE_STRING,  /* UCOL_OLD */
             G_TYPE_STRING,  /* UCOL_NEW */
             G_TYPE_UINT,    /* UCOL_CUR_DL_SIZE */
+            G_TYPE_UINT,    /* UCOL_CUR_XFRD_SIZE */
             G_TYPE_UINT,    /* UCOL_TOT_DL_SIZE */
             G_TYPE_UINT,    /* UCOL_DL_SIZE */
             G_TYPE_UINT,    /* UCOL_OLD_SIZE */
