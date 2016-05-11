@@ -48,6 +48,7 @@
 #define PACMAN_CACHEDIR     "/var/cache/pacman/pkg/"
 #define PACMAN_LOGFILE      "/var/log/pacman.log"
 #define PACMAN_GPGDIR       "/etc/pacman.d/gnupg/"
+#define PACMAN_HOOKDIR      "/etc/pacman.d/hooks/"
 
 typedef struct _siglevel_def_t {
     char *file;
@@ -608,6 +609,11 @@ parse_pacman_conf (const char       *file,
         if (NULL == pac_conf->gpgdir)
         {
             pac_conf->gpgdir = strdup (PACMAN_GPGDIR);
+        }
+        if (NULL == pac_conf->hookdirs)
+        {
+            pac_conf->hookdirs = alpm_list_add (pac_conf->hookdirs,
+                    strdup (PACMAN_HOOKDIR));
         }
     }
 
