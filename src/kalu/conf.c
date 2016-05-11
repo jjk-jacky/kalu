@@ -660,6 +660,7 @@ free_pacman_config (pacman_config_t *pac_conf)
     free (pac_conf->logfile);
     free (pac_conf->gpgdir);
     FREELIST (pac_conf->cachedirs);
+    FREELIST (pac_conf->hookdirs);
     free (pac_conf->arch);
     FREELIST (pac_conf->ignorepkgs);
     FREELIST (pac_conf->ignoregroups);
