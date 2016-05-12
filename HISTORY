@@ -1,4 +1,23 @@
 
+# 2016-05-12, v4.1.0
+
+With contributions from AdmiringWorm.
+
+- Update AUR URL to work with new version; Thanks to Yen Chi Hsuan.
+
+- With the new template UI, the combo-boxes for template sources (Default,
+Fall back, etc) were not translatable, as they should have been; Fixed.
+Thanks to Kim Nordmo.
+
+- Added Norwegian Bokmål translation
+
+- updater: Fix color glitch when a download fails & resumes; Thanks to jghodd.
+
+- updater: Fix not setting /etc/pacman.d/hooks as default HookDir
+
+- Some other fixes (see git log for details)
+
+
 # 2016-02-04, v4.0.2
 
 - Fix stupid typo, leading to empty notifications since 4.0.1
