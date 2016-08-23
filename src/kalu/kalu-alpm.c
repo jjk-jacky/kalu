@@ -50,7 +50,6 @@ unsigned short alpm_verbose;
 
 
 static kalu_alpm_t *alpm;
-static gchar *pac_dbpath = NULL;
 static gchar *tmp_dbpath = NULL;
 
 static gboolean copy_file (const gchar *from, const gchar *to);
@@ -90,7 +89,8 @@ create_local_db (const gchar *_dbpath, gchar **newpath, GString **_synced_dbs, G
 {
     gchar    buf[MAX_PATH];
     gchar    buf2[MAX_PATH];
-    gchar   *dbpath;
+    gchar    buf_dbpath[MAX_PATH];
+    gchar   *dbpath = NULL;
     size_t   l = 0;
     gchar   *folder;
     GDir    *dir;
@@ -101,51 +101,83 @@ create_local_db (const gchar *_dbpath, gchar **newpath, GString **_synced_dbs, G
 
     if (tmp_dbpath)
     {
-        gboolean same;
-
         debug ("checking local db %s", tmp_dbpath);
-        l = strlen (_dbpath) - 1;
 
-        if (_dbpath[l] == '/')
+        if (stat (tmp_dbpath, &filestat) != 0)
         {
-            same = strlen (pac_dbpath) == l && streqn (pac_dbpath, _dbpath, l);
+            if (errno != ENOENT)
+            {
+                g_set_error (error, KALU_ERROR, 1, _("Failed to stat %s: %s"),
+                        tmp_dbpath, strerror (errno));
+                return FALSE;
+            }
+            debug ("..doesn't exist");
         }
         else
         {
-            same = streq (pac_dbpath, _dbpath);
-        }
-
-        if (same)
-        {
-            if (stat (tmp_dbpath, &filestat) == 0)
+            if (S_ISDIR (filestat.st_mode))
             {
-                if (S_ISDIR (filestat.st_mode))
+                ssize_t len;
+
+                debug ("..folder found, getting dbpath");
+                if (snprintf (buf, MAX_PATH, "%s/local", tmp_dbpath) >= MAX_PATH)
                 {
-                    debug ("..ok, re-using it");
-                    create_tmpdir = FALSE;
+                    g_set_error (error, KALU_ERROR, 1, _("Internal error: Path too long"));
+                    return FALSE;
+                }
+                len = readlink (buf, buf_dbpath, MAX_PATH - 1);
+                if (len > 6)
+                {
+                    buf_dbpath[len] = '\0';
+                    if (!streq (buf_dbpath + len - 6, "/local"))
+                    {
+                        debug ("symlink local invalid (%s)", buf_dbpath);
+                        len = -1;
+                    }
+                    else
+                    {
+                        gboolean same;
+
+                        len -= 6;
+                        buf_dbpath[len] = '\0';
+                        l = strlen (_dbpath) - 1;
+                        if (_dbpath[l] == '/')
+                            same = (size_t) len == l && streqn (buf_dbpath, _dbpath, l);
+                        else
+                            same = streq (buf_dbpath, _dbpath);
+                        if (same)
+                        {
+                            debug ("same dbpath (%s), re-using", buf_dbpath);
+                            create_tmpdir = FALSE;
+                        }
+                        else
+                        {
+                            debug ("different dbpath (%s vs %s)",
+                                    buf_dbpath, _dbpath);
+                            len = -1;
+                        }
+                    }
                 }
                 else
                 {
-                    debug ("..not a folder");
+                    debug ("symlink 'local' not found or invalid");
+                    len = -1;
+                }
+
+                if (len < 0)
+                {
+                    debug ("removing tmp_dbpath (%s)", tmp_dbpath);
+                    rmrf (tmp_dbpath);
                 }
             }
             else
             {
-                debug ("..not found");
+                debug ("..not a folder");
             }
-        }
-        else
-        {
-            debug ("..for another dbpath (%s vs %s), removing", pac_dbpath, _dbpath);
-            rmrf (tmp_dbpath);
         }
 
         if (create_tmpdir)
         {
-            free (pac_dbpath);
-            pac_dbpath = NULL;
-            g_free (tmp_dbpath);
-            tmp_dbpath = NULL;
             /* reset_kalpm_synced_dbs */
             if (_synced_dbs && *_synced_dbs)
                 (*_synced_dbs)->len = 0;
@@ -165,15 +197,17 @@ create_local_db (const gchar *_dbpath, gchar **newpath, GString **_synced_dbs, G
         debug ("created tmp folder %s", folder);
 
         /* dbpath will not be slash-terminated */
-        dbpath = strdup (_dbpath);
-        if (l == 0)
+        l = strlen (_dbpath);
+        if (_dbpath[l - 1] == '/')
+            --l;
+        if (l >= MAX_PATH)
         {
-            l = strlen (dbpath) - 1;
+            g_set_error (error, KALU_ERROR, 1, _("Internal error: Path too long"));
+            goto error;
         }
-        if (dbpath[l] == '/')
-        {
-            dbpath[l] = '\0';
-        }
+        memcpy (buf_dbpath, _dbpath, l);
+        buf_dbpath[l] = '\0';
+        dbpath = buf_dbpath;
 
         /* symlink local */
         if (snprintf (buf, MAX_PATH, "%s/local", dbpath) >= MAX_PATH
@@ -211,7 +245,7 @@ create_local_db (const gchar *_dbpath, gchar **newpath, GString **_synced_dbs, G
         /* re-using tmp folder; we assume local symlinks and sync folders have
          * already been taken care of last time, as they should */
         folder = tmp_dbpath;
-        dbpath = pac_dbpath;
+        dbpath = buf_dbpath;
     }
 
     if (snprintf (buf, MAX_PATH, "%s/sync", dbpath) >= MAX_PATH)
@@ -390,7 +424,7 @@ create_local_db (const gchar *_dbpath, gchar **newpath, GString **_synced_dbs, G
 
     if (create_tmpdir)
     {
-        pac_dbpath = dbpath;
+        g_free (tmp_dbpath);
         tmp_dbpath = folder;
     }
     *newpath = g_strdup (folder);
@@ -399,7 +433,6 @@ create_local_db (const gchar *_dbpath, gchar **newpath, GString **_synced_dbs, G
 error:
     if (create_tmpdir)
     {
-        free (dbpath);
         g_free (folder);
     }
     return FALSE;
@@ -994,8 +1027,6 @@ kalu_alpm_rmdb (void)
     rmrf (tmp_dbpath);
     g_free (tmp_dbpath);
     tmp_dbpath = NULL;
-    free (pac_dbpath);
-    pac_dbpath = NULL;
 }
 
 void
