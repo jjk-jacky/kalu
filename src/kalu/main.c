@@ -1256,11 +1256,17 @@ main (int argc, char *argv[])
     gboolean         show_version       = FALSE;
     gboolean         run_manual_checks  = FALSE;
     gboolean         run_auto_checks    = FALSE;
+    gchar           *tmp_dbpath         = NULL;
+    gboolean         keep_tmp_dbpath    = FALSE;
     GOptionEntry     options[] = {
         { "auto-checks",    'a', 0, G_OPTION_ARG_NONE, &run_auto_checks,
             N_("Run automatic checks"), NULL },
         { "manual-checks",  'm', 0, G_OPTION_ARG_NONE, &run_manual_checks,
             N_("Run manual checks"), NULL },
+        { "tmp-dbpath",     'T', 0, G_OPTION_ARG_STRING, &tmp_dbpath,
+            N_("Use PATH as temporary dbpath"), "PATH" },
+        { "keep-tmp-dbpath",'K', 0, G_OPTION_ARG_NONE, &keep_tmp_dbpath,
+            N_("Keep tmp dbpath folder"), NULL },
         { "debug",          'd', G_OPTION_FLAG_NO_ARG, G_OPTION_ARG_CALLBACK,
             opt_debug, N_("Enable debug mode"), NULL },
         { "version",        'V', 0, G_OPTION_ARG_NONE, &show_version,
@@ -1306,6 +1312,8 @@ main (int argc, char *argv[])
             is_cli = TRUE;
         }
 #endif
+        if (tmp_dbpath)
+            kalu_alpm_set_tmp_dbpath (tmp_dbpath);
         g_option_context_free (context);
     }
 
@@ -1614,7 +1622,7 @@ eop:
         g_object_unref (sn);
 #endif
 #endif /* DISABLE_GUI */
-    kalu_alpm_rmdb ();
+    kalu_alpm_rmdb (keep_tmp_dbpath);
     if (config->is_curl_init)
     {
         curl_global_cleanup ();

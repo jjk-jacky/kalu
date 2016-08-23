@@ -58,6 +58,9 @@ typedef struct _kalu_alpm_t {
 extern unsigned short alpm_verbose;
 
 gboolean
+kalu_alpm_set_tmp_dbpath (const gchar *path);
+
+gboolean
 kalu_alpm_load (kalu_simul_t *simulation, const gchar *conffile, GString **_synced_dbs, GError **error);
 
 gboolean
@@ -76,7 +79,7 @@ const gchar *
 kalu_alpm_get_dbpath (void);
 
 void
-kalu_alpm_rmdb (void);
+kalu_alpm_rmdb (gboolean keep_tmp_dbpath);
 
 void
 kalu_alpm_free (void);

@@ -26,9 +26,24 @@ messages from ALPM.
 
 Show a little help text and exit
 
+=item B<-K, --keep-tmp-dbpath>
+
+Keep temporary dbpath upon exit, else kalu removes the directory (and all its
+content). Keeping it around might be useful to e.g. re-use it later, via
+B<--tmp-dbpath> option.
+
 =item B<-m, --manual-checks>
 
 Run manual checks (no GUI, see L<B<NOTES>|/NOTES> below)
+
+=item B<-T, --tmp-dbpath> I<PATH>
+
+Use I<PATH> as temporary dbpath. If not specified, a temporary directory
+I<$TMPDIR/kalu-XXXXXX> will be created, where I<XXXXXX> are characters chosen at
+random.
+
+This might be useful to re-use an existing directory, especially alongside
+B<--keep-tmp-dbpath>
 
 =item B<-V, --version>
 
@@ -85,7 +100,7 @@ reducing bandwidth usage and therefore speeding things a bit.
 (Note kalu will actually remove the folder & re-create new temporary copies in a
 new folder if the DB path for ALPM (e.g. from pacman.conf) changed. Alse note
 that if for some reason you wanted kalu to recreate copies, you can simply
-remove the folder, I<$TMPDIR/kalu-XXXXXX>)
+remove the folder, I<$TMPDIR/kalu-XXXXXX> or as specified via B<--tmp-dbpath>)
 
 =item B<* Watched packages>
 

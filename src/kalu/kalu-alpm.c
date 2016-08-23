@@ -51,6 +51,7 @@ unsigned short alpm_verbose;
 
 static kalu_alpm_t *alpm;
 static gchar *tmp_dbpath = NULL;
+static gboolean is_tmp_dbpath_set = FALSE;
 
 static gboolean copy_file (const gchar *from, const gchar *to);
 static gboolean create_local_db (const gchar *dbpath, gchar **newpath,
@@ -188,13 +189,26 @@ create_local_db (const gchar *_dbpath, gchar **newpath, GString **_synced_dbs, G
     {
         debug ("creating local db");
 
-        /* create folder in tmp dir */
-        if (NULL == (folder = g_dir_make_tmp ("kalu-XXXXXX", NULL)))
+        if (is_tmp_dbpath_set)
         {
-            g_set_error (error, KALU_ERROR, 1, _("Unable to create temp folder"));
-            return FALSE;
+            if (mkdir (tmp_dbpath, 0700) < 0)
+            {
+                debug ("mkdir failed: %s", strerror (errno));
+                g_set_error (error, KALU_ERROR, 1, _("Unable to create temp folder"));
+                return FALSE;
+            }
+            folder = tmp_dbpath;
         }
-        debug ("created tmp folder %s", folder);
+        else
+        {
+            /* create folder in tmp dir */
+            if (NULL == (folder = g_dir_make_tmp ("kalu-XXXXXX", NULL)))
+            {
+                g_set_error (error, KALU_ERROR, 1, _("Unable to create temp folder"));
+                return FALSE;
+            }
+            debug ("created tmp folder %s", folder);
+        }
 
         /* dbpath will not be slash-terminated */
         l = strlen (_dbpath);
@@ -422,7 +436,7 @@ create_local_db (const gchar *_dbpath, gchar **newpath, GString **_synced_dbs, G
     }
     g_dir_close (dir);
 
-    if (create_tmpdir)
+    if (create_tmpdir && tmp_dbpath != folder)
     {
         g_free (tmp_dbpath);
         tmp_dbpath = folder;
@@ -461,6 +475,18 @@ log_cb (alpm_loglevel_t level, const char *fmt, va_list args)
 
     debug ("ALPM: %s", s);
     g_free (s);
+}
+
+gboolean
+kalu_alpm_set_tmp_dbpath (const gchar *path)
+{
+    g_free (tmp_dbpath);
+    if (path)
+        tmp_dbpath = g_strdup (path);
+    else
+        tmp_dbpath = NULL;
+    is_tmp_dbpath_set = !!path;
+    return TRUE;
 }
 
 gboolean
@@ -1017,14 +1043,12 @@ kalu_alpm_get_dbpath (void)
 }
 
 void
-kalu_alpm_rmdb (void)
+kalu_alpm_rmdb (gboolean keep_tmp_dbpath)
 {
     if (!tmp_dbpath)
-    {
         return;
-    }
-
-    rmrf (tmp_dbpath);
+    if (!keep_tmp_dbpath)
+        rmrf (tmp_dbpath);
     g_free (tmp_dbpath);
     tmp_dbpath = NULL;
 }
