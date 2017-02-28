@@ -164,7 +164,8 @@ version "kalu-paused", the gray versions are "kalu-gray" and "kalu-gray-paused"
 respectively.
 
 So to e.g. use a different gray icon, one could simply put a file
-I<kalu-gray.png> in folder I<~/.local/share/icons>
+I<kalu-gray.png> in a folder such as I<~/.local/share/icons/hicolor/32x32/apps>
+or similar.
 
 Of course, kalu will still create the gray and/or paused versions as needed,
 based on loaded icons.
