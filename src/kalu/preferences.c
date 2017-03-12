@@ -1666,6 +1666,18 @@ show_prefs (void)
     {
         gtk_combo_box_set_active (GTK_COMBO_BOX (combo_interval), 1);
     }
+    else if (config->interval == 3600 /* 60m/1h */)
+    {
+        gtk_combo_box_set_active (GTK_COMBO_BOX (combo_interval), 2);
+    }
+    else if (config->interval == 7200 /* 120m/2h */)
+    {
+        gtk_combo_box_set_active (GTK_COMBO_BOX (combo_interval), 3);
+    }
+    else if (config->interval == 86400 /* 1440m/1d */)
+    {
+        gtk_combo_box_set_active (GTK_COMBO_BOX (combo_interval), 4);
+    }
     else
     {
         snprintf (buf, 255, "%d", config->interval / 60);
