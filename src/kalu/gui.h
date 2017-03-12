@@ -97,7 +97,7 @@ GString **get_kalpm_synced_dbs (void);
 void reset_kalpm_synced_dbs (void);
 void set_kalpm_busy (gboolean busy);
 void reset_timeout (void);
-gboolean skip_next_timeout (void);
+gboolean skip_next_timeout (gpointer no_checks);
 gboolean reload_watched (gboolean is_aur, GError **error);
 
 #endif /* _GUI_H */

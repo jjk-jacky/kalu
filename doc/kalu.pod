@@ -397,6 +397,10 @@ or for notifications with an action button until kalu is closed.
 How often must kalu run its automatic check. Select from the list, or
 type in what you want.
 
+You can disable auto-checks by specifying 0. Note that in this case, and if you
+still set a skip period (see below), then auto-checks will still ran at the end
+of the skip period (or whenever manually unpausing).
+
 =item I<Do not check between .. and ..>
 
 =item SkipPeriod = I<HH:MM-HH:MM>

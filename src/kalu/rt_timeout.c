@@ -94,6 +94,9 @@ rt_timeout_add_seconds (guint interval, GSourceFunc function, gpointer data)
     guint             id;
     struct itimerspec ts;
 
+    if (interval == 0)
+        return 0;
+
     source = g_source_new (&rt_timeout_funcs, sizeof (RtTimeoutSource));
     sce = (RtTimeoutSource *) source;
 

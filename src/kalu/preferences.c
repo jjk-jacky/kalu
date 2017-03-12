@@ -883,7 +883,7 @@ btn_save_cb (GtkButton *button _UNUSED_, gpointer data _UNUSED_)
         error_on_page (0, _("You need to specify an interval."));
     }
     nb = atoi (s);
-    if (nb <= 0)
+    if (nb < 0)
     {
         g_free (s);
         error_on_page (0, _("Invalid value for the auto-check interval."));
@@ -1648,6 +1648,8 @@ show_prefs (void)
     g_signal_connect (G_OBJECT (entry), "insert-text",
             G_CALLBACK (insert_text_cb), (gpointer) combo_interval);
     gtk_combo_box_text_append (GTK_COMBO_BOX_TEXT (combo_interval),
+            "0", _c("delay-in-minutes", "0 (Disabled)"));
+    gtk_combo_box_text_append (GTK_COMBO_BOX_TEXT (combo_interval),
             "15", "15");
     gtk_combo_box_text_append (GTK_COMBO_BOX_TEXT (combo_interval),
             "30", "30");
@@ -1658,25 +1660,29 @@ show_prefs (void)
     gtk_combo_box_text_append (GTK_COMBO_BOX_TEXT (combo_interval),
             "1440", _c("delay-in-minutes", "1440 (Day)"));
     /* Note: config->interval actually is in seconds, not minutes */
-    if (config->interval == 900 /* 15m */)
+    if (config->interval == 0)
     {
         gtk_combo_box_set_active (GTK_COMBO_BOX (combo_interval), 0);
     }
-    else if (config->interval == 1800 /* 30m */)
+    else if (config->interval == 900 /* 15m */)
     {
         gtk_combo_box_set_active (GTK_COMBO_BOX (combo_interval), 1);
     }
-    else if (config->interval == 3600 /* 60m/1h */)
+    else if (config->interval == 1800 /* 30m */)
     {
         gtk_combo_box_set_active (GTK_COMBO_BOX (combo_interval), 2);
     }
-    else if (config->interval == 7200 /* 120m/2h */)
+    else if (config->interval == 3600 /* 60m/1h */)
     {
         gtk_combo_box_set_active (GTK_COMBO_BOX (combo_interval), 3);
     }
-    else if (config->interval == 86400 /* 1440m/1d */)
+    else if (config->interval == 7200 /* 120m/2h */)
     {
         gtk_combo_box_set_active (GTK_COMBO_BOX (combo_interval), 4);
+    }
+    else if (config->interval == 86400 /* 1440m/1d */)
+    {
+        gtk_combo_box_set_active (GTK_COMBO_BOX (combo_interval), 5);
     }
     else
     {

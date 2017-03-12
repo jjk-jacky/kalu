@@ -841,7 +841,7 @@ parse_config_file (const char       *file,
                 else if (streq (key, "Interval"))
                 {
                     config->interval = atoi (value);
-                    if (config->interval > 0)
+                    if (config->interval >= 0)
                     {
                         config->interval *= 60; /* minutes into seconds */
                     }

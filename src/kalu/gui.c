@@ -1560,7 +1560,7 @@ set_kalpm_busy (gboolean busy)
             debug ("state non-busy: disable switch icons");
         }
 
-        if (!kalpm_state.is_paused)
+        if (!kalpm_state.is_paused && config->interval > 0)
         {
             /* set timeout for next auto-check */
             guint seconds;
@@ -1596,11 +1596,14 @@ reset_timeout (void)
         debug ("reset timeout: disable next auto-checks");
     }
 
-    /* set timeout for next auto-check */
-    seconds = (guint) config->interval;
-    kalpm_state.timeout = rt_timeout_add_seconds (seconds,
-            (GSourceFunc) kalu_auto_check, NULL);
-    debug ("reset timeout: next auto-checks in %d seconds", seconds);
+    if (config->interval > 0)
+    {
+        /* set timeout for next auto-check */
+        seconds = (guint) config->interval;
+        kalpm_state.timeout = rt_timeout_add_seconds (seconds,
+                (GSourceFunc) kalu_auto_check, NULL);
+        debug ("reset timeout: next auto-checks in %d seconds", seconds);
+    }
 }
 
 static inline gboolean
@@ -1649,7 +1652,7 @@ is_within_skip (void)
 }
 
 gboolean
-skip_next_timeout (void)
+skip_next_timeout (gpointer no_checks)
 {
     gboolean force = FALSE;
 
@@ -1666,8 +1669,11 @@ skip_next_timeout (void)
         if (!config->has_skip)
         {
             debug ("skip period: none set");
-            /* we should still trigger auto-checks */
-            kalu_check (TRUE);
+            if (!no_checks)
+            {
+                /* we should still trigger auto-checks */
+                kalu_check (TRUE);
+            }
             return G_SOURCE_REMOVE;
         }
         kalpm_state.skip_next = (is_within_skip ()) ? SKIP_BEGIN : SKIP_END;
@@ -1677,7 +1683,7 @@ skip_next_timeout (void)
     /* toggle state */
     gboolean paused = (kalpm_state.skip_next == SKIP_BEGIN);
     debug ("skip period: auto-%s", (paused) ? "pausing" : "resuming");
-    if (!kalpm_state.is_busy)
+    if (!kalpm_state.is_busy && !no_checks)
     {
         if (force)
         {
@@ -1693,6 +1699,16 @@ skip_next_timeout (void)
         /* since we're busy, we can't toggle right now. instead, we'll
          * update the flag, so it'll be takin into accound right away */
         kalpm_state.is_paused = paused;
+        /* We might not be busy, but no_checks is set, in which case we do the
+         * same as to not trigger the checks (via set_pause()). no_checks is
+         * only set when called on app start and auto-checks are disabled
+         * (config->interval == 0) so nothing should happen, and we only want to
+         * set up the skip period.
+         * However, we then need to update the icon (if paused) */
+        if (no_checks && paused)
+        {
+            update_icon ();
+        }
     }
 
     /* set new timeout_skip */

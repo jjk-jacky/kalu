@@ -1599,10 +1599,10 @@ main (int argc, char *argv[])
 #endif
 
     /* takes care of setting timeout_skip (if needed) and also triggers the
-     * auto-checks (unless within skip period) */
-#if 1
-    skip_next_timeout ();
-#endif
+     * auto-checks (unless within skip period).
+     * Set arg/flag no_checks to 1 when auto-checks are disabled, to not run
+     * checks (still need to set skip period though) */
+    skip_next_timeout ((config->interval == 0) ? (gpointer) 1 : NULL);
 
     set_sighandlers ();
     notify_init ("kalu");
