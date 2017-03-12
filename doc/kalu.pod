@@ -14,10 +14,6 @@ B<kalu> [I<OPTION>...]
 
 Run automatic checks (no GUI, see L<B<NOTES>|/NOTES> below)
 
-=item B<-m, --manual-checks>
-
-Run manual checks (no GUI, see L<B<NOTES>|/NOTES> below)
-
 =item B<-d, --debug>
 
 Enable debug mode. Debugging messages will then be sent to kalu's stdout,
@@ -26,13 +22,17 @@ prefixed with a timestamp.
 Specify twice to include messages from ALPM; three times to include debugging
 messages from ALPM.
 
-=item B<-V, --version>
-
-Show version information and exit
-
 =item B<-h, --help>
 
 Show a little help text and exit
+
+=item B<-m, --manual-checks>
+
+Run manual checks (no GUI, see L<B<NOTES>|/NOTES> below)
+
+=item B<-V, --version>
+
+Show version information and exit
 
 =back
 
