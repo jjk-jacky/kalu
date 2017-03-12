@@ -889,7 +889,7 @@ btn_save_cb (GtkButton *button _UNUSED_, gpointer data _UNUSED_)
         error_on_page (0, _("Invalid value for the auto-check interval."));
         return;
     }
-    add_to_conf ("Interval = %s\n", s);
+    add_to_conf ("Interval = %d\n", nb);
     g_free (s);
     new_config.interval = nb * 60; /* we store seconds, not minutes */
 
