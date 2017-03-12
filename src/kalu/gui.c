@@ -546,6 +546,28 @@ show_last_notifs (void)
 }
 
 static void
+update_icon (void)
+{
+    gint nb_upgrades = (kalpm_state.nb_upgrades == UPGRADES_NB_CONFLICT)
+        ? 1 : kalpm_state.nb_upgrades;
+    /* thing is, this function can be called from another thread (e.g. from
+     * kalu_check_work via set_kalpm_nb, which runs in a separate thread not to
+     * block GUI...) but when that happens, we can't use gtk_* functions, i.e.
+     * we can't change the status icon. so, this will make sure the call to
+     * set_status_icon happens in the main thread */
+    gboolean active = (nb_upgrades + kalpm_state.nb_watched
+                       + kalpm_state.nb_aur + + kalpm_state.nb_aur_not_found
+                       + kalpm_state.nb_watched_aur + kalpm_state.nb_news > 0);
+
+    g_main_context_invoke (NULL,
+                           (GSourceFunc) set_status_icon,
+                           GINT_TO_POINTER (active));
+#ifdef ENABLE_STATUS_NOTIFIER
+    sn_upd_status (active);
+#endif
+}
+
+static void
 set_pause (gboolean paused)
 {
     /* in case e.g. the menu was shown (sensitive) before an auto-check started */
@@ -566,17 +588,8 @@ set_pause (gboolean paused)
             kalpm_state.timeout = 0;
         }
 
-        /* determine whether the icon is active or not to update it properly */
-        gint nb_upgrades;
-        nb_upgrades = (kalpm_state.nb_upgrades == UPGRADES_NB_CONFLICT)
-            ? 1 : kalpm_state.nb_upgrades;
-        set_status_icon (nb_upgrades + kalpm_state.nb_watched
-                + kalpm_state.nb_aur + kalpm_state.nb_watched_aur
-                + kalpm_state.nb_news > 0);
+        update_icon ();
 #ifdef ENABLE_STATUS_NOTIFIER
-        sn_upd_status (nb_upgrades + kalpm_state.nb_watched
-                + kalpm_state.nb_aur + kalpm_state.nb_watched_aur
-                + kalpm_state.nb_news > 0);
         sn_refresh_tooltip ();
 #endif
     }
@@ -1408,7 +1421,7 @@ static void sn_upd_status (gboolean active)
 #endif
 
 void
-set_kalpm_nb (check_t type, gint nb, gboolean update_icon)
+set_kalpm_nb (check_t type, gint nb, gboolean do_update_icon)
 {
     if (type & CHECK_UPGRADES)
     {
@@ -1440,25 +1453,9 @@ set_kalpm_nb (check_t type, gint nb, gboolean update_icon)
         kalpm_state.nb_news = nb;
     }
 
-    if (update_icon)
+    if (do_update_icon)
     {
-        gint nb_upgrades;
-        nb_upgrades = (kalpm_state.nb_upgrades == UPGRADES_NB_CONFLICT)
-            ? 1 : kalpm_state.nb_upgrades;
-        /* thing is, this function can be called from another thread (e.g. from
-         * kalu_check_work, which runs in a separate thread not to block GUI...)
-         * but when that happens, we can't use gtk_* functions, i.e. we can't
-         * change the status icon. so, this will make sure the call to
-         * set_status_icon happens in the main thread */
-        gboolean active = (nb_upgrades + kalpm_state.nb_watched
-                + kalpm_state.nb_aur + + kalpm_state.nb_aur_not_found
-                + kalpm_state.nb_watched_aur + kalpm_state.nb_news > 0);
-        g_main_context_invoke (NULL,
-                (GSourceFunc) set_status_icon,
-                GINT_TO_POINTER (active));
-#ifdef ENABLE_STATUS_NOTIFIER
-        sn_upd_status (active);
-#endif
+        update_icon ();
     }
 }
 
