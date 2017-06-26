@@ -1237,7 +1237,7 @@ main (int argc, char *argv[])
     struct fifo      fifo = { .fd = -1, .name = NULL };
     gint             r;
 #endif
-    gchar            conffile[MAX_PATH];
+    gchar            conffile[PATH_MAX];
 
     config = new0 (config_t, 1);
 #ifndef DISABLE_GUI
@@ -1401,7 +1401,7 @@ main (int argc, char *argv[])
 #endif
 
     /* parse config */
-    snprintf (conffile, MAX_PATH - 1, "%s/kalu/kalu.conf",
+    snprintf (conffile, PATH_MAX - 1, "%s/kalu/kalu.conf",
             g_get_user_config_dir ());
     if (!parse_config_file (conffile, CONF_FILE_KALU, &error))
     {
@@ -1410,7 +1410,7 @@ main (int argc, char *argv[])
         g_clear_error (&error);
     }
     /* parse watched */
-    snprintf (conffile, MAX_PATH - 1, "%s/kalu/watched.conf",
+    snprintf (conffile, PATH_MAX - 1, "%s/kalu/watched.conf",
             g_get_user_config_dir ());
     if (!parse_config_file (conffile, CONF_FILE_WATCHED, &error))
     {
@@ -1419,7 +1419,7 @@ main (int argc, char *argv[])
         g_clear_error (&error);
     }
     /* parse watched aur */
-    snprintf (conffile, MAX_PATH - 1, "%s/kalu/watched-aur.conf",
+    snprintf (conffile, PATH_MAX - 1, "%s/kalu/watched-aur.conf",
             g_get_user_config_dir ());
     if (!parse_config_file (conffile, CONF_FILE_WATCHED_AUR, &error))
     {
@@ -1428,7 +1428,7 @@ main (int argc, char *argv[])
         g_clear_error (&error);
     }
     /* parse news */
-    snprintf (conffile, MAX_PATH - 1, "%s/kalu/news.conf",
+    snprintf (conffile, PATH_MAX - 1, "%s/kalu/news.conf",
             g_get_user_config_dir ());
     if (!parse_config_file (conffile, CONF_FILE_NEWS, &error))
     {

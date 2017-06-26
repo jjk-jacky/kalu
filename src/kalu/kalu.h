@@ -42,7 +42,6 @@
 #endif
 #define PACKAGE_TAG             "Keeping Arch Linux Up-to-date"
 
-#define MAX_PATH                255
 #ifndef DISABLE_GUI
 #define UPGRADES_NB_CONFLICT    -2  /* set to nb_upgrades when conflict makes it
                                        impossible to get packages number */

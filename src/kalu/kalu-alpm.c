@@ -88,9 +88,9 @@ copy_file (const gchar *from, const gchar *to)
 static gboolean
 create_local_db (const gchar *_dbpath, gchar **newpath, GString **_synced_dbs, GError **error)
 {
-    gchar    buf[MAX_PATH];
-    gchar    buf2[MAX_PATH];
-    gchar    buf_dbpath[MAX_PATH];
+    gchar    buf[PATH_MAX];
+    gchar    buf2[PATH_MAX];
+    gchar    buf_dbpath[PATH_MAX];
     gchar   *dbpath = NULL;
     size_t   l = 0;
     gchar   *folder;
@@ -121,12 +121,12 @@ create_local_db (const gchar *_dbpath, gchar **newpath, GString **_synced_dbs, G
                 ssize_t len;
 
                 debug ("..folder found, getting dbpath");
-                if (snprintf (buf, MAX_PATH, "%s/local", tmp_dbpath) >= MAX_PATH)
+                if (snprintf (buf, PATH_MAX, "%s/local", tmp_dbpath) >= PATH_MAX)
                 {
                     g_set_error (error, KALU_ERROR, 1, _("Internal error: Path too long"));
                     return FALSE;
                 }
-                len = readlink (buf, buf_dbpath, MAX_PATH - 1);
+                len = readlink (buf, buf_dbpath, PATH_MAX - 1);
                 if (len > 6)
                 {
                     buf_dbpath[len] = '\0';
@@ -214,7 +214,7 @@ create_local_db (const gchar *_dbpath, gchar **newpath, GString **_synced_dbs, G
         l = strlen (_dbpath);
         if (_dbpath[l - 1] == '/')
             --l;
-        if (l >= MAX_PATH)
+        if (l >= PATH_MAX)
         {
             g_set_error (error, KALU_ERROR, 1, _("Internal error: Path too long"));
             goto error;
@@ -224,8 +224,8 @@ create_local_db (const gchar *_dbpath, gchar **newpath, GString **_synced_dbs, G
         dbpath = buf_dbpath;
 
         /* symlink local */
-        if (snprintf (buf, MAX_PATH, "%s/local", dbpath) >= MAX_PATH
-                || snprintf (buf2, MAX_PATH, "%s/local", folder) >= MAX_PATH)
+        if (snprintf (buf, PATH_MAX, "%s/local", dbpath) >= PATH_MAX
+                || snprintf (buf2, PATH_MAX, "%s/local", folder) >= PATH_MAX)
         {
             g_set_error (error, KALU_ERROR, 1, _("Internal error: Path too long"));
             goto error;
@@ -240,7 +240,7 @@ create_local_db (const gchar *_dbpath, gchar **newpath, GString **_synced_dbs, G
         debug ("created symlink %s", buf2);
 
         /* copy databases in sync */
-        if (snprintf (buf, MAX_PATH, "%s/sync", folder) >= MAX_PATH)
+        if (snprintf (buf, PATH_MAX, "%s/sync", folder) >= PATH_MAX)
         {
             g_set_error (error, KALU_ERROR, 1, _("Internal error: Path too long"));
             goto error;
@@ -262,7 +262,7 @@ create_local_db (const gchar *_dbpath, gchar **newpath, GString **_synced_dbs, G
         dbpath = buf_dbpath;
     }
 
-    if (snprintf (buf, MAX_PATH, "%s/sync", dbpath) >= MAX_PATH)
+    if (snprintf (buf, PATH_MAX, "%s/sync", dbpath) >= PATH_MAX)
     {
         g_set_error (error, KALU_ERROR, 1, _("Internal error: Path too long"));
         goto error;
@@ -277,8 +277,8 @@ create_local_db (const gchar *_dbpath, gchar **newpath, GString **_synced_dbs, G
 
     while ((file = g_dir_read_name (dir)))
     {
-        l = (size_t) snprintf (buf, MAX_PATH, "%s/sync/%s", dbpath, file);
-        if (l >= MAX_PATH)
+        l = (size_t) snprintf (buf, PATH_MAX, "%s/sync/%s", dbpath, file);
+        if (l >= PATH_MAX)
         {
             g_set_error (error, KALU_ERROR, 1, _("Internal error"));
             goto error;
@@ -307,8 +307,8 @@ create_local_db (const gchar *_dbpath, gchar **newpath, GString **_synced_dbs, G
                     }
 
                     /* construct name of our timestamp file for that db */
-                    l2 = snprintf (buf2, MAX_PATH, "%s/sync/%s.ts", folder, file);
-                    if (l2 >= MAX_PATH)
+                    l2 = snprintf (buf2, PATH_MAX, "%s/sync/%s.ts", folder, file);
+                    if (l2 >= PATH_MAX)
                     {
                         g_set_error (error, KALU_ERROR, 1, _("Internal error: Path too long"));
                         goto error;
@@ -343,8 +343,8 @@ create_local_db (const gchar *_dbpath, gchar **newpath, GString **_synced_dbs, G
                 {
                     if (l2 == 0)
                     {
-                        l2 = snprintf (buf2, MAX_PATH, "%s/sync/%s.ts", folder, file);
-                        if (l2 >= MAX_PATH)
+                        l2 = snprintf (buf2, PATH_MAX, "%s/sync/%s.ts", folder, file);
+                        if (l2 >= PATH_MAX)
                         {
                             g_set_error (error, KALU_ERROR, 1,
                                     _("Internal error: Path too long"));

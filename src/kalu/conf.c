@@ -230,7 +230,7 @@ parse_pacman_conf (const char       *file,
                    GError          **error)
 {
     FILE       *fp              = NULL;
-    char        line[MAX_PATH];
+    char        line[PATH_MAX];
     int         linenum         = 0;
     int         success         = TRUE;
     const int   max_depth       = 10;
@@ -258,7 +258,7 @@ parse_pacman_conf (const char       *file,
         goto cleanup;
     }
 
-    while (fgets (line, MAX_PATH, fp))
+    while (fgets (line, PATH_MAX, fp))
     {
         char *key, *value, *ptr;
         size_t line_len;

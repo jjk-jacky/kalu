@@ -333,9 +333,9 @@ rmrf (const char *path)
             {
                 if (!streq (dp->d_name, "..") && !streq (dp->d_name, "."))
                 {
-                    char name[MAX_PATH];
-                    if (snprintf (name, MAX_PATH, "%s/%s",
-                                path, dp->d_name) < MAX_PATH)
+                    char name[PATH_MAX];
+                    if (snprintf (name, PATH_MAX, "%s/%s",
+                                path, dp->d_name) < PATH_MAX)
                     {
                         errflag += rmrf (name);
                     }

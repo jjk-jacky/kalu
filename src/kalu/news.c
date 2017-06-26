@@ -876,10 +876,10 @@ btn_mark_cb (GtkWidget *button _UNUSED_, GtkWidget *window)
 
     /* save */
     FILE *fp;
-    char file[MAX_PATH];
+    char file[PATH_MAX];
     gboolean saved = FALSE;
 
-    snprintf (file, MAX_PATH - 1, "%s/kalu/news.conf", g_get_user_config_dir ());
+    snprintf (file, PATH_MAX - 1, "%s/kalu/news.conf", g_get_user_config_dir ());
     if (ensure_path (file))
     {
         fp = fopen (file, "w");

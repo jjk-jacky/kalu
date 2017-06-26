@@ -157,6 +157,7 @@ AC_CHECK_HEADERS([fcntl.h float.h libintl.h limits.h locale.h stdlib.h string.h 
 AC_C_INLINE
 AC_TYPE_OFF_T
 AC_TYPE_SIZE_T
+PATH_MAX_DEFINED
 
 # Checks for library functions.
 AC_FUNC_MALLOC

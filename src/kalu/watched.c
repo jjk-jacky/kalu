@@ -200,17 +200,17 @@ static gboolean
 save_watched (gboolean is_aur, alpm_list_t *new_watched)
 {
     FILE *fp;
-    char file[MAX_PATH];
+    char file[PATH_MAX];
     alpm_list_t *i;
     gboolean success = FALSE;
 
     if (is_aur)
     {
-        snprintf (file, MAX_PATH - 1, "%s/kalu/watched-aur.conf", g_get_user_config_dir ());
+        snprintf (file, PATH_MAX - 1, "%s/kalu/watched-aur.conf", g_get_user_config_dir ());
     }
     else
     {
-        snprintf (file, MAX_PATH - 1, "%s/kalu/watched.conf", g_get_user_config_dir ());
+        snprintf (file, PATH_MAX - 1, "%s/kalu/watched.conf", g_get_user_config_dir ());
     }
 
     if (ensure_path (file))
