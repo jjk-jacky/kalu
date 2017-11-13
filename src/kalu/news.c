@@ -24,6 +24,7 @@
 
 /* C */
 #include <string.h>
+#include <ctype.h>
 
 #ifndef DISABLE_GUI
 /* gtk */
@@ -121,25 +122,45 @@ xml_parser_updates_text (GMarkupParseContext   *context,
 
     if (streq ("title", list->data))
     {
+        gchar *s = (gchar *) text;
+
+        /* if it needs trimming, let's do it. (If not we use text as-is to avoid
+         * a possibly unneeded call strdup) */
+        if (isspace (*s) || isspace (s[strlen (s) - 1]))
+        {
+            s = strtrim (strdup (s));
+        }
+
         /* is this the last item from last check? */
-        if (NULL != config->news_last && streq (config->news_last, text))
+        if (NULL != config->news_last && streq (config->news_last, s))
         {
             parse_updates_data->is_last_reached = TRUE;
+            if (s != text)
+            {
+                free (s);
+            }
             return;
         }
 
         /* was this item already read? */
         FOR_LIST (i, config->news_read)
         {
-            if (streq (i->data, text))
+            if (streq (i->data, s))
             {
+                if (s != text)
+                {
+                    free (s);
+                }
                 return;
             }
         }
 
         /* add title to the new news */
-        parse_updates_data->titles = alpm_list_add (parse_updates_data->titles,
-                strdup (text));
+        if (s == text)
+        {
+            s = strdup (s);
+        }
+        parse_updates_data->titles = alpm_list_add (parse_updates_data->titles, s);
     }
 }
 
@@ -698,12 +719,12 @@ xml_parser_news_text (GMarkupParseContext *context,
         {
             /* make a copy of the title, and store it in list of all titles */
             /* it will not be free-d here. this is done on window_destroy_cb */
-            s = strdup (text);
+            s = strtrim (strdup (text));
             lists = parse_news_data->lists;
             lists[LIST_TITLES_ALL] = alpm_list_add (lists[LIST_TITLES_ALL], s);
 
             /* is this the last item from last check? */
-            if (NULL != config->news_last && streq (config->news_last, text))
+            if (NULL != config->news_last && streq (config->news_last, s))
             {
                 parse_news_data->is_last_reached = TRUE;
                 return;
@@ -712,7 +733,7 @@ xml_parser_news_text (GMarkupParseContext *context,
             /* was this item already read? */
             FOR_LIST (i, config->news_read)
             {
-                if (streq (i->data, text))
+                if (streq (i->data, s))
                 {
                     /* make a note to skip its description as well */
                     skip_next_description = TRUE;
