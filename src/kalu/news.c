@@ -122,7 +122,7 @@ xml_parser_updates_text (GMarkupParseContext   *context,
     if (streq ("title", list->data))
     {
         /* is this the last item from last check? */
-        if (NULL != config->news_last && streq (config->news_last, text))
+        if (NULL != config->news_last && streq (config->news_last, strtrim(text)))
         {
             parse_updates_data->is_last_reached = TRUE;
             return;
@@ -131,7 +131,7 @@ xml_parser_updates_text (GMarkupParseContext   *context,
         /* was this item already read? */
         FOR_LIST (i, config->news_read)
         {
-            if (streq (i->data, text))
+            if (streq (i->data, strtrim(text)))
             {
                 return;
             }
@@ -703,7 +703,7 @@ xml_parser_news_text (GMarkupParseContext *context,
             lists[LIST_TITLES_ALL] = alpm_list_add (lists[LIST_TITLES_ALL], s);
 
             /* is this the last item from last check? */
-            if (NULL != config->news_last && streq (config->news_last, text))
+            if (NULL != config->news_last && streq (config->news_last, strtrim(text)))
             {
                 parse_news_data->is_last_reached = TRUE;
                 return;
@@ -712,7 +712,7 @@ xml_parser_news_text (GMarkupParseContext *context,
             /* was this item already read? */
             FOR_LIST (i, config->news_read)
             {
-                if (streq (i->data, text))
+                if (streq (i->data, strtrim(text)))
                 {
                     /* make a note to skip its description as well */
                     skip_next_description = TRUE;
