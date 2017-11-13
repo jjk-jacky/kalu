@@ -131,7 +131,7 @@ xml_parser_updates_text (GMarkupParseContext   *context,
         /* was this item already read? */
         FOR_LIST (i, config->news_read)
         {
-            if (streq (i->data, text))
+            if (streq (i->data, strtrim(text)))
             {
                 return;
             }
@@ -712,7 +712,7 @@ xml_parser_news_text (GMarkupParseContext *context,
             /* was this item already read? */
             FOR_LIST (i, config->news_read)
             {
-                if (streq (i->data, text))
+                if (streq (i->data, strtrim(text)))
                 {
                     /* make a note to skip its description as well */
                     skip_next_description = TRUE;
