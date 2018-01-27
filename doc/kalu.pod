@@ -984,7 +984,7 @@ long ago it was).
 
 [2] http://www.notmart.org/misc/statusnotifieritem/
 
-[3] http://jjacky.com/statusnotifier/
+[3] https://jjacky.com/statusnotifier/
 
 =head1 SYSTEM UPGRADE
 

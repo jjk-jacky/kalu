@@ -21,7 +21,7 @@
  */
 
 /**
- * imagemenuitem.c from Donnatella -- http://jjacky.com/donnatella
+ * imagemenuitem.c from Donnatella -- https://jjacky.com/donnatella
  */
 
 #include <config.h>
