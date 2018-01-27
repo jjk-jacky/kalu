@@ -1,4 +1,37 @@
 
+# 2018-02-10, v4.2.0
+
+With contributions from Bricabraque & pepecuis.
+
+- kalu: Add --tmp-dbpath and --keep-tmp-dbpath
+
+Mainly useful for CLI use (or not?), to be able to keep & re-use the tmp dbs
+over time, much like the GUI does during its run.
+
+- Add Spanish translation; Thanks to pepecuis!
+
+- Support disabling auto-checks (via Interval = 0)
+
+- news: Fix issue if title needs trimming..
+
+..that is, if a news title (used to determine whether it has been read
+or not) could be trimmedg, there was an issue because titles read from
+news.conf are trimmed, so the two wouldn't match, and the news
+incorrectly considered unread.
+
+To fix this we trim the titles read from the XML (RSS feed) as well.
+
+Thanks to Ada Joule; Also adam777 for the report.
+
+- Update French translation
+
+- doc: Adjust example path about custom icons
+
+- doc: List options in alphabetical order
+
+- Some other fixes (see git log for details)
+
+
 # 2016-05-12, v4.1.0
 
 With contributions from AdmiringWorm.
