@@ -1,8 +1,8 @@
 /**
- * kalu - Copyright (C) 2012-2016 Olivier Brunel
+ * kalu - Copyright (C) 2012-2018 Olivier Brunel
  *
  * util.c
- * Copyright (C) 2012-2016 Olivier Brunel <jjk@jjacky.com>
+ * Copyright (C) 2012-2017 Olivier Brunel <jjk@jjacky.com>
  * Copyright (c) 2006-2011 Pacman Development Team <pacman-dev@archlinux.org>
  *
  * This file is part of kalu.

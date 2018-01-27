@@ -1,8 +1,8 @@
 /**
- * kalu - Copyright (C) 2012-2014 Olivier Brunel
+ * kalu - Copyright (C) 2012-2018 Olivier Brunel
  *
  * watched.c
- * Copyright (C) 2012-2014 Olivier Brunel <jjk@jjacky.com>
+ * Copyright (C) 2012-2017 Olivier Brunel <jjk@jjacky.com>
  *
  * This file is part of kalu.
  *

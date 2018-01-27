@@ -1,5 +1,5 @@
 /**
- * kalu - Copyright (C) 2012-2016 Olivier Brunel
+ * kalu - Copyright (C) 2012-2018 Olivier Brunel
  *
  * kalu-updater.c
  * Copyright (C) 2012-2016 Olivier Brunel <jjk@jjacky.com>

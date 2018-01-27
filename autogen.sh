@@ -1,6 +1,6 @@
 #!/bin/sh
 
-# kalu - Copyright (C) 2012-2013 Olivier Brunel
+# kalu - Copyright (C) 2012-2018 Olivier Brunel
 #
 # autogen.sh
 # Copyright (C) 2012 Olivier Brunel <i.am.jack.mail@gmail.com>
