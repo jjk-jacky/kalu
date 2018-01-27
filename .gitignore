@@ -17,12 +17,14 @@ config.status
 configure
 /kalu
 /kalu-dbus
+/serialize
 kalu.png
 kalu-logo
 libtool
 doc/kalu.1
 doc/index.html
 src/kalu-dbus/updater-dbus.h
+src/logo.c
 m4/libtool.m4
 m4/ltoptions.m4
 m4/ltsugar.m4

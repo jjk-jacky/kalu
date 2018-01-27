@@ -1,5 +1,6 @@
 DISTCLEANFILES = \
 	src/kalu-dbus/updater-dbus.h \
+	src/logo.c \
 	doc/kalu.1 \
 	doc/index.html
 
@@ -29,6 +30,10 @@ if ! DISABLE_UPDATER
 bin_PROGRAMS += kalu-dbus
 dist_bin_SCRIPTS = src/kalu-dbus/kalu-dbus-launcher
 endif
+
+noinst_PROGRAMS = serialize
+serialize_SOURCES = \
+	src/helper/serialize.c
 
 AM_CFLAGS = \
 	-g \
@@ -66,8 +71,7 @@ if ! DISABLE_GUI
 kalu_CFLAGS += @GTK_CFLAGS@ @NOTIFY_CFLAGS@
 kalu_LDADD += \
 	@GTK_LIBS@ \
-	@NOTIFY_LIBS@ \
-	kalu-logo.o
+	@NOTIFY_LIBS@
 kalu_SOURCES += \
 	src/kalu/imagemenuitem.h \
 	src/kalu/imagemenuitem.c \
@@ -78,7 +82,8 @@ kalu_SOURCES += \
 	src/kalu/watched.h \
 	src/kalu/watched.c \
 	src/kalu/preferences.h \
-	src/kalu/preferences.c
+	src/kalu/preferences.c \
+	src/logo.c
 else
 kalu_CFLAGS += @GLIB2_CFLAGS@
 kalu_LDADD += @GLIB2_LIBS@
@@ -89,8 +94,11 @@ kalu_CFLAGS += @STATUS_NOTIFIER_CFLAGS@
 kalu_LDADD += @STATUS_NOTIFIER_LIBS@
 endif
 
-if ! DISABLE_UPDATER
 BUILT_SOURCES = \
+	src/logo.c
+
+if ! DISABLE_UPDATER
+BUILT_SOURCES += \
 	src/kalu-dbus/updater-dbus.h
 
 kalu_SOURCES += \
@@ -156,8 +164,8 @@ EXTRA_DIST = \
 src/kalu-dbus/updater-dbus.h: src/kalu-dbus/updater-dbus.xml
 	$(AM_V_GEN)cd src/kalu-dbus && ./gen-interface > updater-dbus.h
 
-kalu-logo.o: kalu-logo
-	$(AM_V_GEN)$(LD) -r -b binary -o kalu-logo.o kalu-logo
+src/logo.c: kalu-logo serialize
+	$(AM_V_GEN)./serialize kalu_logo kalu-logo > src/logo.c
 
 kalu-logo: kalu.png
 	$(AM_V_at)$(LN_S) kalu.png kalu-logo

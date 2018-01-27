@@ -707,8 +707,8 @@ menu_prefs_cb (GtkMenuItem *item _UNUSED_, gpointer data _UNUSED_)
     show_prefs ();
 }
 
-extern const void *_binary_kalu_logo_start;
-extern const void *_binary_kalu_logo_size;
+extern const char kalu_logo[];
+extern size_t kalu_logo_size;
 static void
 menu_about_cb (GtkMenuItem *item _UNUSED_, gpointer data _UNUSED_)
 {
@@ -721,10 +721,7 @@ menu_about_cb (GtkMenuItem *item _UNUSED_, gpointer data _UNUSED_)
     const char *artists[] = { "Painless Rob", NULL };
 
     about = GTK_ABOUT_DIALOG (gtk_about_dialog_new ());
-    stream = g_memory_input_stream_new_from_data (
-            &_binary_kalu_logo_start,
-            (gssize) &_binary_kalu_logo_size,
-            NULL);
+    stream = g_memory_input_stream_new_from_data (kalu_logo, kalu_logo_size, NULL);
     pixbuf = gdk_pixbuf_new_from_stream (stream, NULL, NULL);
     g_object_unref (G_OBJECT (stream));
     gtk_window_set_icon (GTK_WINDOW (about), pixbuf);

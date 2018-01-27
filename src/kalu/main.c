@@ -120,8 +120,8 @@ do_show_error (
 
 kalpm_state_t kalpm_state;
 static gboolean is_cli = FALSE;
-extern const void *_binary_kalu_logo_start;
-extern const void *_binary_kalu_logo_size;
+extern const char kalu_logo[];
+extern size_t kalu_logo_size;
 
 static inline void
 do_notify_error (const gchar *summary, const gchar *text)
@@ -1496,10 +1496,7 @@ main (int argc, char *argv[])
 
         /* fallback to inline logo */
         debug ("No icon 'kalu' in theme -- load inline logo");
-        stream = g_memory_input_stream_new_from_data (
-                &_binary_kalu_logo_start,
-                (gssize) &_binary_kalu_logo_size,
-                NULL);
+        stream = g_memory_input_stream_new_from_data (kalu_logo, kalu_logo_size, NULL);
         pixbuf_kalu = gdk_pixbuf_new_from_stream (stream, NULL, NULL);
         g_object_unref (G_OBJECT (stream));
 #ifdef ENABLE_STATUS_NOTIFIER
