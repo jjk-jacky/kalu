@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: kalu 4.1.0\n"
 "Report-Msgid-Bugs-To: https://github.com/jjk-jacky/kalu/issues\n"
-"POT-Creation-Date: 2018-01-27 14:45+0100\n"
+"POT-Creation-Date: 2018-01-28 01:15-0300\n"
 "PO-Revision-Date: 2017-08-21 18:52-0300\n"
 "Last-Translator: pepecuis@gmail.com\n"
 "Language-Team: Argentinian\n"
@@ -542,13 +542,13 @@ msgstr "kalu: Error configurando tooltip"
 #: src/kalu/kalu-alpm.c:111
 #, fuzzy, c-format
 msgid "Failed to stat %s: %s"
-msgstr "Fallo actualizando %s: %s"
+msgstr "Falló 'stat' de %s: %s"
 
 #: src/kalu/kalu-alpm.c:126 src/kalu/kalu-alpm.c:219 src/kalu/kalu-alpm.c:230
 #: src/kalu/kalu-alpm.c:245 src/kalu/kalu-alpm.c:267 src/kalu/kalu-alpm.c:313
 #: src/kalu/kalu-alpm.c:350
 msgid "Internal error: Path too long"
-msgstr "Error interno. Path muy largo"
+msgstr "Error interno: Path muy largo"
 
 #: src/kalu/kalu-alpm.c:197 src/kalu/kalu-alpm.c:207
 msgid "Unable to create temp folder"
@@ -731,11 +731,11 @@ msgstr "Ejecutar pruebas manuales"
 
 #: src/kalu/main.c:1267
 msgid "Use PATH as temporary dbpath"
-msgstr ""
+msgstr "Usar PATH como dbpath temporario"
 
 #: src/kalu/main.c:1269
 msgid "Keep tmp dbpath folder"
-msgstr ""
+msgstr "Conservar la carpeta temporaria del dbpath"
 
 #: src/kalu/main.c:1271
 msgid "Enable debug mode"
@@ -1241,7 +1241,7 @@ msgstr "Chequear actualizaciones cada (minutos) :"
 #: src/kalu/preferences.c:1651
 msgctxt "delay-in-minutes"
 msgid "0 (Disabled)"
-msgstr ""
+msgstr "[demora-en-minutos] 0 (Deshabilitada)"
 
 #: src/kalu/preferences.c:1657
 msgctxt "delay-in-minutes"
