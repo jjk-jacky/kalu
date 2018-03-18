@@ -1563,7 +1563,7 @@ set_kalpm_busy (gboolean busy)
             guint seconds;
 
             seconds = (guint) config->interval;
-            kalpm_state.timeout = rt_timeout_add_seconds (seconds,
+            kalpm_state.timeout = rt_timeout_add (1000 * seconds,
                     (GSourceFunc) kalu_auto_check, NULL);
             debug ("state non-busy: next auto-checks in %d seconds", seconds);
         }
@@ -1597,7 +1597,7 @@ reset_timeout (void)
     {
         /* set timeout for next auto-check */
         seconds = (guint) config->interval;
-        kalpm_state.timeout = rt_timeout_add_seconds (seconds,
+        kalpm_state.timeout = rt_timeout_add (1000 * seconds,
                 (GSourceFunc) kalu_auto_check, NULL);
         debug ("reset timeout: next auto-checks in %d seconds", seconds);
     }
@@ -1737,13 +1737,13 @@ skip_next_timeout (gpointer no_checks)
     next = g_date_time_new_local (year, month, day, hour, minute, 0);
 
     GTimeSpan timespan;
-    guint seconds;
+    guint ms;
 
     timespan = g_date_time_difference (next, now);
-    seconds = (guint) (timespan / G_TIME_SPAN_SECOND);
-    kalpm_state.timeout_skip = rt_timeout_add_seconds (seconds,
+    ms = (guint) (timespan / G_TIME_SPAN_MILLISECOND);
+    kalpm_state.timeout_skip = rt_timeout_add (ms,
             (GSourceFunc) skip_next_timeout, NULL);
-    debug ("next skip period in %d seconds", seconds);
+    debug ("next skip period in %d seconds", ms / 1000);
 
     g_date_time_unref (now);
     g_date_time_unref (next);

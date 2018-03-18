@@ -2,7 +2,7 @@
  * kalu - Copyright (C) 2012-2018 Olivier Brunel
  *
  * rt_timeout.h
- * Copyright (C) 2013-2014 Olivier Brunel <jjk@jjacky.com>
+ * Copyright (C) 2013-2018 Olivier Brunel <jjk@jjacky.com>
  *
  * This file is part of kalu.
  *
@@ -28,6 +28,6 @@
 
 typedef struct _RtTimeoutSource RtTimeoutSource;
 
-guint rt_timeout_add_seconds (guint interval, GSourceFunc function, gpointer data);
+guint rt_timeout_add (guint interval, GSourceFunc function, gpointer data);
 
 #endif /* _KALU_RT_TIMEOUT_H */

@@ -2,7 +2,7 @@
  * kalu - Copyright (C) 2012-2018 Olivier Brunel
  *
  * rt_timeout.c
- * Copyright (C) 2013-2017 Olivier Brunel <jjk@jjacky.com>
+ * Copyright (C) 2013-2018 Olivier Brunel <jjk@jjacky.com>
  *
  * This file is part of kalu.
  *
@@ -22,6 +22,7 @@
 
 #include <sys/timerfd.h>
 #include <unistd.h>         /* close() */
+#include <time.h>
 #include "rt_timeout.h"
 
 struct _RtTimeoutSource
@@ -58,6 +59,25 @@ rt_timeout_check (GSource *source)
     return (sce->pollfd.revents & G_IO_IN);
 }
 
+#define SECOND      1000000000
+static void set_value (struct timespec *tp, guint ms)
+{
+    time_t sec;
+    long nsec;
+
+    sec = ms / 1000;
+    nsec = (ms - 1000 * sec) * 1000000;
+
+    clock_gettime (CLOCK_REALTIME, tp);
+    tp->tv_sec += sec;
+    if (tp->tv_nsec + nsec > SECOND)
+    {
+        ++tp->tv_sec;
+        nsec -= SECOND;
+    }
+    tp->tv_nsec += nsec;
+}
+
 static gboolean
 rt_timeout_dispatch (GSource *source, GSourceFunc callback, gpointer data)
 {
@@ -69,11 +89,10 @@ rt_timeout_dispatch (GSource *source, GSourceFunc callback, gpointer data)
         RtTimeoutSource *sce = (RtTimeoutSource *) source;
         struct itimerspec ts;
 
-        ts.it_value.tv_sec  = sce->interval;
-        ts.it_value.tv_nsec = 0;
+        set_value (&ts.it_value, sce->interval);
         ts.it_interval.tv_sec = 0;
         ts.it_interval.tv_nsec = 0;
-        if (timerfd_settime (sce->pollfd.fd, 0, &ts, NULL) == -1)
+        if (timerfd_settime (sce->pollfd.fd, TFD_TIMER_ABSTIME, &ts, NULL) == -1)
             again = FALSE;
     }
     return again;
@@ -87,7 +106,7 @@ rt_timeout_finalize (GSource *source)
 }
 
 guint
-rt_timeout_add_seconds (guint interval, GSourceFunc function, gpointer data)
+rt_timeout_add (guint interval, GSourceFunc function, gpointer data)
 {
     GSource          *source;
     RtTimeoutSource  *sce;
@@ -106,11 +125,10 @@ rt_timeout_add_seconds (guint interval, GSourceFunc function, gpointer data)
         g_source_unref (source);
         return 0;
     }
-    ts.it_value.tv_sec  = interval;
-    ts.it_value.tv_nsec = 0;
+    set_value (&ts.it_value, interval);
     ts.it_interval.tv_sec = 0;
     ts.it_interval.tv_nsec = 0;
-    if (timerfd_settime (sce->pollfd.fd, 0, &ts, NULL) == -1)
+    if (timerfd_settime (sce->pollfd.fd, TFD_TIMER_ABSTIME, &ts, NULL) == -1)
     {
         g_source_unref (source);
         return 0;
