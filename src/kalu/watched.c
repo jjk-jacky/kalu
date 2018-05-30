@@ -657,6 +657,60 @@ _rend_size (GtkTreeViewColumn *column, GtkCellRenderer *renderer,
     rend_size (column, renderer, store, iter, col, 1);
 }
 
+static void do_check (GtkTreeView *list, int chk)
+{
+    GtkTreeModel *model = gtk_tree_view_get_model (list);
+    GtkTreeIter iter;
+
+    if (!gtk_tree_model_get_iter_first (model, &iter))
+        return;
+
+    do
+        gtk_list_store_set (GTK_LIST_STORE (model), &iter, WCOL_UPD, chk, -1);
+    while (gtk_tree_model_iter_next (model, &iter));
+}
+
+static void
+check_all (GtkTreeView *list)
+{
+    do_check (list, 1);
+}
+
+static void
+uncheck_all (GtkTreeView *list)
+{
+    do_check (list, 0);
+}
+
+static gboolean
+popup_marks (GtkTreeView *list, GdkEventButton *event)
+{
+    GtkWidget *menu;
+    GtkWidget *w;
+
+    if (event->button != GDK_BUTTON_SECONDARY)
+        return FALSE;
+
+    menu = gtk_menu_new ();
+
+    w = gtk_menu_item_new_with_label (_("Check all packages"));
+    g_signal_connect_swapped (G_OBJECT (w), "button-release-event",
+                              G_CALLBACK (check_all), list);
+    gtk_container_add (GTK_CONTAINER (menu), w);
+
+    w = gtk_menu_item_new_with_label (_("Uncheck all packages"));
+    g_signal_connect_swapped (G_OBJECT (w), "button-release-event",
+                              G_CALLBACK (uncheck_all), list);
+    gtk_container_add (GTK_CONTAINER (menu), w);
+
+    gtk_widget_show_all (menu);
+    g_signal_connect_swapped (G_OBJECT (menu), "hide",
+                             G_CALLBACK (gtk_widget_destroy), menu);
+    gtk_menu_popup (GTK_MENU (menu), NULL, NULL, NULL, NULL, event->button, event->time);
+
+    return TRUE;
+}
+
 static GtkWidget *
 watched_new_window (w_type_t type)
 {
@@ -903,6 +957,9 @@ watched_new_window (w_type_t type)
             gtk_tree_view_column_set_resizable (column, TRUE);
             gtk_tree_view_append_column (GTK_TREE_VIEW (list), column);
         }
+
+        g_signal_connect (G_OBJECT (list), "button-release-event",
+                          G_CALLBACK (popup_marks), NULL);
     }
 
     gtk_container_add (GTK_CONTAINER (sw), list);
