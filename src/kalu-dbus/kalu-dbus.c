@@ -525,6 +525,15 @@ dl_progress_cb (const char *filename, off_t _xfered, off_t _total)
 {
     guint xfered = (guint) _xfered;
     guint total  = (guint) _total;
+    if (_xfered == 0)
+    {
+        /* non-download event: ignoring */
+        if (_total == 0)
+            return;
+        /* download initialized; set 0 since we're using unsigned int */
+        else if (_total < 0)
+            _total = 0;
+    }
     emit_signal ("Downloading", "suu", filename, xfered, total);
 }
 

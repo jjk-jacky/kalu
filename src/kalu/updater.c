@@ -1446,7 +1446,7 @@ on_download (KaluUpdater *kupdater _UNUSED_, const gchar *filename,
                 double pctg;
 
                 /* are we done? */
-                if (xfered == total)
+                if (xfered > 0 && xfered == total)
                 {
                     gtk_widget_hide (updater->lbl_action);
                     gtk_widget_hide (updater->pbar_action);
@@ -1481,7 +1481,7 @@ on_download (KaluUpdater *kupdater _UNUSED_, const gchar *filename,
         case STEP_DOWNLOADING:
             {
                 /* first, we need to find the package we're dealing with */
-                double      pctg     = (double) xfered / total;
+                double      pctg     = (total > 0) ? (double) xfered / total : 0;
                 pkg_iter_t *pkg_iter = updater->step_data;
 
                 if (G_UNLIKELY (g_strcmp0 (filename, pkg_iter->filename) != 0))
