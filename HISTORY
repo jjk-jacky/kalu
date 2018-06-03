@@ -1,4 +1,13 @@
 
+# 2018-06-04, v4.3.0
+
+- Compatibility with pacman 5.1
+
+- Fix not being suspend-aware
+
+- Add popup menu on "Mark Watched (AUR)" to (un)check all
+
+
 # 2018-02-10, v4.2.0
 
 With contributions from Bricabraque & pepecuis.
