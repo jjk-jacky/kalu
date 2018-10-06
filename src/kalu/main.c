@@ -1512,7 +1512,7 @@ main (int argc, char *argv[])
     if (!gtk_icon_theme_has_icon (icon_theme, "kalu-paused"))
     {
         if (!pixbuf_kalu)
-            pixbuf_kalu = gtk_icon_theme_load_icon (icon_theme, "kalu", 48, 0, NULL);
+            pixbuf_kalu = gtk_icon_theme_load_icon (icon_theme, "kalu", 48, GTK_ICON_LOOKUP_FORCE_SIZE, NULL);
 
         debug ("No icon 'kalu-paused' -- creating it");
         pixbuf = get_paused_pixbuf (pixbuf_kalu);
@@ -1529,7 +1529,7 @@ main (int argc, char *argv[])
     if (!gtk_icon_theme_has_icon (icon_theme, "kalu-gray"))
     {
         if (!pixbuf_kalu)
-            pixbuf_kalu = gtk_icon_theme_load_icon (icon_theme, "kalu", 48, 0, NULL);
+            pixbuf_kalu = gtk_icon_theme_load_icon (icon_theme, "kalu", 48, GTK_ICON_LOOKUP_FORCE_SIZE, NULL);
 
         debug ("No icon 'kalu-gray' -- creating it");
         pixbuf = get_gray_pixbuf (pixbuf_kalu);
@@ -1548,7 +1548,7 @@ main (int argc, char *argv[])
     /* kalu-gray-paused */
     if (!gtk_icon_theme_has_icon (icon_theme, "kalu-gray-paused"))
     {
-        pixbuf_kalu = gtk_icon_theme_load_icon (icon_theme, "kalu-gray", 48, 0, NULL);
+        pixbuf_kalu = gtk_icon_theme_load_icon (icon_theme, "kalu-gray", 48, GTK_ICON_LOOKUP_FORCE_SIZE, NULL);
 
         debug ("No icon 'kalu-gray-paused' -- creating it");
         pixbuf = get_paused_pixbuf (pixbuf_kalu);
