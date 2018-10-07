@@ -962,7 +962,7 @@ debug (const char *fmt, ...)
 
 #ifndef DISABLE_GUI
 #ifdef ENABLE_STATUS_NOTIFIER
-extern StatusNotifier *sn;
+extern StatusNotifierItem *sn;
 extern GdkPixbuf *sn_icon[NB_SN_ICONS];
 #endif
 extern GtkStatusIcon *icon;
@@ -1216,9 +1216,9 @@ create_status_icon (void)
 static void
 sn_state_cb (void)
 {
-    if (status_notifier_get_state (sn) == STATUS_NOTIFIER_STATE_REGISTERED)
+    if (status_notifier_item_get_state (sn) == STATUS_NOTIFIER_STATE_REGISTERED)
     {
-        debug ("StatusNotifier registered");
+        debug ("StatusNotifierItem registered");
         if (icon)
         {
             debug ("removing GtkStatusIcon");
@@ -1232,14 +1232,14 @@ sn_state_cb (void)
 }
 
 static void
-sn_reg_failed (StatusNotifier *_sn _UNUSED_, GError *error)
+sn_reg_failed (StatusNotifierItem *_sn _UNUSED_, GError *error)
 {
     guint i;
 
-    debug ("StatusNotifier registration failed: %s", error->message);
-    if (status_notifier_get_state (sn) == STATUS_NOTIFIER_STATE_FAILED)
+    debug ("StatusNotifierItem registration failed: %s", error->message);
+    if (status_notifier_item_get_state (sn) == STATUS_NOTIFIER_STATE_FAILED)
     {
-        debug ("no possible recovery; destroy StatusNotifier");
+        debug ("no possible recovery; destroy StatusNotifierItem");
         g_object_unref (sn);
         sn = NULL;
         for (i = 0; i < NB_SN_ICONS; ++i)
@@ -1661,8 +1661,8 @@ main (int argc, char *argv[])
 #endif
 
 #ifdef ENABLE_STATUS_NOTIFIER
-    debug ("create StatusNotifier");
-    sn = STATUS_NOTIFIER (g_object_new (TYPE_STATUS_NOTIFIER,
+    debug ("create StatusNotifierItem");
+    sn = STATUS_NOTIFIER_ITEM (g_object_new (STATUS_NOTIFIER_TYPE_ITEM,
             "id",               "kalu",
             "title",            "kalu",
             "tooltip-title",    "kalu",
@@ -1687,7 +1687,7 @@ main (int argc, char *argv[])
             G_CALLBACK (sn_cb), GUINT_TO_POINTER (SN_ACTIVATE));
     g_signal_connect_swapped (G_OBJECT (sn), "secondary-activate",
             G_CALLBACK (sn_cb), GUINT_TO_POINTER (SN_SECONDARY_ACTIVATE));
-    status_notifier_register (sn);
+    status_notifier_item_register (sn);
 #else
     /* create systray icon */
     create_status_icon ();

@@ -994,7 +994,7 @@ icon_popup_cb (GtkStatusIcon *_icon _UNUSED_, guint button, guint activate_time,
 
 #ifdef ENABLE_STATUS_NOTIFIER
 void
-sn_context_menu_cb (StatusNotifier *_sn _UNUSED_, gint x _UNUSED_, gint y _UNUSED_,
+sn_context_menu_cb (StatusNotifierItem *_sn _UNUSED_, gint x _UNUSED_, gint y _UNUSED_,
                gpointer data _UNUSED_)
 {
     icon_popup_cb (NULL, 1, GDK_CURRENT_TIME, NULL);
@@ -1190,7 +1190,7 @@ icon_press_cb (GtkStatusIcon *icon _UNUSED_, GdkEventButton *event, gpointer dat
 }
 
 #ifdef ENABLE_STATUS_NOTIFIER
-StatusNotifier *sn = NULL;
+StatusNotifierItem *sn = NULL;
 GdkPixbuf *sn_icon[NB_SN_ICONS] = { NULL, };
 #endif
 GtkStatusIcon *icon = NULL;
@@ -1458,7 +1458,7 @@ set_status_icon (gboolean active)
 static void sn_upd_status (gboolean active)
 {
     if (sn)
-        status_notifier_set_status (sn,
+        status_notifier_item_set_status (sn,
                 (active) ? STATUS_NOTIFIER_STATUS_ACTIVE : STATUS_NOTIFIER_STATUS_PASSIVE);
 }
 #endif
@@ -1534,11 +1534,11 @@ static void sn_refresh_tooltip (void)
     if (!sn)
         return;
 
-    status_notifier_freeze_tooltip (sn);
+    status_notifier_item_freeze_tooltip (sn);
     make_tooltip (buf, &max, TT_TITLE);
     if (max > 0)
     {
-        status_notifier_set_tooltip_title (sn, buf);
+        status_notifier_item_set_tooltip_title (sn, buf);
     }
     max = 512;
     /* in case there's nothing, else we would set the title as body */
@@ -1546,9 +1546,9 @@ static void sn_refresh_tooltip (void)
     make_tooltip (buf, &max, TT_BODY);
     if (max > 0)
     {
-        status_notifier_set_tooltip_body (sn, buf);
+        status_notifier_item_set_tooltip_body (sn, buf);
     }
-    status_notifier_thaw_tooltip (sn);
+    status_notifier_item_thaw_tooltip (sn);
 }
 #endif
 

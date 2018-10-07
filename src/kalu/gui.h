@@ -76,7 +76,7 @@ gboolean kalu_auto_check (void);
 
 #ifdef ENABLE_STATUS_NOTIFIER
 void sn_cb (gpointer data);
-void sn_context_menu_cb (StatusNotifier *_sn, gint x, gint y, gpointer data);
+void sn_context_menu_cb (StatusNotifierItem *_sn, gint x, gint y, gpointer data);
 #endif
 void icon_popup_cb (GtkStatusIcon *_icon, guint button, guint activate_time,
                gpointer data);
