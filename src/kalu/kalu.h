@@ -227,6 +227,9 @@ typedef struct _config_t {
     char            *color_error;
     gboolean         auto_show_log;
 #endif
+#ifdef ENABLE_STATUS_NOTIFIER
+    gboolean         sn_force_icons;
+#endif
 } config_t;
 
 typedef struct _watched_package_t {

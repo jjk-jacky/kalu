@@ -838,6 +838,14 @@ btn_save_cb (GtkButton *button _UNUSED_, gpointer data _UNUSED_)
     }
 #endif
 
+#ifdef ENABLE_STATUS_NOTIFIER
+    /* force icons for Statusnotifier (no GUI) */
+    if (new_config.sn_force_icons)
+    {
+        add_to_conf ("SnForceIcons = 1\n");
+    }
+#endif
+
     /* General */
     s = gtk_file_chooser_get_filename (GTK_FILE_CHOOSER (filechooser));
     if (NULL == s)

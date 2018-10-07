@@ -1247,6 +1247,26 @@ parse_config_file (const char       *file,
                     }
                 }
 #endif
+#ifdef ENABLE_STATUS_NOTIFIER
+                else if (streq (key, "SnForceIcons"))
+                {
+                    if (value[0] == '0' && value[1] == '\0')
+                    {
+                        config->sn_force_icons = FALSE;
+                        debug ("config: disable forcing icons for StatusNotifier");
+                    }
+                    else if (value[0] == '1' && value[1] == '\0')
+                    {
+                        config->sn_force_icons = TRUE;
+                        debug ("config: enable forcing icons for StatusNotifier");
+                    }
+                    else
+                    {
+                        add_error ("unknown value for %s: %s", key, value);
+                        continue;
+                    }
+                }
+#endif
                 else
                 {
                     add_error ("unknown option: %s", key);

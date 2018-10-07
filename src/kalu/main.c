@@ -1507,6 +1507,14 @@ main (int argc, char *argv[])
         gtk_icon_theme_add_builtin_icon ("kalu", 48, pixbuf_kalu);
         G_GNUC_END_IGNORE_DEPRECATIONS
     }
+#ifdef ENABLE_STATUS_NOTIFIER
+    else if (config->sn_force_icons)
+    {
+        debug ("Force loading icon \"kalu\" from theme for StatusNotifier");
+        pixbuf_kalu = gtk_icon_theme_load_icon (icon_theme, "kalu", 48, GTK_ICON_LOOKUP_FORCE_SIZE, NULL);
+        sn_icon[SN_ICON_KALU] = g_object_ref (pixbuf_kalu);
+    }
+#endif
 
     /* kalu-paused */
     if (!gtk_icon_theme_has_icon (icon_theme, "kalu-paused"))
@@ -1524,6 +1532,14 @@ main (int argc, char *argv[])
 #endif
         g_object_unref (pixbuf);
     }
+#ifdef ENABLE_STATUS_NOTIFIER
+    else if (config->sn_force_icons)
+    {
+        debug ("Force loading icon \"kalu-paused\" from theme for StatusNotifier");
+        pixbuf = gtk_icon_theme_load_icon (icon_theme, "kalu-paused", 48, GTK_ICON_LOOKUP_FORCE_SIZE, NULL);
+        sn_icon[SN_ICON_KALU_PAUSED] = pixbuf;
+    }
+#endif
 
     /* kalu-gray */
     if (!gtk_icon_theme_has_icon (icon_theme, "kalu-gray"))
@@ -1541,6 +1557,14 @@ main (int argc, char *argv[])
 #endif
         g_object_unref (pixbuf);
     }
+#ifdef ENABLE_STATUS_NOTIFIER
+    else if (config->sn_force_icons)
+    {
+        debug ("Force loading icon \"kalu-gray\" from theme for StatusNotifier");
+        pixbuf = gtk_icon_theme_load_icon (icon_theme, "kalu-gray", 48, GTK_ICON_LOOKUP_FORCE_SIZE, NULL);
+        sn_icon[SN_ICON_KALU_GRAY] = pixbuf;
+    }
+#endif
 
     if (pixbuf_kalu)
         g_object_unref (pixbuf_kalu);
@@ -1561,6 +1585,14 @@ main (int argc, char *argv[])
         g_object_unref (pixbuf);
         g_object_unref (pixbuf_kalu);
     }
+#ifdef ENABLE_STATUS_NOTIFIER
+    else if (config->sn_force_icons)
+    {
+        debug ("Force loading icon \"kalu-gray-paused\" from theme for StatusNotifier");
+        pixbuf = gtk_icon_theme_load_icon (icon_theme, "kalu-gray-paused", 48, GTK_ICON_LOOKUP_FORCE_SIZE, NULL);
+        sn_icon[SN_ICON_KALU_GRAY_PAUSED] = pixbuf;
+    }
+#endif
 
 #ifdef ENABLE_STATUS_NOTIFIER
     debug ("create StatusNotifier");

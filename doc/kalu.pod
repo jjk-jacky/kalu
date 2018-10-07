@@ -945,6 +945,21 @@ This can be used so that the log in kalu's updater is visible by default; Else
 the pane is only opened when an important message is added (error, warning or
 info) or upon manual trigger.
 
+=item B<SnForceIcons = 1>
+
+I<Only if kalu was compiled with --enable-status-notifier>
+
+This can be used so kalu will load all icons from the theme, creating the ones
+missing as always, and then cache them up in memory. Then, whenever an icon
+needs to be used via the StatusNotifier interface, the full icon will be sent
+(else only the name would be sent if the icon was found to exist in the theme,
+leaving it up to the StatusNotifierHost application to load - and optionally
+resize - the icon to use).
+
+This might be useful when icons otherwise don't show up as expected, likely due
+to differences in how applications (kalu vs StatusNotifierHost) load/resize
+icons from the theme.
+
 =back
 
 =head1 KDE STATUSNOTIFIERITEM SUPPORT
@@ -977,6 +992,10 @@ Also note that the tooltip will be different in its look (since handled by the
 StatusNotifierHost and not kalu) but also its content, since kalu doesn't know
 when it is shown (so it can only include the date/time of last check, not how
 long ago it was).
+
+Lastly, if icons don't appear to work/show as expected, notably when trying to
+use custom ones, you might wanna see B<SnForceIcons> in
+L<B<CONFIGURATION TWEAKS>|/CONFIGURATION TWEAKS> above.
 
 =head2 References
 
