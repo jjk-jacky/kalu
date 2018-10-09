@@ -1204,13 +1204,14 @@ sn_reg_failed (StatusNotifier *_sn _UNUSED_, GError *error)
 }
 #endif
 
-#ifndef DISABLE_GUI
 static void
 sig_handler (int sig _UNUSED_)
 {
     if (kalpm_state.is_busy)
         return;
+#ifndef DISABLE_GUI
     gtk_main_quit ();
+#endif
 }
 
 static inline void
@@ -1224,7 +1225,6 @@ set_sighandlers (void)
     sigaction (SIGINT,  &sa, NULL);
     sigaction (SIGTERM, &sa, NULL);
 }
-#endif
 
 int
 main (int argc, char *argv[])
@@ -1449,10 +1449,15 @@ main (int argc, char *argv[])
                 NULL);
     }
 
+    set_sighandlers ();
+
 #ifndef DISABLE_GUI
     if (run_manual_checks || run_auto_checks)
     {
 #endif
+        /* since we didn't call set_kalpm_busy() make sure we're busy anyways in
+         * case of a signal */
+        ++kalpm_state.is_busy;
         kalu_check_work (run_auto_checks);
 #ifndef DISABLE_GUI
         goto eop;
@@ -1633,7 +1638,6 @@ main (int argc, char *argv[])
      * checks (still need to set skip period though) */
     skip_next_timeout ((config->interval == 0) ? (gpointer) 1 : NULL);
 
-    set_sighandlers ();
     notify_init ("kalu");
     gtk_main ();
 eop:
