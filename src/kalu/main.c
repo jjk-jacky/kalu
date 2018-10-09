@@ -61,8 +61,9 @@
 #include "news.h"
 
 
-/* global variable */
+/* global variables */
 config_t *config = NULL;
+gint aborting = 0;
 
 const gchar *tpl_names[_NB_TPL] = {
     "upgrades",
@@ -525,6 +526,29 @@ kalu_check_work (gboolean is_auto)
 #endif /* DISABLE_GUI */
     }
 
+    if (aborting)
+    {
+abort:
+        do_notify_error (_("Check for upgrades aborted."), NULL);
+
+#ifndef DISABLE_GUI
+        if (!is_cli)
+        {
+            set_kalpm_busy (FALSE);
+        }
+
+        if (aborting == 2)
+        {
+            debug ("Exiting...");
+            gtk_main_quit ();
+        }
+#endif
+
+        debug ("aborting = 0");
+        aborting = 0;
+        return;
+    }
+
     /* ALPM is required even for AUR only, since we get the list of foreign
      * packages from localdb (however we can skip sync-ing dbs then) */
     if (checks & (CHECK_UPGRADES | CHECK_WATCHED | CHECK_AUR))
@@ -541,6 +565,10 @@ kalu_check_work (gboolean is_auto)
                     _("Unable to check for updates -- loading alpm library failed"),
                     error->message);
             g_clear_error (&error);
+
+            if (aborting)
+                goto abort;
+
 #ifndef DISABLE_GUI
             if (!is_cli)
             {
@@ -565,6 +593,10 @@ kalu_check_work (gboolean is_auto)
                     error->message);
             g_clear_error (&error);
             kalu_alpm_free ();
+
+            if (aborting)
+                goto abort;
+
 #ifndef DISABLE_GUI
             if (!is_cli)
             {
@@ -652,6 +684,12 @@ kalu_check_work (gboolean is_auto)
 #endif
         }
 
+        if (aborting)
+        {
+            kalu_alpm_free ();
+            goto abort;
+        }
+
         if (checks & CHECK_WATCHED && config->watched /* NULL if no watched pkgs */)
         {
             packages = NULL;
@@ -687,6 +725,12 @@ kalu_check_work (gboolean is_auto)
                     set_kalpm_nb (CHECK_WATCHED, nb_watched, FALSE);
                 }
 #endif
+        }
+
+        if (aborting)
+        {
+            kalu_alpm_free ();
+            goto abort;
         }
 
         if (checks & CHECK_AUR)
@@ -773,6 +817,9 @@ kalu_check_work (gboolean is_auto)
         kalu_alpm_free ();
     }
 
+    if (aborting)
+        goto abort;
+
     if (checks & CHECK_WATCHED_AUR && config->watched_aur /* NULL if not watched aur pkgs */)
     {
         packages = NULL;
@@ -807,6 +854,9 @@ kalu_check_work (gboolean is_auto)
             }
 #endif
     }
+
+    if (aborting)
+        goto abort;
 
     if (!is_auto && !got_something)
     {
@@ -1205,12 +1255,23 @@ sn_reg_failed (StatusNotifier *_sn _UNUSED_, GError *error)
 #endif
 
 static void
-sig_handler (int sig _UNUSED_)
+sig_handler (int sig)
 {
-    if (kalpm_state.is_busy)
+    debug ("received signal %d", sig);
+
+    if (kalpm_state.is_busy && !kalpm_state.is_updater)
+    {
+        aborting = (sig == SIGTERM) ? 2 : 1;
+        debug ("aborting = %d", aborting);
         return;
+    }
+
 #ifndef DISABLE_GUI
-    gtk_main_quit ();
+    if (sig == SIGTERM && !kalpm_state.is_busy)
+    {
+        debug ("Exiting...");
+        gtk_main_quit ();
+    }
 #endif
 }
 

@@ -40,6 +40,7 @@
 #ifndef DISABLE_UPDATER
 #define run_updater()   do {            \
     set_kalpm_busy (TRUE);              \
+    kalpm_state.is_updater = 1;         \
     updater_run (config->pacmanconf,    \
             config->cmdline_post);      \
 } while (0)
@@ -252,6 +253,7 @@ run_simulation (NotifyNotification *notification)
     }
 
     set_kalpm_busy (TRUE);
+    kalpm_state.is_updater = 1;
     updater_run (NULL, NULL);
     return TRUE;
 }
@@ -568,7 +570,7 @@ update_icon (void)
 }
 
 static void
-set_pause (gboolean paused)
+set_pause (gint paused)
 {
     /* in case e.g. the menu was shown (sensitive) before an auto-check started */
     if (kalpm_state.is_busy || kalpm_state.is_paused == paused)
@@ -765,6 +767,13 @@ gtk_image_new_kalu (void)
     return image;
 }
 
+static void
+abort_checks (void)
+{
+    debug ("raising SIGINT (2)");
+    raise (SIGINT);
+}
+
 void
 icon_popup_cb (GtkStatusIcon *_icon _UNUSED_, guint button, guint activate_time,
                gpointer data _UNUSED_)
@@ -775,6 +784,24 @@ icon_popup_cb (GtkStatusIcon *_icon _UNUSED_, guint button, guint activate_time,
     guint        pos = 0;
 
     menu = gtk_menu_new ();
+
+    if (kalpm_state.is_busy && !kalpm_state.is_updater)
+    {
+        item = donna_image_menu_item_new_with_label (
+            _c("systray-menu", "Abort running checks"));
+        image = gtk_image_new_from_icon_name ("process-stop", GTK_ICON_SIZE_MENU);
+        donna_image_menu_item_set_image (DONNA_IMAGE_MENU_ITEM (item), image);
+        gtk_widget_set_tooltip_text (item,
+                                     _("Abort currently running checks"));
+        g_signal_connect (G_OBJECT (item), "activate",
+                          G_CALLBACK (abort_checks), NULL);
+        gtk_widget_show (item);
+        gtk_menu_attach (GTK_MENU (menu), item, 0, 1, pos, pos + 1); ++pos;
+
+        item = gtk_separator_menu_item_new ();
+        gtk_widget_show (item);
+        gtk_menu_attach (GTK_MENU (menu), item, 0, 1, pos, pos + 1); ++pos;
+    }
 
     item = donna_image_menu_item_new_with_label (
             _c("systray-menu", "Re-show last notifications..."));
@@ -981,6 +1008,8 @@ process_fifo_command (const gchar *command)
         kalu_check (FALSE);
     else if (streq (command, "auto-checks"))
         kalu_check (TRUE);
+    else if (streq (command, "abort-checks"))
+        abort_checks ();
     else if (streq (command, "show-last-notifs"))
         show_last_notifs ();
     else if (streq (command, "toggle-pause"))
@@ -1564,6 +1593,8 @@ set_kalpm_busy (gboolean busy)
     }
     else
     {
+        kalpm_state.is_updater = 0;
+
         /* remove status icon timeout */
         if (kalpm_state.timeout_icon > 0)
         {
@@ -1695,7 +1726,7 @@ skip_next_timeout (gpointer no_checks)
     }
 
     /* toggle state */
-    gboolean paused = (kalpm_state.skip_next == SKIP_BEGIN);
+    gint paused = (kalpm_state.skip_next == SKIP_BEGIN);
     debug ("skip period: auto-%s", (paused) ? "pausing" : "resuming");
     if (!kalpm_state.is_busy && !no_checks)
     {

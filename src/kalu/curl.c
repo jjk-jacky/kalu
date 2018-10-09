@@ -58,6 +58,19 @@ curl_write (void *content, size_t size, size_t nmemb, string_t *data)
     return total;
 }
 
+static int
+curl_progress (void *data, curl_off_t dltotal, curl_off_t dlnow,
+               curl_off_t ultotal, curl_off_t ulnow)
+{
+    if (aborting)
+    {
+        debug ("aborting curl download %s", (const char *) data);
+        return 1;
+    }
+
+    return 0;
+}
+
 char *
 curl_download (const char *url, GError **error)
 {
@@ -77,8 +90,10 @@ curl_download (const char *url, GError **error)
 
     curl_easy_setopt (curl, CURLOPT_USERAGENT, PACKAGE_NAME "/" PACKAGE_VERSION);
     curl_easy_setopt (curl, CURLOPT_URL, url);
-    curl_easy_setopt (curl, CURLOPT_FOLLOWLOCATION, 1);
-    curl_easy_setopt (curl, CURLOPT_NOPROGRESS, 1);
+    curl_easy_setopt (curl, CURLOPT_FOLLOWLOCATION, 1L);
+    curl_easy_setopt (curl, CURLOPT_NOPROGRESS, 0L);
+    curl_easy_setopt (curl, CURLOPT_XFERINFOFUNCTION, curl_progress);
+    curl_easy_setopt (curl, CURLOPT_XFERINFODATA, (void *) url);
     curl_easy_setopt (curl, CURLOPT_WRITEFUNCTION, (curl_write_callback) curl_write);
     curl_easy_setopt (curl, CURLOPT_WRITEDATA, (void *) &data);
     curl_easy_setopt (curl, CURLOPT_ERRORBUFFER, errmsg);

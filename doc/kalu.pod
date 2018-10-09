@@ -214,6 +214,11 @@ Run the automatic checks. This is usually only triggered by kalu and cannot
 otherwise be triggered manually (except using the I<--auto-checks> command line
 argument).
 
+=item B<abort-checks>
+
+Abort any currently running checks. (It simply raises SIGINT, see
+L<B<SIGNALS>|SIGNALS> below.)
+
 =item B<show-last-notifs>
 
 Re-show last notifications.
@@ -1135,6 +1140,27 @@ reasons previously mentionned.
 This can allow you to "pre-download" packages ahead of time, but leaving the
 actual sysupgrade to later, maybe when you have more time but less bandwidth
 (noting that some remains required, to sync your databases).
+
+=head1 SIGNALS
+
+Some signals are handled by kalu :
+
+=over
+
+=item B<SIGINT>
+
+Will abort any currently running checks. It will not cause kalu to exit.
+
+=item B<SIGTERM>
+
+Will abort any currently running checks, then exit. However, it has no effect if
+the updater is running (either performing a system upgrade or running a
+simulation).
+
+=back
+
+Note that until v4.4.0 kalu would simply ignore SIGINT and SIGTERM if the
+updater was running, and exiting if not.
 
 =head1 NOTES
 

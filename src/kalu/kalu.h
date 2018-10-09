@@ -255,10 +255,12 @@ typedef enum {
 } skip_next_t;
 
 typedef struct _kalpm_state_t {
-    gboolean    is_paused;
     skip_next_t skip_next;
     guint       timeout_skip;
-    gint        is_busy;
+    gint8       is_paused   : 1;
+    gint8       is_busy     : 2;
+    gint8       is_updater  : 1;
+    gint8       _unused     : 4;
     guint       timeout;
     guint       timeout_icon;
     GDateTime  *last_check;
@@ -278,8 +280,9 @@ typedef struct _notif_t {
     gpointer    data;
 } notif_t;
 
-/* global variable */
+/* global variables */
 extern config_t *config;
+extern gint aborting;
 
 void debug (const char *fmt, ...);
 
