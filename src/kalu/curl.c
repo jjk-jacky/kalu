@@ -96,6 +96,9 @@ curl_download (const char *url, GError **error)
     curl_easy_setopt (curl, CURLOPT_XFERINFODATA, (void *) url);
     curl_easy_setopt (curl, CURLOPT_WRITEFUNCTION, (curl_write_callback) curl_write);
     curl_easy_setopt (curl, CURLOPT_WRITEDATA, (void *) &data);
+    /* abort if slower than 1 bytes/sec during 10s */
+    curl_easy_setopt (curl, CURLOPT_LOW_SPEED_LIMIT, 1L);
+    curl_easy_setopt (curl, CURLOPT_LOW_SPEED_TIME, 10L);
     curl_easy_setopt (curl, CURLOPT_ERRORBUFFER, errmsg);
     if (config->use_ip == IPv4)
     {
