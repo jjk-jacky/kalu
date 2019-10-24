@@ -1,0 +1,2423 @@
+# Copyright (C) YEAR Olivier Brunel <i.am.jack.mail@gmail.com>
+# This file is distributed under the same license as the kalu package.
+#
+# Heimen Stoffels <vistausss@outlook.com>, 2019.
+msgid ""
+msgstr ""
+"Project-Id-Version: kalu 4.3.0\n"
+"Report-Msgid-Bugs-To: https://github.com/jjk-jacky/kalu/issues\n"
+"POT-Creation-Date: 2019-10-19 20:13+0200\n"
+"PO-Revision-Date: 2019-10-24 21:21+0200\n"
+"Last-Translator: Heimen Stoffels <vistausss@outlook.com>\n"
+"Language-Team: Dutch <vistausss@outlook.com>\n"
+"Language: nl\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"X-Generator: Poedit 2.2.4\n"
+
+#: src/kalu/aur.c:227
+msgid "Invalid JSON response from the AUR"
+msgstr "Ongeldig JSON-antwoord verkregen van AUR"
+
+#: src/kalu/aur.c:255
+#, c-format
+msgid "Unexpected results from the AUR [%s]"
+msgstr "Onverwachte resultaten verkregen van AUR [%s]"
+
+#: src/kalu/aur.c:313 src/kalu/kalu-alpm.c:979
+msgid "<package not found>"
+msgstr "<pakket niet gevonden>"
+
+#: src/kalu/conf.c:204
+#, c-format
+msgid "Config file %s, line %d: invalid value for SigLevel: %s"
+msgstr "Configuratiebestand %s, regel %d: ongeldige waarde voor SigLevel: %s"
+
+#: src/kalu/conf.c:222 src/kalu/conf.c:734
+#, c-format
+msgid "Config file %s, line %d: "
+msgstr "Configuratiebestand %s, regel %d: "
+
+#: src/kalu/conf.c:255
+#, c-format
+msgid "Config file %s could not be read"
+msgstr "Configuratiebestand %s kan niet worden uitgelezen"
+
+#: src/kalu/conf.c:285 src/kalu/conf.c:799
+msgid "bad section name"
+msgstr "verkeerde sectienaam"
+
+#: src/kalu/conf.c:317
+msgid "syntax error: missing key."
+msgstr "syntaxfout: ontbrekende sleutel"
+
+#: src/kalu/conf.c:324
+msgid "All directives must belong to a section."
+msgstr "Alle aanwijzingen moeten toebehoren aan een sectie."
+
+#: src/kalu/conf.c:764
+#, c-format
+msgid "Config file %s could not be read: %s"
+msgstr "Configuratiebestand %s kan niet worden uitgelezen: %s"
+
+#: src/kalu/conf.c:823
+msgid "syntax error: missing key"
+msgstr "syntaxfout: ontbrekende sleutel"
+
+#: src/kalu/conf.c:1137
+msgid ""
+"Option SaneSortOrder doesn't exist anymore; Please use GTK3 option gtk-"
+"alternative-sort-arrows instead."
+msgstr ""
+"De optie SaneSortOrder bestaat niet meer; gebruik de GTK3-optie gtk-"
+"alternative-sort-arrows."
+
+#: src/kalu/curl.c:74
+msgid "Unable to init cURL\n"
+msgstr "Kan cURL niet initialiseren\n"
+
+#: src/kalu/gui.c:106
+msgctxt "notif-button"
+msgid "Run simulation..."
+msgstr "Simulatie uitvoeren..."
+
+#: src/kalu/gui.c:115
+msgctxt "notif-button"
+msgid "Possible pacman/kalu conflict..."
+msgstr "Mogelijk pacman-/kalu-conflict..."
+
+#: src/kalu/gui.c:122
+msgctxt "notif-button"
+msgid "Update system..."
+msgstr "Systeem bijwerken..."
+
+#: src/kalu/gui.c:137
+msgctxt "notif-button"
+msgid "Update AUR packages..."
+msgstr "AUR-pakketten bijwerken..."
+
+#: src/kalu/gui.c:145 src/kalu/gui.c:153
+msgctxt "notif-button"
+msgid "Mark packages..."
+msgstr "Pakketten markeren..."
+
+#: src/kalu/gui.c:161
+msgctxt "notif-button"
+msgid "Show news..."
+msgstr "Nieuws tonen..."
+
+#: src/kalu/gui.c:184
+msgid "Unable to start process"
+msgstr "Kan proces niet starten"
+
+#: src/kalu/gui.c:186
+#, c-format
+msgid ""
+"Error while trying to run command line: %s\n"
+"\n"
+"The error was: <b>%s</b>"
+msgstr ""
+"Kan opdracht niet uitvoeren: %s\n"
+"\n"
+"Foutmelding: <b>%s</b>"
+
+#: src/kalu/gui.c:189
+msgid "kalu: Unable to start process"
+msgstr "kalu: Kan proces niet starten"
+
+#: src/kalu/gui.c:241
+msgid "Cannot run simulation: kalu is busy"
+msgstr "Kan simulatie niet uitvoeren: kalu is bezig"
+
+#: src/kalu/gui.c:242
+msgid ""
+"kalu cannot run a simulation while it is busy (e.g. checking/upgrading the "
+"system).\n"
+"Please wait until kalu isn't busy anymore and try again."
+msgstr ""
+"kalu kan geen simulatie uitvoeren terwijl het bezig is (bijv. controleren/"
+"bijwerken van het systeem).\n"
+"Wacht totdat kalu's werkzaamheden zijn afgerond en probeer het opnieuw."
+
+#: src/kalu/gui.c:282
+msgid "Cannot upgrade system: kalu is busy"
+msgstr "Kan het systeem niet bijwerken: kalu is bezig"
+
+#: src/kalu/gui.c:283
+msgid ""
+"kalu cannot upgrade the system while it is busy (e.g. checking/upgrading the "
+"system).\n"
+"Please wait until kalu isn't busy anymore and try again."
+msgstr ""
+"kalu kan het systeem niet bijwerken terwijl het bezig is (bijv. controleren/"
+"bijwerken van het systeem).\n"
+"Wacht totdat kalu's werkzaamheden zijn afgerond en probeer het opnieuw."
+
+#: src/kalu/gui.c:288
+msgid "Cannot launch AUR upgrade: kalu is busy"
+msgstr "Kan AUR-upgrade niet starten: kalu is bezig"
+
+#: src/kalu/gui.c:289
+msgid ""
+"kalu cannot launch AUR upgrade while it is busy (e.g. checking/upgrading the "
+"system).\n"
+"Please wait until kalu isn't busy anymore and try again."
+msgstr ""
+"kalu kan geen AUR-upgrade uitvoeren terwijl het bezig is (bijv. controleren/"
+"bijwerken van het systeem).\n"
+"Wacht totdat kalu's werkzaamheden zijn afgerond en probeer het opnieuw."
+
+#: src/kalu/gui.c:347
+msgid "Unable to mark watched packages"
+msgstr "Kan bijgehouden pakketten niet markeren"
+
+#: src/kalu/gui.c:348 src/kalu/watched.c:440
+msgid ""
+"Watched packages have changed, you need to run the checks again to be up-to-"
+"date."
+msgstr ""
+"Er zijn bijgehouden pakketten gewijzigd. Controleer nogmaals op updates om "
+"het bijwerken af te ronden."
+
+#: src/kalu/gui.c:365
+msgid "Unable to mark watched AUR packages"
+msgstr "Kan bijgehouden AUR-pakketten niet markeren"
+
+#: src/kalu/gui.c:366 src/kalu/watched.c:438
+msgid ""
+"Watched AUR packages have changed, you need to run the checks again to be up-"
+"to-date."
+msgstr ""
+"Er zijn bijgehouden AUR-pakketten gewijzigd. Controleer nogmaals op updates "
+"om het bijwerken af te ronden."
+
+#: src/kalu/gui.c:384
+msgid "Unable to show the news"
+msgstr "Kan nieuws niet tonen"
+
+#: src/kalu/gui.c:390
+msgid "Unable to show unread news"
+msgstr "Kan ongelezen nieuws niet tonen"
+
+#: src/kalu/gui.c:391 src/kalu/news.c:951
+msgid ""
+"Read news have changed, you need to run the checks again to be up-to-date."
+msgstr ""
+"Het gelezen nieuws is gewijzigd. Controleer nogmaals op nieuws om het "
+"bijwerken af te ronden."
+
+#: src/kalu/gui.c:534
+msgid "No notifications to show."
+msgstr "Geen meldingen."
+
+#: src/kalu/gui.c:674
+msgid "Unable to show the recent Arch Linux news"
+msgstr "Kan het recente Arch Linux-nieuws niet tonen"
+
+#: src/kalu/gui.c:687
+msgid "Unable to show help"
+msgstr "Kan hulp niet tonen"
+
+#: src/kalu/gui.c:699
+msgid "Unable to show change log"
+msgstr "Kan het wijzigingslog niet tonen"
+
+#. TRANSLATORS: Put your name here to get credit on the About window
+#: src/kalu/gui.c:741
+msgid "translator-credits"
+msgstr "Heimen Stoffels"
+
+#: src/kalu/gui.c:767
+msgctxt "systray-menu"
+msgid "Re-show last notifications..."
+msgstr "Recentste meldingen nogmaals tonen..."
+
+#: src/kalu/gui.c:772
+msgid "Show notifications from last ran checks"
+msgstr "Toon de meldingen van de recentste controles nogmaals"
+
+#: src/kalu/gui.c:779
+msgctxt "systray-menu"
+msgid "Resume automatic checks"
+msgstr "Automatische controles hervatten"
+
+#: src/kalu/gui.c:780
+msgctxt "systray-menu"
+msgid "Pause automatic checks"
+msgstr "Automatische controles onderbreken"
+
+#: src/kalu/gui.c:788
+msgid "Resume automatic checks (starting now)"
+msgstr "Automatische controles hervatten (nu starten)"
+
+#: src/kalu/gui.c:789
+msgid "Pause automatic checks (until resumed)"
+msgstr "Automatische controles onderbreken (tot ze worden hervat)"
+
+#: src/kalu/gui.c:800
+msgctxt "systray-menu"
+msgid "Check for Upgrades..."
+msgstr "Controleren op upgrades..."
+
+#: src/kalu/gui.c:805
+msgid "Check if there are any upgrades available"
+msgstr "Controleer of er upgrades beschikbaar zijn"
+
+#: src/kalu/gui.c:813
+msgctxt "systray-menu"
+msgid "Upgrade simulation..."
+msgstr "Upgradevoorvertoning..."
+
+#: src/kalu/gui.c:817
+msgid "Run a system upgrade simulation (to preview/help deal with conflicts)"
+msgstr "Voer een gesimuleerde upgrade uit om te zien of er conflicten optreden"
+
+#: src/kalu/gui.c:828
+msgctxt "systray-menu"
+msgid "System upgrade..."
+msgstr "Systeemupgrade..."
+
+#: src/kalu/gui.c:832
+msgid "Perform a system upgrade"
+msgstr "Voer een systeemupgrade uit"
+
+#: src/kalu/gui.c:844
+msgctxt "systray-menu"
+msgid "Show unread Arch Linux news..."
+msgstr "Ongelezen Arch Linux-nieuws tonen..."
+
+#: src/kalu/gui.c:848
+msgid "Show only unread Arch Linux news"
+msgstr "Toon alleen ongelezen Arch Linux-nieuws"
+
+#: src/kalu/gui.c:855
+msgctxt "systray-menu"
+msgid "Show recent Arch Linux news..."
+msgstr "Recent Arch Linux-nieuws tonen..."
+
+#: src/kalu/gui.c:859
+msgid "Show most recent Arch Linux news"
+msgstr "Toon het recentste Arch Linux-nieuws"
+
+#: src/kalu/gui.c:870
+msgctxt "systray-menu"
+msgid "Manage watched packages..."
+msgstr "Bijgehouden pakketten beheren..."
+
+#: src/kalu/gui.c:877
+msgctxt "systray-menu"
+msgid "Manage watched AUR packages..."
+msgstr "Bijgehouden AUR-pakketten beheren..."
+
+#: src/kalu/gui.c:888
+msgctxt "systray-menu"
+msgid "Preferences"
+msgstr "Voorkeuren"
+
+#: src/kalu/gui.c:891
+msgid "Edit preferences"
+msgstr "Pas de instellingen aan"
+
+#: src/kalu/gui.c:902
+msgctxt "systray-menu"
+msgid "Help"
+msgstr "Hulp"
+
+#: src/kalu/gui.c:905
+msgid "Show help (man page)"
+msgstr "Toon de hulppagina ('man'-pagina)"
+
+#: src/kalu/gui.c:912
+msgctxt "systray-menu"
+msgid "Change log"
+msgstr "Wijzigingslog"
+
+#: src/kalu/gui.c:913
+msgid "Show change log"
+msgstr "Toon het wijzigingslog"
+
+#: src/kalu/gui.c:920
+msgctxt "systray-menu"
+msgid "About"
+msgstr "Over"
+
+#: src/kalu/gui.c:924
+msgid "Show Copyright & version information"
+msgstr "Toon de copyright- en versie-informatie"
+
+#: src/kalu/gui.c:935
+msgctxt "systray-menu"
+msgid "Quit"
+msgstr "Afsluiten"
+
+#: src/kalu/gui.c:939 src/kalu/preferences.c:1406
+msgid "Exit kalu"
+msgstr "Sluit kalu af"
+
+#: src/kalu/gui.c:988
+msgid "kalu received an unknown FIFO command"
+msgstr "kalu heeft een onbekende FIFO-opdracht ontvangen"
+
+#. TRANSLATORS: This goes in kalu's systray tooltip. It usually
+#. * just says "kalu" but will show this when paused, indicating that
+#. * kalu is indeed in paused mode.
+#: src/kalu/gui.c:1177
+msgid "paused kalu"
+msgstr "kalu is gepauzeerd"
+
+#: src/kalu/gui.c:1182
+msgid "Checking/updating in progress..."
+msgstr "Bezig met controleren/bijwerken..."
+
+#: src/kalu/gui.c:1196
+#, c-format
+msgid "Last checked on %s"
+msgstr "Recentste controle: %s"
+
+#: src/kalu/gui.c:1211
+msgid "Last checked just now"
+msgstr "Zojuist gecontroleerd"
+
+#. TRANSLATORS: Constructing e.g. "Last checked 1 hour 23 minutes ago"
+#. * by adding a string, the days/hours/minutes if apply, and a last
+#. * string. (Make sure to end this first, and the days/hours/minutes
+#. * strings with a space)
+#: src/kalu/gui.c:1237
+msgid "Last checked "
+msgstr "Recentste controle "
+
+#: src/kalu/gui.c:1239
+#, c-format
+msgid "1 day "
+msgid_plural "%d days "
+msgstr[0] "1 dag "
+msgstr[1] "%d dagen "
+
+#: src/kalu/gui.c:1242
+#, c-format
+msgid "1 hour "
+msgid_plural "%d hours "
+msgstr[0] "1 uur "
+msgstr[1] "%d uur "
+
+#: src/kalu/gui.c:1245
+#, c-format
+msgid "1 minute "
+msgid_plural "%d minutes "
+msgstr[0] "1 minuut "
+msgstr[1] "%d minuten "
+
+#. TRANSLATORS: Ending the "Last checked 42 days ago" sentence. Use " "
+#. * if it doesn't apply.
+#: src/kalu/gui.c:1249
+msgid "ago"
+msgstr "geleden"
+
+#: src/kalu/gui.c:1267
+#, c-format
+msgid ""
+"\n"
+"sync possible for 1 db"
+msgid_plural ""
+"\n"
+"sync possible for %d dbs"
+msgstr[0] ""
+"\n"
+"1 db kan worden gesynchroniseerd"
+msgstr[1] ""
+"\n"
+"%d db's kunnen worden gesynchroniseerd"
+
+#: src/kalu/gui.c:1276
+#, c-format
+msgid ""
+"\n"
+"1 unread news"
+msgid_plural ""
+"\n"
+"%d unread news"
+msgstr[0] ""
+"\n"
+"1 ongelezen nieuwsbericht"
+msgstr[1] ""
+"\n"
+"%d ongelezen nieuwsberichten"
+
+#: src/kalu/gui.c:1283
+#, c-format
+msgid ""
+"\n"
+"1 upgrade available"
+msgid_plural ""
+"\n"
+"%d upgrades available"
+msgstr[0] ""
+"\n"
+"1 upgrade beschikbaar"
+msgstr[1] ""
+"\n"
+"%d upgrades beschikbaar"
+
+#: src/kalu/gui.c:1290
+msgid ""
+"\n"
+"upgrades available (unknown number due to conflict)"
+msgstr ""
+"\n"
+"upgrades beschikbaar (aantal onbekend vanwege een conflict)"
+
+#: src/kalu/gui.c:1294
+#, c-format
+msgid ""
+"\n"
+"1 watched package updated"
+msgid_plural ""
+"\n"
+"%d watched packages updated"
+msgstr[0] ""
+"\n"
+"1 bijgehouden pakket bijgewerkt"
+msgstr[1] ""
+"\n"
+"%d bijgehouden pakketten bijgewerkt"
+
+#: src/kalu/gui.c:1301
+#, c-format
+msgid ""
+"\n"
+"1 AUR package updated"
+msgid_plural ""
+"\n"
+"%d AUR packages updated"
+msgstr[0] ""
+"\n"
+"1 AUR-pakket bijgewerkt"
+msgstr[1] ""
+"\n"
+"%d AUR-pakketten bijgewerkt"
+
+#: src/kalu/gui.c:1308
+#, c-format
+msgid ""
+"\n"
+"1 package not found in AUR"
+msgid_plural ""
+"\n"
+"%d packages not found in AUR"
+msgstr[0] ""
+"\n"
+"1 pakket ontbreekt in AUR"
+msgstr[1] ""
+"\n"
+"%d pakketten ontbreken in AUR"
+
+#: src/kalu/gui.c:1315
+#, c-format
+msgid ""
+"\n"
+"1 watched AUR package updated"
+msgid_plural ""
+"\n"
+"%d watched AUR packages updated"
+msgstr[0] ""
+"\n"
+"1 bijgehouden AUR-pakket bijgewerkt"
+msgstr[1] ""
+"\n"
+"%d bijgehouden AUR-pakketten bijgewerkt"
+
+#: src/kalu/gui.c:1334
+#, c-format
+msgid "kalu: error setting tooltip"
+msgstr "kalu: fout tijdens instellen van hulpballon"
+
+#: src/kalu/kalu-alpm.c:111
+#, c-format
+msgid "Failed to stat %s: %s"
+msgstr "Kan %s niet tonen: %s"
+
+#: src/kalu/kalu-alpm.c:126 src/kalu/kalu-alpm.c:219 src/kalu/kalu-alpm.c:230
+#: src/kalu/kalu-alpm.c:245 src/kalu/kalu-alpm.c:267 src/kalu/kalu-alpm.c:313
+#: src/kalu/kalu-alpm.c:350
+msgid "Internal error: Path too long"
+msgstr "Interne fout: pad is te lang"
+
+#: src/kalu/kalu-alpm.c:197 src/kalu/kalu-alpm.c:207
+msgid "Unable to create temp folder"
+msgstr "Kan tijdelijke map niet aanmaken"
+
+#: src/kalu/kalu-alpm.c:236
+#, c-format
+msgid "Unable to create symlink %s"
+msgstr "Kan geen snelkoppeling (%s) maken"
+
+#: src/kalu/kalu-alpm.c:251
+#, c-format
+msgid "Unable to create folder %s"
+msgstr "Kan map (%s) niet aanmaken"
+
+#: src/kalu/kalu-alpm.c:273
+#, c-format
+msgid "Unable to open folder %s"
+msgstr "Kan map (%s) niet openen"
+
+#: src/kalu/kalu-alpm.c:283
+msgid "Internal error"
+msgstr "Interne fout"
+
+#: src/kalu/kalu-alpm.c:358
+#, c-format
+msgid "Copy failed for %s"
+msgstr "Kan %s niet kopiëren"
+
+#: src/kalu/kalu-alpm.c:432
+#, c-format
+msgid "Unable to stat %s\n"
+msgstr "Kan %s niet tonen\n"
+
+#: src/kalu/kalu-alpm.c:520
+#, c-format
+msgid "Unable to create local copy of database: %s"
+msgstr "Kan geen lokale kopie maken van databank: %s"
+
+#: src/kalu/kalu-alpm.c:534
+#, c-format
+msgid "Failed to initialize alpm library: %s"
+msgstr "Kan alpm-bibliotheek niet initialiseren: %s"
+
+#: src/kalu/kalu-alpm.c:550
+#, c-format
+msgid "Failed to set GPGDir in ALPM: %s"
+msgstr "Kan GPGDir niet instellen in ALPM: %s"
+
+#: src/kalu/kalu-alpm.c:587
+#, c-format
+msgid "Could not register database %s: %s"
+msgstr "Kan databank (%s) niet vastleggen: %s"
+
+#: src/kalu/kalu-alpm.c:616
+#, c-format
+msgid "Server %s contains the $arch variable, but no Architecture was defined"
+msgstr ""
+"De server, '%s', bevat de '$arch'-variabel, maar er is geen architectuur "
+"opgegeven"
+
+#: src/kalu/kalu-alpm.c:633
+#, c-format
+msgid "Could not add server %s to database %s: %s"
+msgstr "Kan server '%s' niet toevoegen aan databank '%s': %s"
+
+#: src/kalu/kalu-alpm.c:687
+#, c-format
+msgid "Failed to update %s: %s"
+msgstr "Kan '%s' niet bijwerken: %s"
+
+#: src/kalu/kalu-alpm.c:776 src/kalu-dbus/kalu-dbus.c:1243
+#, c-format
+msgid "- Package %s does not have a valid architecture\n"
+msgstr "- Het pakket, '%s', bevat geen geldige architectuur\n"
+
+#: src/kalu/kalu-alpm.c:791
+#, c-format
+msgid "- %s requires %s\n"
+msgstr "- '%s' vereist '%s'\n"
+
+#: src/kalu/kalu-alpm.c:810
+#, c-format
+msgid "- %s and %s are in conflict\n"
+msgstr "- '%s' conflicteert met '%s'\n"
+
+#: src/kalu/kalu-alpm.c:823
+#, c-format
+msgid "- %s and %s are in conflict (%s)\n"
+msgstr "- '%s' conflicteert met '%s' (%s)\n"
+
+#: src/kalu/kalu-alpm.c:840
+#, c-format
+msgid ""
+"Failed to prepare transaction: %s\n"
+"%s"
+msgstr ""
+"Kan handeling niet voorbereiden: %s\n"
+"%s"
+
+#. TRANSLATORS: no previous version
+#: src/kalu/kalu-alpm.c:870 src/kalu/kalu-alpm.c:892
+msgid "none"
+msgstr "geen"
+
+#: src/kalu/kalu-updater.c:358
+msgid "No error message specified in MethodFailed\n"
+msgstr "Geen foutmelding opgegeven in MethodFailed\n"
+
+#: src/kalu/kalu-updater.c:1307
+msgid "Object is not a KaluUpdater\n"
+msgstr "Object is geen KaluUpdater\n"
+
+#: src/kalu/kalu-updater.c:1319
+#, c-format
+msgid "Cannot call method %s: already running\n"
+msgstr "Kan methode '%s' niet aanroepen: proces is al actief\n"
+
+#: src/kalu/kalu-updater.c:1330
+#, c-format
+msgid "Internal method definition missing for %s\n"
+msgstr "Interne methodedefinitie ontbreekt bij %s\n"
+
+#: src/kalu/main.c:513
+msgid "Unable to check the news"
+msgstr "Kan het nieuws niet verversen"
+
+#: src/kalu/main.c:541
+msgid "Unable to check for updates -- loading alpm library failed"
+msgstr ""
+"Kan niet controleren op updates: de alpm-bibliotheek kan niet worden geladen"
+
+#: src/kalu/main.c:564
+msgid "Unable to check for updates -- could not synchronize databases"
+msgstr ""
+"Kan niet controleren op updates: de databank kan niet worden gesynchroniseerd"
+
+#: src/kalu/main.c:612 src/kalu/main.c:633
+msgid "Unable to compile list of packages"
+msgstr "Kan geen pakketlijst samenstellen"
+
+#: src/kalu/main.c:642
+msgid "Unable to check for updates"
+msgstr "Kan niet controleren op updates"
+
+#: src/kalu/main.c:680
+msgid "Unable to check for updates of watched packages"
+msgstr "Kan niet controleren op updates van bijgehouden pakketten"
+
+#: src/kalu/main.c:739 src/kalu/main.c:757
+msgid "Unable to check for AUR packages"
+msgstr "Kan niet controleren op updates van AUR-pakketten"
+
+#: src/kalu/main.c:799
+msgid "Unable to check for updates of watched AUR packages"
+msgstr "Kan niet controleren op updates van bijgehouden AUR-pakketten"
+
+#: src/kalu/main.c:813
+msgid "No upgrades available."
+msgstr "Geen upgrades beschikbaar."
+
+#: src/kalu/main.c:1038
+msgid "Unable to open FIFO"
+msgstr "Kan FIFO niet openen"
+
+#: src/kalu/main.c:1122
+msgid "Received too much invalid data on FIFO, resetting"
+msgstr "Teveel ongeldige gegevens ontvangen van FIFO - bezig met herstellen..."
+
+#: src/kalu/main.c:1263
+msgid "Run automatic checks"
+msgstr "Automatische controles uitvoeren"
+
+#: src/kalu/main.c:1265
+msgid "Run manual checks"
+msgstr "Handmatige controles uitvoeren"
+
+#: src/kalu/main.c:1267
+msgid "Use PATH as temporary dbpath"
+msgstr "PATH gebruiken als tijdelijk dbpad"
+
+#: src/kalu/main.c:1269
+msgid "Keep tmp dbpath folder"
+msgstr "Tijdelijke dbpad-map bewaren"
+
+#: src/kalu/main.c:1271
+msgid "Enable debug mode"
+msgstr "Foutopsporingsmodus inschakelen"
+
+#: src/kalu/main.c:1273
+msgid "Show version information"
+msgstr "Versie-informatie tonen"
+
+#: src/kalu/main.c:1289
+#, c-format
+msgid "option parsing failed: %s\n"
+msgstr "kan optie niet verwerken: %s\n"
+
+#: src/kalu/main.c:1351
+msgid "$NB updates available (D: $DL; N: $NET)"
+msgstr "$NB updates beschikbaar (D: $DL; N: $NET)"
+
+#: src/kalu/main.c:1353
+msgid "- <b>$PKG</b> $OLD > <b>$NEW</b> (D: $DL; N: $NET)"
+msgstr "- <b>$PKG</b> $OLD > <b>$NEW</b> (D: $DL; N: $NET)"
+
+#: src/kalu/main.c:1359
+msgid "$NB watched packages updated (D: $DL; N: $NET)"
+msgstr "$NB bijgehouden pakketten bijgewerkt (D: $DL; N: $NET)"
+
+#: src/kalu/main.c:1363
+msgid "AUR: $NB packages updated"
+msgstr "AUR: $NB pakketten bijgewerkt"
+
+#: src/kalu/main.c:1369
+msgid "$NB packages not found in AUR"
+msgstr "%NB pakketten ontbreken in AUR"
+
+#: src/kalu/main.c:1371
+msgid "- <b>$PKG</b> ($OLD)"
+msgstr "- <b>$PKG</b> ($OLD)"
+
+#: src/kalu/main.c:1375
+msgid "AUR: $NB watched packages updated"
+msgstr "AUR: $NB bijgehouden pakketten bijgewerkt"
+
+#: src/kalu/main.c:1379
+msgid "$NB unread news"
+msgstr "$NB ongelezen nieuwsberichten"
+
+#: src/kalu/main.c:1395
+msgid "GTK+ initialization failed\n"
+msgstr "Kan GTK+ niet initialiseren\n"
+
+#: src/kalu/main.c:1396
+msgid "To run kalu on CLI only mode, use --auto-checks or --manual-checks"
+msgstr ""
+"Wil je kalu alleen via de terminal bedienen? Gebruik dan --auto-checks of --"
+"manual-checks."
+
+#: src/kalu/main.c:1408
+msgid "Errors while parsing configuration"
+msgstr "Fouten tijdens verwerken van configuratie"
+
+#: src/kalu/main.c:1417 src/kalu/watched.c:605
+msgid "Unable to parse watched packages"
+msgstr "Kan bijgehouden pakketten niet verwerken"
+
+#: src/kalu/main.c:1426 src/kalu/watched.c:604
+msgid "Unable to parse watched AUR packages"
+msgstr "Kan bijgehouden AUR-pakketten niet verwerken"
+
+#: src/kalu/main.c:1435
+msgid "Unable to parse last news data"
+msgstr "Kan recentste nieuws niet verwerken"
+
+#: src/kalu/main.c:1447
+msgid "Unable to initialize cURL"
+msgstr "Kan cURL niet initialiseren"
+
+#: src/kalu/main.c:1448
+msgid "kalu will therefore not be able to check the AUR"
+msgstr "kalu kan daarom AUR niet controleren"
+
+#: src/kalu/main.c:1469
+msgid "Unable to create FIFO"
+msgstr "Kan FIFO niet aanmaken"
+
+#: src/kalu/news.c:969 src/kalu/watched.c:453 src/kalu/watched.c:524
+msgid "Unable to save changes to disk"
+msgstr "Kan wijzigingen niet opslaan op schijf"
+
+#: src/kalu/news.c:1133
+msgid "Unable to open link"
+msgstr "Kan link niet openen"
+
+#: src/kalu/news.c:1195
+msgid "Arch Linux Unread News - kalu"
+msgstr "Ongelezen Arch Linux-nieuws - kalu"
+
+#: src/kalu/news.c:1196
+msgid "Arch Linux News - kalu"
+msgstr "Arch Linux-nieuws - kalu"
+
+#: src/kalu/news.c:1261
+msgid "_Mark as read"
+msgstr "_Markeren als gelezen"
+
+#: src/kalu/news.c:1265
+msgid "Mark checked news as read"
+msgstr "Markeer geselecteerde berichten als gelezen"
+
+#: src/kalu/news.c:1273 src/kalu/preferences.c:2193 src/kalu/updater.c:3228
+#: src/kalu/watched.c:1002
+msgid "_Close"
+msgstr "_Sluiten"
+
+#: src/kalu/news.c:1334
+msgid "No unread news"
+msgstr "Geen ongelezen nieuwsberichten"
+
+#: src/kalu/news.c:1335
+msgid "There are no unread Arch Linux news."
+msgstr "Er is geen ongelezen Arch Linux-nieuws."
+
+#: src/kalu/news.c:1356
+msgid "Help - kalu"
+msgstr "Hulp - kalu"
+
+#: src/kalu/news.c:1391
+msgid "History - kalu"
+msgstr "Geschiedenis - kalu"
+
+#: src/kalu/news.c:1452
+msgid ""
+"<h2>Possible pacman/kalu conflict</h2><p>The pending system upgrade is "
+"likely to fail due to kalu's dependency on the current version of pacman. "
+"This is because the new pacman introduces API changes in libalpm (on which "
+"kalu relies).</p><h2>How to upgrade?</h2><p>In order to upgrade your system, "
+"you will need to :<br> <b>1.</b> Remove kalu (<pre>pacman -R kalu</pre>) "
+"This will <b>not</b> remove your preferences, watched lists, etc<br> <b>2.</"
+"b> Upgrade your system (<pre>pacman -Syu</pre>)<br> <b>3.</b> Install a new "
+"version of kalu, compatible with the new version of pacman.</p><p>If a new "
+"version of kalu for the new pacman isn't available on the AUR yet, make sure "
+"to flag it as out-of-date.</p>"
+msgstr ""
+
+#: src/kalu/news.c:1469
+msgid "Possible pacman/kalu conflict - kalu"
+msgstr "Mogelijk pacman-/kalu-conflict - kalu"
+
+#: src/kalu/preferences.c:345
+msgctxt "expiration-delay"
+msgid "Default"
+msgstr "Standaard"
+
+#: src/kalu/preferences.c:349
+msgctxt "expiration-delay"
+msgid "Never"
+msgstr "Nooit"
+
+#. TRANSLATORS: context "expiration-delay" Also note this can only be
+#. * from 4 to 42
+#: src/kalu/preferences.c:355
+#, c-format
+msgid "%d seconds"
+msgid_plural "%d seconds"
+msgstr[0] "%d seconde"
+msgstr[1] "%d seconden"
+
+#: src/kalu/preferences.c:366
+msgid "Select the source for this field:\n"
+msgstr "Kies de bron voor het veld:\n"
+
+#: src/kalu/preferences.c:368
+msgid "- Default: use default value\n"
+msgstr "- Standaard: gebruik de standaardwaarde\n"
+
+#: src/kalu/preferences.c:370
+#, c-format
+msgid "- Fall back: use value from template '%s'\n"
+msgstr "- Terugval: gebruik de waarde uit sjabloon '%s'\n"
+
+#: src/kalu/preferences.c:374
+msgid "- Custom: specify a custom value\n"
+msgstr "- Aangepast: geef een eigen waarde op\n"
+
+#: src/kalu/preferences.c:376
+msgid "- None: no value\n"
+msgstr "- Geen: geen waarde\n"
+
+#: src/kalu/preferences.c:387
+msgid "Default"
+msgstr "Standaard"
+
+#: src/kalu/preferences.c:389
+msgid "Fall back"
+msgstr "Terugval"
+
+#: src/kalu/preferences.c:390
+msgid "Custom"
+msgstr "Aangepast"
+
+#: src/kalu/preferences.c:392
+msgid "None"
+msgstr "Geen"
+
+#: src/kalu/preferences.c:517
+msgid "Edit as custom value"
+msgstr "Bewerken als aangepaste waarde"
+
+#: src/kalu/preferences.c:607
+msgid "<b>When packages are not found:</b>"
+msgstr "<b>Als bepaalde pakketten niet zijn aangetroffen:</b>"
+
+#: src/kalu/preferences.c:609
+msgid "<b>Notification template</b>"
+msgstr "<b>Meldingssjabloon</b>"
+
+#: src/kalu/preferences.c:616
+msgid "Title :"
+msgstr "Titel:"
+
+#: src/kalu/preferences.c:622
+msgid ""
+"The following variables are available :\n"
+"- <b>$NB</b> : number of packages/news items"
+msgstr ""
+"De volgende variabelen zijn beschikbaar:\n"
+"- <b>$NB</b>: aantal pakketten/nieuwsberichten"
+
+#: src/kalu/preferences.c:625
+msgid ""
+"\n"
+"- <b>$DL</b> : total download size\n"
+"- <b>$INS</b> : total installed size\n"
+"- <b>$NET</b> : total net (post-install difference) size"
+msgstr ""
+"\n"
+"- <b>$DL</b> : totale downloadgrootte\n"
+"- <b>$INS</b> : totale installatiegrootte\n"
+"- <b>$NET</b> : totale netgrootte (verschil voor/na installatie)"
+
+#: src/kalu/preferences.c:640
+msgid "News item :"
+msgstr "Nieuwsbericht:"
+
+#: src/kalu/preferences.c:640
+msgid "Package :"
+msgstr "Pakket:"
+
+#: src/kalu/preferences.c:647 src/kalu/preferences.c:653
+msgid "The following variables are available :"
+msgstr "De volgende variabelen zijn beschikbaar:"
+
+#: src/kalu/preferences.c:648
+msgid ""
+"\n"
+"- <b>$NEWS</b> : the news title"
+msgstr ""
+"\n"
+"- <b>$NEWS</b> : de artikelkop"
+
+#: src/kalu/preferences.c:655
+msgid ""
+"\n"
+"- <b>$REPO</b> : repository name"
+msgstr ""
+"\n"
+"- <b>$REPO</b> : de pakketbronnaam"
+
+#: src/kalu/preferences.c:656
+msgid ""
+"\n"
+"- <b>$PKG</b> : package name"
+msgstr ""
+"\n"
+"- <b>$PKG</b> : de pakketnaam"
+
+#: src/kalu/preferences.c:657
+msgid ""
+"\n"
+"- <b>$OLD</b> : old/current version number"
+msgstr ""
+"\n"
+"- <b>$OLD</b> : oude/huidige versienummer"
+
+#: src/kalu/preferences.c:659
+msgid ""
+"\n"
+"- <b>$NEW</b> : new version number"
+msgstr ""
+"\n"
+"- <b>$NEW</b> : nieuwe versienummer"
+
+#: src/kalu/preferences.c:661
+msgid ""
+"\n"
+"- <b>$DL</b> : download size"
+msgstr ""
+"\n"
+"- <b>$DL</b> : downloadgrootte"
+
+#: src/kalu/preferences.c:662
+msgid ""
+"\n"
+"- <b>$INS</b> : installed size"
+msgstr ""
+
+#: src/kalu/preferences.c:663
+msgid ""
+"\n"
+"- <b>$NET</b> : net (post-install difference) size"
+msgstr ""
+"\n"
+"- <b>$NET</b> : totale netgrootte (verschil voor/na installatie)"
+
+#: src/kalu/preferences.c:676
+msgid "Separator :"
+msgstr "Scheidingsteken:"
+
+#: src/kalu/preferences.c:681
+msgid "No variables available."
+msgstr "Geen variabelen beschikbaar."
+
+#: src/kalu/preferences.c:717
+msgid "Unable to apply/save preferences"
+msgstr "Kan voorkeuren niet toepassen/opslaan"
+
+#: src/kalu/preferences.c:846
+msgid ""
+"You need to select the configuration file to use for libalpm (pacman.conf)"
+msgstr "Kies het te gebruiken configuratiebestand voor libalpm (pacman.conf)"
+
+#: src/kalu/preferences.c:868
+msgid "You need to select the file to use as icon on notifications"
+msgstr "Kies het te gebruiken pictogrambestand voor meldingen"
+
+#: src/kalu/preferences.c:883
+msgid "You need to specify an interval."
+msgstr "Geef een tussenpoos op."
+
+#: src/kalu/preferences.c:889 src/kalu/preferences.c:931
+msgid "Invalid value for the auto-check interval."
+msgstr "Ongeldige waarde voor automatische controletussenpoos."
+
+#: src/kalu/preferences.c:970
+msgid "Nothing selected for automatic checks."
+msgstr "Niets geselecteerd voor automatische controles."
+
+#: src/kalu/preferences.c:1004
+msgid "Nothing selected for manual checks."
+msgstr "Niets geselecteerd voor handmatige controles."
+
+#: src/kalu/preferences.c:1020
+msgid "You need to specify the command-line to open links."
+msgstr "Geef de opdracht op om links te openen."
+
+#: src/kalu/preferences.c:1025
+msgid "You need to use $URL on the command line to open links."
+msgstr "Geef $URL op op de opdrachtregel om links te openen."
+
+#: src/kalu/preferences.c:1052 src/kalu/preferences.c:1097
+msgid "You need to specify the command-line."
+msgstr "Geef de opdracht op."
+
+#: src/kalu/preferences.c:1150
+msgid "Custom value is required."
+msgstr "Aangepaste waarde vereist."
+
+#: src/kalu/preferences.c:1163
+#, c-format
+msgid "%s cannot be created or is not a folder"
+msgstr "%s kan niet worden aangemaakt of is geen map"
+
+#: src/kalu/preferences.c:1165 src/kalu/preferences.c:1172
+msgid "Unable to write configuration file"
+msgstr "Kan configuratiebestand niet wegschrijven"
+
+#: src/kalu/preferences.c:1359
+msgid "When clicking the systray icon :"
+msgstr "Actie bij klikken op systeemvakpictogram:"
+
+#: src/kalu/preferences.c:1364
+msgid "When double clicking the systray icon :"
+msgstr "Actie bij dubbelklikken op systeemvakpictogram:"
+
+#: src/kalu/preferences.c:1369
+msgid "When middle clicking the systray icon :"
+msgstr "Actie bij middelklikken op systeemvakpictogram:"
+
+#: src/kalu/preferences.c:1382
+msgid "Same as when active/not paused"
+msgstr "Net zoals actief/niet-gepauzeerd"
+
+#: src/kalu/preferences.c:1385
+msgid "Do nothing"
+msgstr "Niets doen"
+
+#: src/kalu/preferences.c:1387
+msgid "Check for Upgrades..."
+msgstr "Controleren op upgrades..."
+
+#: src/kalu/preferences.c:1389
+msgid "System upgrade..."
+msgstr "Systeemupgrade..."
+
+#: src/kalu/preferences.c:1392
+msgid "Upgrade simulation..."
+msgstr "Upgradevoorvertoning..."
+
+#: src/kalu/preferences.c:1396
+msgid "Hide/show opened windows (except kalu's updater)"
+msgstr "Geopende vensters tonen/verbergen (behalve kalu's updater)"
+
+#: src/kalu/preferences.c:1398
+msgid "Hide/show opened windows"
+msgstr "Geopende vensters tonen/verbergen"
+
+#: src/kalu/preferences.c:1402
+msgid "Re-show last notifications..."
+msgstr "Recentste meldingen nogmaals tonen..."
+
+#: src/kalu/preferences.c:1404
+msgid "Toggle pause/resume automatic checks"
+msgstr "Automatische controles pauzeren/hervatten"
+
+#: src/kalu/preferences.c:1498
+msgid "Preferences - kalu"
+msgstr "Voorkeuren - kalu"
+
+#: src/kalu/preferences.c:1531
+msgctxt "prefs-tab"
+msgid "General"
+msgstr "Algemeen"
+
+#: src/kalu/preferences.c:1534
+msgid "Configuration file (pacman.conf) to use:"
+msgstr "Te gebruiken configuratiebestand (pacman.conf):"
+
+#: src/kalu/preferences.c:1538
+msgid "Select your pacman.conf"
+msgstr "Kies je pacman.conf"
+
+#: src/kalu/preferences.c:1547
+msgid "Icon used on notifications :"
+msgstr "Pictogrambestand voor meldingen:"
+
+#: src/kalu/preferences.c:1553
+msgid "No icon"
+msgstr "Geen pictogram"
+
+#: src/kalu/preferences.c:1555
+msgid "kalu's icon"
+msgstr "kalu's pictogram"
+
+#: src/kalu/preferences.c:1557
+msgid "Select file:"
+msgstr "Bestand kiezen:"
+
+#: src/kalu/preferences.c:1575
+msgid "Select notification icon"
+msgstr "Meldingspictogram kiezen"
+
+#: src/kalu/preferences.c:1578
+msgid "Supported Images"
+msgstr "Ondersteunde afbeeldingsbestanden"
+
+#: src/kalu/preferences.c:1598
+msgid "Size of the icon used on notifications :"
+msgstr "Pictogramgrootte op meldingen:"
+
+#: src/kalu/preferences.c:1610
+msgid "Notifications expire after (seconds) :"
+msgstr "Meldingen verwerpen na (in seconden):"
+
+#: src/kalu/preferences.c:1612 src/kalu/preferences.c:1620
+msgid ""
+"Delay after which the notification should expire/be automatically closed by "
+"the daemon."
+msgstr ""
+"Vertraging waarna meldingen worden verworpen door de achtergronddienst."
+
+#: src/kalu/preferences.c:1641
+msgid "Check for upgrades every (minutes) :"
+msgstr "Controleren op upgrades, elke (in minuten):"
+
+#: src/kalu/preferences.c:1651
+msgctxt "delay-in-minutes"
+msgid "0 (Disabled)"
+msgstr "0 (uitgeschakeld)"
+
+#: src/kalu/preferences.c:1657
+msgctxt "delay-in-minutes"
+msgid "60 (Hour)"
+msgstr "60 (uur)"
+
+#: src/kalu/preferences.c:1659
+msgctxt "delay-in-minutes"
+msgid "120 (Two hours)"
+msgstr "120 (twee uur)"
+
+#: src/kalu/preferences.c:1661
+msgctxt "delay-in-minutes"
+msgid "1440 (Day)"
+msgstr "1440 (dag)"
+
+#: src/kalu/preferences.c:1702
+msgctxt "skip-between"
+msgid "Do not check between"
+msgstr "Geen controle uitvoeren tussen"
+
+#: src/kalu/preferences.c:1726
+msgctxt "skip-between"
+msgid "and"
+msgstr "en"
+
+#: src/kalu/preferences.c:1760
+msgctxt "checks"
+msgid "Arch Linux news"
+msgstr "Arch Linux-nieuws"
+
+#: src/kalu/preferences.c:1761
+msgctxt "checks"
+msgid "Package upgrades"
+msgstr "Pakketupgrades"
+
+#: src/kalu/preferences.c:1762
+msgctxt "checks"
+msgid "Watched package upgrades"
+msgstr "Pakketupgrades van bijgehouden pakketten"
+
+#: src/kalu/preferences.c:1763
+msgctxt "checks"
+msgid "AUR package upgrades"
+msgstr "AUR-pakketupgrades"
+
+#: src/kalu/preferences.c:1764
+msgctxt "checks"
+msgid "AUR watched package upgrades"
+msgstr "AUR-pakketupgrades van bijgehouden pakketten"
+
+#: src/kalu/preferences.c:1768
+msgid "During an automatic check, check for :"
+msgstr "Controleer tijdens automatische controles op:"
+
+#: src/kalu/preferences.c:1804
+msgid "During a manual check, check for :"
+msgstr "Controleer tijdens handmatige controles op:"
+
+#: src/kalu/preferences.c:1849
+msgctxt "prefs-tab"
+msgid "News"
+msgstr "Nieuws"
+
+#: src/kalu/preferences.c:1851
+msgid "Command line to open links :"
+msgstr "Opdracht om links te openen:"
+
+#: src/kalu/preferences.c:1857
+msgid "Use variable <b>$URL</b> for the URL to open"
+msgstr "Gebruik <b>$URL</b> voor de te openen url"
+
+#: src/kalu/preferences.c:1877
+msgctxt "prefs-tab"
+msgid "Upgrades"
+msgstr "Upgrades"
+
+#: src/kalu/preferences.c:1881
+msgid "Check for pacman/kalu conflict"
+msgstr "Controleren op pacman-/kalu-conflicten"
+
+#: src/kalu/preferences.c:1883
+msgid ""
+"Check whether an upgrade of pacman is likely to fail due to kalu's "
+"dependency, and if so adds a button on to notification to show a message "
+"about why and how to upgrade."
+msgstr ""
+
+#: src/kalu/preferences.c:1894
+msgid "Show a button \"Upgrade system\" on notifications (and on kalu's menu)"
+msgstr "Toon een knop 'Systeem bijwerken' op meldingen (en in kalu's menu)"
+
+#: src/kalu/preferences.c:1896
+msgid ""
+"Whether or not to show a button \"Upgrade system\" on notifications, as well "
+"as an item \"System upgrade\" on kalu's menu"
+msgstr "Toon een knop 'Systeem bijwerken' op meldingen en in kalu's menu"
+
+#: src/kalu/preferences.c:1907
+msgid "When clicking the button/menu :"
+msgstr "Actie bij klikken op knop/menu:"
+
+#: src/kalu/preferences.c:1909 src/kalu/preferences.c:1916
+msgid ""
+"When clicking the button \"Upgrade system\" on notifications, or the menu "
+"\"System upgrade\""
+msgstr ""
+"Actie bij klikken op de knop 'Systeem bijwerken' op meldingen en in kalu's "
+"menu"
+
+#: src/kalu/preferences.c:1922
+msgid "Run kalu's system updater"
+msgstr "kalu-systeemupdatebeheer openen"
+
+#: src/kalu/preferences.c:1925
+msgid "Run the specified command-line"
+msgstr "Opgegeven opdracht uitvoeren"
+
+#: src/kalu/preferences.c:1940
+msgid "Command-line:"
+msgstr "Opdracht:"
+
+#: src/kalu/preferences.c:1966
+msgid "After completing a system upgrade, start the following :"
+msgstr "Start het volgende na het afronden van een systeemupgrade:"
+
+#: src/kalu/preferences.c:1967
+msgid ""
+"You can use <b>$PACKAGES</b> to be replaced by the list of upgraded "
+"packages; And <b>$PACFILES</b> to be replaced by the list of pacnew files "
+"(See manual for more information)"
+msgstr ""
+"Gebruik <b>$PACKAGES</b> voor een lijst van bijgewerkte pakketten; gebruik "
+"<b>$PACFILES</b> voor een lijst van pacnew-bestanden (lees de handleiding "
+"voor meer informatie)"
+
+#: src/kalu/preferences.c:1970
+msgid "Add a new command-line"
+msgstr "Nieuwe opdracht toevoegen"
+
+#: src/kalu/preferences.c:1971
+msgid "Edit selected command-line"
+msgstr "Geselecteerde opdracht aanpassen"
+
+#: src/kalu/preferences.c:1972
+msgid "Remove selected command-line"
+msgstr "Geselecteerde opdracht verwijderen"
+
+#: src/kalu/preferences.c:1979
+msgid "Ask confirmation before starting anything"
+msgstr "Om bevestiging vragen alvorens iets te starten"
+
+#: src/kalu/preferences.c:1981
+msgid ""
+"Confirmation will be asked before starting those processes. With multiple "
+"ones, you'll be able to select which one(s) to start."
+msgstr ""
+"Vraag om bevestiging vragen alvorens deze processen te starten. Als je "
+"meerdere hebt, dan kun je kiezen welke je wilt starten."
+
+#: src/kalu/preferences.c:2006
+msgctxt "prefs-tab"
+msgid "Watched"
+msgstr "Bijgehouden"
+
+#: src/kalu/preferences.c:2008
+msgid "Manage watched packages..."
+msgstr "Bijgehouden pakketten beheren..."
+
+#: src/kalu/preferences.c:2027
+msgctxt "prefs-tab"
+msgid "AUR"
+msgstr "AUR"
+
+#: src/kalu/preferences.c:2031
+msgid "Show a button \"Update AUR packages\" on notifications"
+msgstr "Toon een knop 'AUR-pakketten bijwerken' op meldingen"
+
+#: src/kalu/preferences.c:2040
+msgid "When clicking the button, run the following :"
+msgstr "Actie bij klikken op knop:"
+
+#: src/kalu/preferences.c:2046
+msgid ""
+"You can use <b>$PACKAGES</b> to be replaced by the list of AUR packages with "
+"upgrades available"
+msgstr ""
+"Gebruik $PACKAGES voor een lijst van bijgewerkte AUR-pakketten en "
+"beschikbare upgrades"
+
+#: src/kalu/preferences.c:2062
+msgid "Do not check the AUR for the following packages :"
+msgstr "AUR niet controleren op de volgende pakketten:"
+
+#: src/kalu/preferences.c:2069
+msgid "Package name"
+msgstr "Pakketnaam"
+
+#: src/kalu/preferences.c:2071 src/kalu/watched.c:778
+msgid "Add a new package"
+msgstr "Pakket toevoegen"
+
+#: src/kalu/preferences.c:2072 src/kalu/watched.c:787
+msgid "Edit selected package"
+msgstr "Geselecteerd pakket bewerken"
+
+#: src/kalu/preferences.c:2073 src/kalu/watched.c:797
+msgid "Remove selected package"
+msgstr "Geselecteerd pakket verwijderen"
+
+#: src/kalu/preferences.c:2092
+msgctxt "prefs-tab"
+msgid "Watched AUR"
+msgstr "Bijgehouden AUR-pakketten"
+
+#: src/kalu/preferences.c:2094
+msgid "Manage watched AUR packages..."
+msgstr "Bijgehouden AUR-pakketten beheren..."
+
+#: src/kalu/preferences.c:2113
+msgctxt "prefs-tab"
+msgid "Misc"
+msgstr "Overig"
+
+#: src/kalu/preferences.c:2116
+msgid "Show if databases can be synchronized in tooltip"
+msgstr "In hulpballon tonen of databanken kunnen worden gesynchroniseerd"
+
+#: src/kalu/preferences.c:2126
+msgid "When kalu is <b>active</b> :"
+msgstr "Als kalu <b>actief</b> is:"
+
+#: src/kalu/preferences.c:2128
+msgid "Actions to be done when kalu is <b>not</b> paused."
+msgstr "Uit te voeren acties als kalu <b>niet</b> gepauzeerd is."
+
+#: src/kalu/preferences.c:2140
+msgid "When kalu is <b>paused</b> :"
+msgstr "Als kalu <b>gepauzeerd</b> is:"
+
+#: src/kalu/preferences.c:2142
+msgid "Actions to be done when kalu is <b>paused</b>."
+msgstr "Uit te voeren acties als kalu <b>gepauzeerd</b> is."
+
+#: src/kalu/preferences.c:2157
+msgid ""
+"Using KDE's StatusNotifierItem interface, the action on click will be mapped "
+"to Activate, the action on middle click mapped to SecondaryActivate, the "
+"action on double click is unused."
+msgstr ""
+"Met behulp van KDE's StatusNotifierItem kan de klikactie worden toegewezen "
+"aan 'Activeren' en de middelklikactie aan 'TweedeActivatie'; de "
+"dubbelkilkactie wordt niet gebruikt."
+
+#: src/kalu/preferences.c:2183
+msgid "_Save preferences"
+msgstr "Voorkeuren op_slaan"
+
+#: src/kalu/preferences.c:2187
+msgid "Apply and save preferences"
+msgstr "Pas de voorkeuren toe en sla ze op"
+
+#: src/kalu/updater.c:284
+#, c-format
+msgid "Error: %s: %s\n"
+msgstr "Fout: %s: %s\n"
+
+#: src/kalu/updater.c:396
+#, c-format
+msgid "%d%% of %s"
+msgstr "%d%% van %s"
+
+#: src/kalu/updater.c:401
+msgid "Post-processing..."
+msgstr "Bezig met afhandeling..."
+
+#: src/kalu/updater.c:448
+#, c-format
+msgid "Error: %s"
+msgstr "Fout: %s"
+
+#: src/kalu/updater.c:452
+#, c-format
+msgid "Warning: %s"
+msgstr "Waarschuwing: %s"
+
+#: src/kalu/updater.c:460
+#, c-format
+msgid "ALPM: %s"
+msgstr "ALPM: %s"
+
+#: src/kalu/updater.c:479 src/kalu/updater.c:702 src/kalu/updater.c:2094
+msgid "Downloading packages..."
+msgstr "Bezig met downloaden van pakketten..."
+
+#: src/kalu/updater.c:489
+msgid "Checking dependencies..."
+msgstr "Bezig met controleren van afhankelijkheden..."
+
+#: src/kalu/updater.c:492
+msgid "Resolving dependencies..."
+msgstr "Bezig met oplossen van afhankelijkheden..."
+
+#: src/kalu/updater.c:495
+msgid "Checking inter-conflict..."
+msgstr "Bezig met controleren op conflicten..."
+
+#: src/kalu/updater.c:498
+msgid "Processing package changes..."
+msgstr "Bezig met verwerken van pakketwijzigingen..."
+
+#: src/kalu/updater.c:501
+msgid "Running pre-transaction hooks..."
+msgstr "Bezig met voorbereiden..."
+
+#: src/kalu/updater.c:505
+msgid "Running post-transaction hooks..."
+msgstr "Bezig met afhandelen..."
+
+#: src/kalu/updater.c:509
+msgid "Checking delta integrity..."
+msgstr "Bezig met controleren van delta-integriteit..."
+
+#: src/kalu/updater.c:512
+msgid "Importing required keys..."
+msgstr "Bezig met importeren van vereiste sleutels..."
+
+#: src/kalu/updater.c:515
+msgid "Applying delta patches..."
+msgstr "Bezig met toepassen van delta-patches..."
+
+#: src/kalu/updater.c:518
+msgid "Delta patching done."
+msgstr "Delta-patches toegepast."
+
+#: src/kalu/updater.c:521
+msgid "Delta patching failed."
+msgstr "Delta-patches niet toegepast."
+
+#: src/kalu/updater.c:548
+#, c-format
+msgid "Running '%s' (%s)...\n"
+msgstr "Bezig met uitvoeren van '%s' (%s)...\n"
+
+#: src/kalu/updater.c:550
+#, c-format
+msgid "Running '%s'...\n"
+msgstr "Bezig met uitvoeren van '%s'...\n"
+
+#: src/kalu/updater.c:621
+#, c-format
+msgid "Package installed: %s (%s)\n"
+msgstr "Pakket geïnstalleerd: %s (%s)\n"
+
+#: src/kalu/updater.c:626
+#, c-format
+msgid "Optional dependencies for %s:\n"
+msgstr "Optionele afhankelijkheden voor %s:\n"
+
+#: src/kalu/updater.c:638
+#, c-format
+msgid "Package reinstalled: %s (%s)\n"
+msgstr "Pakket opnieuw geïnstalleerd: %s (%s)\n"
+
+#: src/kalu/updater.c:646
+#, c-format
+msgid "Package removed: %s (%s)\n"
+msgstr "Pakket gedeïnstalleerd: %s (%s)\n"
+
+#: src/kalu/updater.c:657
+#, c-format
+msgid "Package upgraded: %s (%s -> %s)\n"
+msgstr "Pakket bijgewerkt: %s (%s -> %s)\n"
+
+#: src/kalu/updater.c:663 src/kalu/updater.c:685
+#, c-format
+msgid "New optional dependencies for %s-%s:\n"
+msgstr "Nieuwe optionele afhankelijkheden voor %s-%s:\n"
+
+#: src/kalu/updater.c:679
+#, c-format
+msgid "Package downgraded: %s (%s -> %s)\n"
+msgstr "Pakket verlaagd: %s (%s -> %s)\n"
+
+#: src/kalu/updater.c:902
+#, c-format
+msgid "Warning: %s installed as %s.pacnew\n"
+msgstr "Waarschuwing: '%s' is geïnstalleerd als '%s.pacnew'\n"
+
+#: src/kalu/updater.c:910
+#, c-format
+msgid "Warning: %s saved as %s.pacsave\n"
+msgstr "Waarschuwing: '%s' is opgeslagen als '%s.pacsave'\n"
+
+#: src/kalu/updater.c:918
+#, c-format
+msgid "Using delta %s to generate %s...\n"
+msgstr "Delta van '%s' wordt gebruikt om '%s' te genereren...\n"
+
+#: src/kalu/updater.c:926
+#, c-format
+msgid "%s optionally requires %s\n"
+msgstr "'%s' vereist optioneel '%s'\n"
+
+#: src/kalu/updater.c:941
+msgid "Checking packages integrity..."
+msgstr "Bezig met controleren van pakketintegriteit..."
+
+#: src/kalu/updater.c:946
+msgid "Checking for file conflicts..."
+msgstr "Bezig met controleren op bestandsconflicten..."
+
+#: src/kalu/updater.c:951
+msgid "Loading package files..."
+msgstr "Bezig met laden van pakketbestanden..."
+
+#: src/kalu/updater.c:956
+msgid "Checking disk space..."
+msgstr "Bezig met controleren van schijfruimte..."
+
+#: src/kalu/updater.c:961
+msgid "Checking keyring..."
+msgstr "Bezig met controleren van sleutelring..."
+
+#: src/kalu/updater.c:970
+msgid "Upgrading system..."
+msgstr "Bezig met bijwerken..."
+
+#: src/kalu/updater.c:1088
+#, c-format
+msgid "%s is in IgnorePkg/IgnoreGroup. Install anyway ?"
+msgstr ""
+"'%s' is onderdeel van IgnorePkg/IgnoreGroup. Wil je het tóch installeren?"
+
+#: src/kalu/updater.c:1090
+#, c-format
+msgid "Install %s anyway"
+msgstr "'%s' tóch installeren"
+
+#: src/kalu/updater.c:1091
+#, c-format
+msgid "Do not install %s"
+msgstr "'%s' níet installeren"
+
+#: src/kalu/updater.c:1095 src/kalu/updater.c:1114 src/kalu/updater.c:1133
+#: src/kalu/updater.c:1186 src/kalu/updater.c:1410 src/kalu/updater.c:1433
+#: src/kalu/util-gtk.c:116
+msgid "Yes"
+msgstr "Ja"
+
+#: src/kalu/updater.c:1095 src/kalu/updater.c:1114 src/kalu/updater.c:1133
+#: src/kalu/updater.c:1186 src/kalu/updater.c:1410 src/kalu/updater.c:1430
+#: src/kalu/updater.c:1433 src/kalu/updater.c:1792 src/kalu/updater.c:1820
+#: src/kalu/util-gtk.c:107
+msgid "No"
+msgstr "Nee"
+
+#: src/kalu/updater.c:1107
+#, c-format
+msgid "Do you want to replace %s (%s) with %s (%s) ?"
+msgstr "Wil je '%s' (%s) vervangen door '%s' (%s)?"
+
+#: src/kalu/updater.c:1109
+#, c-format
+msgid "Replace with %s"
+msgstr "Vervangen door '%s'"
+
+#: src/kalu/updater.c:1110 src/kalu/updater.c:1129
+#, c-format
+msgid "Keep %s"
+msgstr "'%s' behouden"
+
+#: src/kalu/updater.c:1126
+#, c-format
+msgid "%s and %s and in conflict. Remove %s ?"
+msgstr "'%s' conflicteert met '%s'. Wil je '%s' verwijderen ?"
+
+#: src/kalu/updater.c:1128
+#, c-format
+msgid "Remove %s"
+msgstr "'%s' verwijderen"
+
+#: src/kalu/updater.c:1147
+msgid "Do you want to skip the packages listed below ?"
+msgstr "Wil je onderstaande pakketten overslaan?"
+
+#: src/kalu/updater.c:1149
+msgid "Those packages cannot be upgraded due to unresolvable dependencies :\n"
+msgstr ""
+"Deze pakketten kunnen niet worden bijgewerkt wegens onoplosbare "
+"afhankelijkheden:\n"
+
+#: src/kalu/updater.c:1163
+msgid "Yes, skip those packages"
+msgstr "Ja, pakketten overslaan"
+
+#: src/kalu/updater.c:1164 src/kalu/updater.c:1183
+msgid "No, abort upgrade"
+msgstr "Nee, afbreken"
+
+#: src/kalu/updater.c:1171
+#, c-format
+msgid "Do you want to skip package %s ?"
+msgstr "Wil je '%s' overslaan?"
+
+#: src/kalu/updater.c:1174
+#, c-format
+msgid "Package %s cannot be upgraded due to unresolvable dependencies."
+msgstr "%s kan niet worden bijgewerkt wegens onoplosbare afhankelijkheden."
+
+#: src/kalu/updater.c:1177
+#, c-format
+msgid "Yes, skip %s"
+msgstr "Ja, '%s' overslaan"
+
+#: src/kalu/updater.c:1257
+#, c-format
+msgid ""
+"There are %d providers available for %s.\n"
+"Please select the one to install :"
+msgstr ""
+"Er zijn %d varianten beschikbaar voor '%s'.\n"
+"Kies de te installeren variant:"
+
+#: src/kalu/updater.c:1310 src/kalu/updater.c:3031
+msgctxt "column"
+msgid "Repo"
+msgstr "Pakketbron"
+
+#: src/kalu/updater.c:1318 src/kalu/updater.c:3042 src/kalu/watched.c:900
+msgctxt "column"
+msgid "Package"
+msgstr "Pakket"
+
+#: src/kalu/updater.c:1326 src/kalu/watched.c:919
+msgctxt "column"
+msgid "Version"
+msgstr "Versie"
+
+#: src/kalu/updater.c:1358
+msgid "Abort"
+msgstr "Afbreken"
+
+#: src/kalu/updater.c:1362
+msgid "Use selected provider"
+msgstr "Gekozen variant gebruiken"
+
+#: src/kalu/updater.c:1403
+#, c-format
+msgid "File %s is corrupted. Do you want to delete it ?"
+msgstr "Het bestand, %s, is kapot. Wil je het verwijderen?"
+
+#: src/kalu/updater.c:1405
+#, c-format
+msgid "Delete %s"
+msgstr "'%s' verwijderen"
+
+#: src/kalu/updater.c:1406
+#, c-format
+msgid "Do not delete %s"
+msgstr "'%s' niet verwijderen"
+
+#: src/kalu/updater.c:1422
+#, c-format
+msgid "Do you want to import key %s ?"
+msgstr "Wil je de sleutel '%s' importeren?"
+
+#: src/kalu/updater.c:1424
+#, c-format
+msgid "Key %s: %s (created %s)"
+msgstr "Sleutel '%s': %s (%s gemaakt)"
+
+#: src/kalu/updater.c:1430
+msgid "Yes, import key"
+msgstr "Ja, sleutel importeren"
+
+#: src/kalu/updater.c:1471
+#, c-format
+msgid "Downloading %s ..."
+msgstr "Bezig met downloaden van '%s'..."
+
+#: src/kalu/updater.c:1578
+msgid "Error: got a SYNC_DBS event while not synchronizing databases\n"
+msgstr "Fout: SYNC_DBS opgetreden tijdens niet synchroniseren van databanken\n"
+
+#: src/kalu/updater.c:1585
+#, c-format
+msgid "Synchronizing a database\n"
+msgid_plural "Synchronizing %d databases\n"
+msgstr[0] "Bezig met synchroniseren van databank...\n"
+msgstr[1] "Bezig met synchroniseren van %d databanken...\n"
+
+#: src/kalu/updater.c:1589
+msgid "Synchronizing databases..."
+msgstr "Bezig met synchroniseren van databank..."
+
+#: src/kalu/updater.c:1589
+msgid "Synchronizing simulation databases..."
+msgstr "Bezig met synchroniseren van simulatiedatabanken..."
+
+#: src/kalu/updater.c:1598
+msgid "Error: got a SYNC_DB_START event while not synchronizing databases\n"
+msgstr ""
+"Fout: SYNC_DB_START opgetreden tijdens niet synchroniseren van databanken\n"
+
+#: src/kalu/updater.c:1605
+#, c-format
+msgid "Synchronizing database %s... "
+msgstr ""
+"Bezig met synchroniseren van databank '%s'...\n"
+" "
+
+#: src/kalu/updater.c:1616
+msgid "Error: got a SYNC_DB_END event while not synchronizing databases\n"
+msgstr ""
+"Fout: SYNC_DB_END opgetreden tijdens niet synchroniseren van databanken\n"
+
+#: src/kalu/updater.c:1625
+msgid "failed\n"
+msgstr "mislukt\n"
+
+#: src/kalu/updater.c:1629
+msgid "ok\n"
+msgstr "oké\n"
+
+#: src/kalu/updater.c:1681
+msgid "Are you sure you want to abort the current operation ?"
+msgstr "Weet je zeker dat je de huidige handeling wilt afbreken?"
+
+#: src/kalu/updater.c:1683
+msgid "CAUTION: This might leave your system in an unstable/non-working state."
+msgstr "LET OP: je systeem wordt mogelijk instabiel of onwerkbaar."
+
+#: src/kalu/updater.c:1684
+msgid "Yes, abort operation"
+msgstr "Ja, handeling afbreken"
+
+#: src/kalu/updater.c:1685
+msgid "No, keep going"
+msgstr "Nee, doorgaan"
+
+#: src/kalu/updater.c:1699 src/kalu/updater.c:1702 src/kalu/updater.c:1703
+msgid "Downloading packages complete."
+msgstr "Pakketten zijn gedownload."
+
+#: src/kalu/updater.c:1733 src/kalu/updater.c:2085 src/kalu/updater.c:2101
+msgid "Downloading packages failed"
+msgstr "Downloaden mislukt"
+
+#: src/kalu/updater.c:1738
+msgid "System update failed"
+msgstr "Systeemupdate mislukt"
+
+#: src/kalu/updater.c:1750 src/kalu/updater.c:1753 src/kalu/updater.c:1754
+msgid "System upgrade complete."
+msgstr "Systeemupgrade voltooid."
+
+#: src/kalu/updater.c:1788 src/kalu/updater.c:1789
+msgid "Do you want to run the post-sysupgrade process ?"
+msgstr "Wil je de afhandelingen uitvoeren?"
+
+#: src/kalu/updater.c:1791
+msgid "Yes, Start it now"
+msgstr "Ja, nu uitvoeren"
+
+#: src/kalu/updater.c:1795 src/kalu/updater.c:1828
+msgid " Yes\n"
+msgstr " Ja\n"
+
+#: src/kalu/updater.c:1801 src/kalu/updater.c:1832
+msgid " No\n"
+msgstr " Nee\n"
+
+#: src/kalu/updater.c:1815
+msgid "Do you want to run the post-sysupgrade processes ?"
+msgstr "Wil je de afhandelingen uitvoeren?"
+
+#: src/kalu/updater.c:1817
+msgid "Do you want to run the following post-sysupgrade processes ?"
+msgstr "Wil je de volgende afhandelingen uitvoeren?"
+
+#: src/kalu/updater.c:1818
+msgid "Only checked processes will be launch."
+msgstr "Alleen de aangekruiste processen worden uitgevoerd."
+
+#: src/kalu/updater.c:1819
+msgid "Yes, run checked processes now"
+msgstr "Ja, aangekruiste processen uitvoeren"
+
+#. TRANSLATORS: as in, run selected process
+#: src/kalu/updater.c:1822
+msgctxt "column"
+msgid "Run"
+msgstr "Uitvoeren"
+
+#: src/kalu/updater.c:1823
+msgctxt "column"
+msgid "Command-line"
+msgstr "Opdracht"
+
+#: src/kalu/updater.c:1893
+#, c-format
+msgid "Starting: '%s' .."
+msgstr "Bezig met starten van '%s'..."
+
+#: src/kalu/updater.c:1896 src/kalu/updater.c:2214 src/kalu/updater.c:2249
+#: src/kalu/updater.c:2317 src/kalu/updater.c:2347 src/kalu/updater.c:2384
+#: src/kalu/updater.c:2405 src/kalu/updater.c:2544 src/kalu/updater.c:3279
+msgid " failed\n"
+msgstr " mislukt\n"
+
+#: src/kalu/updater.c:1897
+msgid "Unable to start post-sysupgrade process."
+msgstr "Kan afhandelingen niet uitvoeren."
+
+#: src/kalu/updater.c:1898
+#, c-format
+msgid ""
+"Command-line: %s\n"
+"Error: %s"
+msgstr ""
+"Opdracht: %s\n"
+"Fout: %s"
+
+#: src/kalu/updater.c:1904 src/kalu/updater.c:2223 src/kalu/updater.c:2325
+#: src/kalu/updater.c:2355 src/kalu/updater.c:3286
+msgid " ok\n"
+msgstr " oké\n"
+
+#: src/kalu/updater.c:1924 src/kalu/updater.c:1943
+msgid "Unable to start system upgrade"
+msgstr "Kan systeemupgrade niet starten"
+
+#: src/kalu/updater.c:1925
+msgid "Invalid internal state"
+msgstr "Onjuiste interne status"
+
+#: src/kalu/updater.c:1933
+msgid "Performing system upgrade..."
+msgstr "Bezig met uitvoeren van systeemupgrade..."
+
+#: src/kalu/updater.c:1960 src/kalu/updater.c:2198 src/kalu/updater.c:2301
+msgid "Failed to get packages list"
+msgstr "Kan pakketlijst niet ophalen"
+
+#: src/kalu/updater.c:1967
+msgid "No packages to upgrade"
+msgstr "Geen te upgraden pakketten"
+
+#: src/kalu/updater.c:1968
+msgid "Your system is already up-to-date."
+msgstr "Je systeem is al bijgewerkt."
+
+#: src/kalu/updater.c:2045 src/kalu/updater.c:2046 src/kalu/updater.c:2080
+msgid "Do you want to download packages ?"
+msgstr "Wil je de pakketten downloaden?"
+
+#: src/kalu/updater.c:2065
+#, c-format
+msgid "Download:\t%s"
+msgstr "Downloaden:\t%s"
+
+#: src/kalu/updater.c:2077
+#, c-format
+msgid "Download: %s\n"
+msgstr "Downloaden: %s\n"
+
+#: src/kalu/updater.c:2081
+msgid "Download packages"
+msgstr "Pakketten downloaden"
+
+#: src/kalu/updater.c:2082
+msgid "No, cancel download"
+msgstr "Nee, downloaden afbreken"
+
+#: src/kalu/updater.c:2086
+msgid "Download operation cancelled."
+msgstr "Downloaden afgebroken."
+
+#: src/kalu/updater.c:2112
+msgid "<big><b>Do you want to upgrade your system ?</b></big>"
+msgstr "<big><b>Wil je je systeem upgraden?</b></big>"
+
+#: src/kalu/updater.c:2113
+msgid "<big><b>Simulation complete</b></big>"
+msgstr "<big><b>Voorvertoning afgerond</b></big>"
+
+#: src/kalu/updater.c:2131
+#, c-format
+msgid "Download: %s - Install: %s - Net: %s\n"
+msgstr "Downloaden: %s - Installeren: %s - Verschil: %s\n"
+
+#: src/kalu/updater.c:2149
+#, c-format
+msgid "Install: %s - Net: %s\n"
+msgstr "Installeren: %s - Verschil: %s\n"
+
+#: src/kalu/updater.c:2166
+msgid "Got package list; waiting for user confirmation.\n"
+msgstr "Pakketlijst opgehaald; bezig met wachten op bevestiging...\n"
+
+#: src/kalu/updater.c:2167
+msgid "Simulation complete.\n"
+msgstr "Voorvertoning afgerond.\n"
+
+#: src/kalu/updater.c:2177 src/kalu/updater.c:2279 src/kalu/updater.c:3351
+msgid "Failed to synchronize databases"
+msgstr "Kan databanken niet synchroniseren"
+
+#: src/kalu/updater.c:2185 src/kalu/updater.c:3363
+msgid "Databases synchronized\n"
+msgstr "Databanken gesynchroniseerd\n"
+
+#: src/kalu/updater.c:2188 src/kalu/updater.c:2291
+msgid "Getting packages list\n"
+msgstr ""
+
+#: src/kalu/updater.c:2190 src/kalu/updater.c:2293
+msgid "Getting packages list..."
+msgstr "Bezig met ophalen van pakketlijst..."
+
+#: src/kalu/updater.c:2215 src/kalu/updater.c:2250
+msgid "Failed to register databases"
+msgstr "Kan databanken niet vastleggen"
+
+#: src/kalu/updater.c:2239
+#, c-format
+msgid "Register database %s... "
+msgstr "Bezig met vastleggen van databank '%s'... "
+
+#: src/kalu/updater.c:2318 src/kalu/updater.c:2385
+msgid "Failed to initialize ALPM library"
+msgstr "Kan alpm-bibliotheek niet initialiseren"
+
+#: src/kalu/updater.c:2328
+msgid "Registering databases\n"
+msgstr "Bezig met vastleggen van databanken\n"
+
+#: src/kalu/updater.c:2348
+msgid "Failed to initialize"
+msgstr "Initialiseren mislukt"
+
+#: src/kalu/updater.c:2359 src/kalu/updater.c:2361
+msgid "Initializing ALPM library..."
+msgstr "Bezig met initialiseren van alpm-bibliotheek..."
+
+#: src/kalu/updater.c:2406
+msgid "Could not initiate kalu_updater"
+msgstr "Kan kalu_updater niet aanroepen"
+
+#: src/kalu/updater.c:2413
+msgid " ok \n"
+msgstr " oké\n"
+
+#: src/kalu/updater.c:2538
+msgid "Initializing kalu_updater..."
+msgstr "Bezig met initialiseren van kalu_updater..."
+
+#: src/kalu/updater.c:2545
+msgid "Could not initialize kalu_updater"
+msgstr "Kan kalu_updater niet initialiseren"
+
+#: src/kalu/updater.c:2731 src/kalu/updater.c:2930
+msgid "Initializing... Please wait..."
+msgstr "Bezig met initialiseren; even geduld..."
+
+#: src/kalu/updater.c:2736 src/kalu/updater.c:3298
+msgid "Creating kalu_updater..."
+msgstr "Bezig met maken van kalu_updater..."
+
+#: src/kalu/updater.c:2748
+msgid ""
+"\n"
+"Rerun simulation...\n"
+msgstr ""
+"\n"
+"Opnieuw voorvertonen...\n"
+
+#: src/kalu/updater.c:2909
+msgid "System upgrade - kalu"
+msgstr "Systeemupgrade - kalu"
+
+#: src/kalu/updater.c:2909
+msgid "Upgrade simulation - kalu"
+msgstr "Upgradevoorvertoning - kalu"
+
+#: src/kalu/updater.c:3052
+msgctxt "column"
+msgid "Old/Current"
+msgstr "Oud/Huidig"
+
+#: src/kalu/updater.c:3062 src/kalu/watched.c:929
+msgctxt "column"
+msgid "New"
+msgstr "Nieuw"
+
+#: src/kalu/updater.c:3074 src/kalu/watched.c:939
+msgctxt "column"
+msgid "Download"
+msgstr "Downloaden"
+
+#: src/kalu/updater.c:3096 src/kalu/watched.c:950
+msgctxt "column"
+msgid "Installed"
+msgstr "Geïnstalleerd"
+
+#: src/kalu/updater.c:3138
+msgid "Log"
+msgstr "Logboek"
+
+#: src/kalu/updater.c:3189
+msgid "_Abort"
+msgstr "_Afbreken"
+
+#: src/kalu/updater.c:3203
+msgid "_Upgrade system..."
+msgstr "S_ysteem bijwerken..."
+
+#: src/kalu/updater.c:3217
+msgid "_Download packages..."
+msgstr "Pakketten _downloaden..."
+
+#: src/kalu/updater.c:3242
+msgid "_Rerun simulation..."
+msgstr "Opnieuw voo_rvertonen..."
+
+#: src/kalu/updater.c:3276
+#, c-format
+msgid "Parsing %s ..."
+msgstr "Bezig met verwerken van '%s'..."
+
+#: src/kalu/updater.c:3280
+msgid "Unable to parse pacman.conf"
+msgstr "Kan pacman.conf niet verwerken"
+
+#: src/kalu/updater.c:3292
+msgid "No databases defined"
+msgstr "Geen databanken opgegeven"
+
+#: src/kalu/updater.c:3327
+msgid "Failed to initialize simulation"
+msgstr "Kan voorvertoning niet initialiseren"
+
+#: src/kalu/util.c:227
+#, c-format
+msgid "Failed to initiate transaction: %s"
+msgstr "Kan handeling niet voorbereiden: %s"
+
+#: src/kalu/util.c:241
+#, c-format
+msgid "Failed to release transaction: %s"
+msgstr "Kan handeling niet vrijgeven: %s"
+
+#: src/kalu/util.c:373
+msgid "No usable package repositories configured"
+msgstr "Geen bruikbare pakketbronnen ingesteld"
+
+#: src/kalu/util.c:386
+#, c-format
+msgid "Database %s is not valid: %s"
+msgstr "De databank, %s, is ongeldig: %s"
+
+#: src/kalu/watched.c:398
+msgid "Do you want to import marked changes into the current list?"
+msgstr "Wil je de gemarkeerde aanpassingen importeren naar de huidige lijst?"
+
+#: src/kalu/watched.c:399
+msgid ""
+"You have marked one or more packages with updated version number since "
+"starting the editing of this list."
+msgstr ""
+"Je hebt één of meer pakketten gemarkeerd met een versienummer dat is "
+"bijgewerkt sinds je begon met het bewerken van deze lijst."
+
+#: src/kalu/watched.c:401
+msgid "Yes, import changes."
+msgstr "Ja, wijzigingen importeren"
+
+#: src/kalu/watched.c:402
+msgid "No, keep the list as is."
+msgstr "Nee lijst behouden"
+
+#: src/kalu/watched.c:696
+msgid "Check all packages"
+msgstr "Alle pakketten markeren"
+
+#: src/kalu/watched.c:701
+msgid "Uncheck all packages"
+msgstr "Alle pakketten demarkeren"
+
+#: src/kalu/watched.c:728
+msgid "Mark updated watched packages - kalu"
+msgstr "Bijgewerkte bijgehouden pakketten markeren - kalu"
+
+#: src/kalu/watched.c:732
+msgid "Manage watched packages - kalu"
+msgstr "Bijgehouden pakketten beheren - kalu"
+
+#: src/kalu/watched.c:736
+msgid "Mark updated watched AUR packages - kalu"
+msgstr "Bijgewerkte bijgehouden AUR-pakketten markeren - kalu"
+
+#: src/kalu/watched.c:740
+msgid "Manage watched AUR packages - kalu"
+msgstr "Bijgehouden pakketten beheren - kalu"
+
+#: src/kalu/watched.c:814
+msgid "Reload list from memory (undo changes)"
+msgstr "Lijst herladen uit geheugen (wijzigingen ongedaan maken)"
+
+#: src/kalu/watched.c:826
+msgid "Reload list from file"
+msgstr "Lijst herladen uit bestand"
+
+#: src/kalu/watched.c:878
+msgctxt "column"
+msgid "Update"
+msgstr "Bijwerken"
+
+#: src/kalu/watched.c:977
+msgid "_Mark as seen"
+msgstr "_Markeren als bekeken"
+
+#: src/kalu/watched.c:982
+msgid "Save new version numbers of checked packages"
+msgstr "Nieuwe versienummers van gemarkeerde pakketten opslaan"
+
+#: src/kalu/watched.c:990
+msgid "_Save list"
+msgstr "Lijst op_slaan"
+
+#: src/kalu/watched.c:995
+msgid "Save list of watched packages"
+msgstr "Lijst opslaan met bijgehouden pakketten"
+
+#: src/kalu-dbus/kalu-dbus.c:230
+msgid " [installed]"
+msgstr " [geïnstalleerd]"
+
+#: src/kalu-dbus/kalu-dbus.c:232
+msgid " [pending]"
+msgstr " [in behandeling]"
+
+#: src/kalu-dbus/kalu-dbus.c:750
+msgid "Session already initialized\n"
+msgstr "De sessie is al geïnitialiseerd\n"
+
+#: src/kalu-dbus/kalu-dbus.c:772
+msgid "No error message"
+msgstr "Geen foutmelding"
+
+#: src/kalu-dbus/kalu-dbus.c:782
+msgid "Authorization from PolicyKit failed\n"
+msgstr "Autorisatie met PolicyKit mislukt\n"
+
+#: src/kalu-dbus/kalu-dbus.c:827 src/kalu-dbus/kalu-dbus.c:995
+#: src/kalu-dbus/kalu-dbus.c:1033 src/kalu-dbus/kalu-dbus.c:1134
+#: src/kalu-dbus/kalu-dbus.c:1207 src/kalu-dbus/kalu-dbus.c:1488
+#: src/kalu-dbus/kalu-dbus.c:1506 src/kalu-dbus/kalu-dbus.c:1526
+msgid "Invalid state"
+msgstr "Onjuiste status"
+
+#: src/kalu-dbus/kalu-dbus.c:859
+#, c-format
+msgid "Failed to initialize alpm library: %s\n"
+msgstr "Kan alpm-bibliotheek niet initialiseren: %s\n"
+
+#: src/kalu-dbus/kalu-dbus.c:867
+msgid "ALPM has no downloader capability\n"
+msgstr "ALPM beschikt niet over de mogelijkheid om te downloaden\n"
+
+#: src/kalu-dbus/kalu-dbus.c:883
+#, c-format
+msgid "Unable to set log file: %s\n"
+msgstr "Kan logbestand niet instellen: %s\n"
+
+#: src/kalu-dbus/kalu-dbus.c:894
+#, c-format
+msgid "Unable to set gpgdir: %s\n"
+msgstr "Kan GPGDir niet instellen: %s\n"
+
+#: src/kalu-dbus/kalu-dbus.c:905
+#, c-format
+msgid "Unable to add hook dir '%s': %s\n"
+msgstr "Kan hook-map '%s' niet instellen: %s\n"
+
+#: src/kalu-dbus/kalu-dbus.c:924
+#, c-format
+msgid "Unable to set cache dirs: %s\n"
+msgstr "Kan cachemappen niet instellen: %s\n"
+
+#: src/kalu-dbus/kalu-dbus.c:933
+#, c-format
+msgid "Unable to set default siglevel: %s\n"
+msgstr "Kan standaard signiveau niet instellen: %s\n"
+
+#: src/kalu-dbus/kalu-dbus.c:1005
+msgid "Failed to release alpm library\n"
+msgstr "Kan alpm-bibliotheek niet vrijgeven\n"
+
+#: src/kalu-dbus/kalu-dbus.c:1048
+#, c-format
+msgid "Could not register database %s: %s\n"
+msgstr "Kan databank (%s) niet vastleggen: %s\n"
+
+#: src/kalu-dbus/kalu-dbus.c:1080
+#, c-format
+msgid ""
+"Server %s contains the $arch variable, but no Architecture was defined.\n"
+msgstr ""
+"De server, '%s', bevat de '$arch'-variabel, maar er is geen architectuur "
+"opgegeven.\n"
+
+#: src/kalu-dbus/kalu-dbus.c:1095
+#, c-format
+msgid "Could not add server %s to database %s: %s\n"
+msgstr "Kan server '%s' niet toevoegen aan databank '%s': %s\n"
+
+#: src/kalu-dbus/kalu-dbus.c:1109
+#, c-format
+msgid "Database %s is not valid: %s\n"
+msgstr "De databank, %s, is ongeldig: %s\n"
+
+#: src/kalu-dbus/kalu-dbus.c:1183
+msgid "Invalid call to Answer, no Question pending.\n"
+msgstr "Ongeldig antwoord; geen lopende vraag.\n"
+
+#: src/kalu-dbus/kalu-dbus.c:1216
+#, c-format
+msgid "Failed to initiate transaction: %s\n"
+msgstr "Kan handeling niet voorbereiden: %s\n"
+
+#: src/kalu-dbus/kalu-dbus.c:1257
+#, c-format
+msgid "- Package %s requires %s\n"
+msgstr "- Pakket '%s' vereist '%s'\n"
+
+#: src/kalu-dbus/kalu-dbus.c:1274
+#, c-format
+msgid "- Packages %s and %s are in conflict\n"
+msgstr "- '%s' conflicteert met '%s'\n"
+
+#: src/kalu-dbus/kalu-dbus.c:1282
+#, c-format
+msgid "- Packages %s and %s are in conflict: %s\n"
+msgstr "- '%s' conflicteert met '%s': %s\n"
+
+#: src/kalu-dbus/kalu-dbus.c:1305
+#, c-format
+msgid ""
+"Failed to prepare transaction: %s :\n"
+"%s\n"
+msgstr ""
+"Kan handeling niet voorbereiden: %s :\n"
+"%s\n"
+
+#: src/kalu-dbus/kalu-dbus.c:1313
+#, c-format
+msgid "Failed to prepare transaction: %s\n"
+msgstr "Kan handeling niet voorbereiden: %s\n"
+
+#: src/kalu-dbus/kalu-dbus.c:1397
+#, c-format
+msgid "- %s exists in both %s and %s\n"
+msgstr "- '%s' is aanwezig in zowel '%s' als '%s'\n"
+
+#: src/kalu-dbus/kalu-dbus.c:1405
+#, c-format
+msgid "- %s exists in both %s and current filesystem\n"
+msgstr "- '%s' is aanwezig in zowel '%s' als op het huidige bestandssysteem\n"
+
+#: src/kalu-dbus/kalu-dbus.c:1412
+#, c-format
+msgid "- Unknown conflict for %s\n"
+msgstr "- Onbekend conflict met '%s'\n"
+
+#: src/kalu-dbus/kalu-dbus.c:1429
+#, c-format
+msgid "- %s in invalid or corrupted\n"
+msgstr "- '%s' is ongeldig of kapot\n"
+
+#: src/kalu-dbus/kalu-dbus.c:1448
+#, c-format
+msgid ""
+"Failed to commit transaction: %s :\n"
+"%s\n"
+msgstr ""
+"Kan handeling niet verwerken: %s\n"
+"%s\n"
+
+#: src/kalu-dbus/kalu-dbus.c:1456
+#, c-format
+msgid "Failed to commit transaction: %s\n"
+msgstr "Kan handeling niet verwerken: %s\n"
+
+#: src/kalu-dbus/kalu-dbus.c:1585
+msgid "Session not initialized\n"
+msgstr "De sessie is niet geïnitialiseerd\n"
+
+#: src/kalu-dbus/kalu-dbus.c:1592
+msgid "Session initialized for another client\n"
+msgstr "De sessie is al geïnitialiseerd in een andere client\n"
+
+#: src/kalu-dbus/kalu-dbus.c:1608
+#, c-format
+msgid "Unknown method: %s\n"
+msgstr "Onbekende methode: %s\n"
