@@ -59,7 +59,6 @@ typedef struct _pacman_config_t {
     char            *arch;
     int              checkspace;
     int              usesyslog;
-    double           usedelta;
     alpm_list_t     *ignorepkgs;
     alpm_list_t     *ignoregroups;
     alpm_list_t     *noupgrades;

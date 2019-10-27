@@ -130,10 +130,6 @@ struct _KaluUpdaterClass
                                      const gchar        *version,
                                      const gchar        *file);
 
-    void (*event_delta_generating)  (KaluUpdater        *kupdater,
-                                     const gchar        *delta,
-                                     const gchar        *dest);
-
     void (*event_optdep_removal)    (KaluUpdater        *kupdater,
                                      const gchar        *pkg,
                                      const gchar        *optdep);
@@ -200,7 +196,6 @@ enum
   SIGNAL_EVENT_REMOVED,
   SIGNAL_EVENT_UPGRADED,
   SIGNAL_EVENT_DOWNGRADED,
-  SIGNAL_EVENT_DELTA_GENERATING,
   SIGNAL_EVENT_RETRIEVING_PKGS,
   SIGNAL_EVENT_RETRIEVING_PKGS_DONE,
   SIGNAL_EVENT_RETRIEVING_PKGS_FAILED,
@@ -726,16 +721,6 @@ kalu_updater_g_signal (GDBusProxy   *proxy,
         free (version);
         free (file);
     }
-    else if (g_strcmp0 (signal_name, "EventDeltaGenerating") == 0)
-    {
-        gchar *delta, *dest;
-
-        g_variant_get (parameters, "(ss)", &delta, &dest);
-        g_signal_emit (kupdater, signals[SIGNAL_EVENT_DELTA_GENERATING], 0,
-                delta, dest);
-        free (delta);
-        free (dest);
-    }
     else if (g_strcmp0 (signal_name, "EventOptdepRemoval") == 0)
     {
         gchar *pkg, *optdep;
@@ -1172,19 +1157,6 @@ kalu_updater_class_init (KaluUpdaterClass *klass)
             G_TYPE_STRING,
             G_TYPE_STRING);
 
-    signals[SIGNAL_EVENT_DELTA_GENERATING] = g_signal_new (
-            "event-delta-generating",
-            KALU_TYPE_UPDATER,
-            G_SIGNAL_RUN_LAST,
-            G_STRUCT_OFFSET (KaluUpdaterClass, event_delta_generating),
-            NULL,
-            NULL,
-            g_cclosure_user_marshal_VOID__STRING_STRING,
-            G_TYPE_NONE,
-            2,
-            G_TYPE_STRING,
-            G_TYPE_STRING);
-
     signals[SIGNAL_PROGRESS] = g_signal_new (
             "progress",
             KALU_TYPE_UPDATER,
@@ -1407,7 +1379,6 @@ gboolean    kalu_updater_init_alpm          (KaluUpdater         *kupdater,
                                              gchar               *arch,
                                              gboolean             checkspace,
                                              gboolean             usesyslog,
-                                             gdouble              usedelta,
                                              alpm_list_t         *ignorepkgs,
                                              alpm_list_t         *ignoregroups,
                                              alpm_list_t         *noupgrades,
@@ -1466,7 +1437,7 @@ gboolean    kalu_updater_init_alpm          (KaluUpdater         *kupdater,
 
     variant = g_dbus_proxy_call_sync (G_DBUS_PROXY (kupdater),
             "InitAlpm",
-            g_variant_new ("(ssssasasisbbdasasasas)",
+            g_variant_new ("(ssssasasisbbasasasas)",
                 rootdir,
                 dbpath,
                 logfile,
@@ -1477,7 +1448,6 @@ gboolean    kalu_updater_init_alpm          (KaluUpdater         *kupdater,
                 arch,
                 checkspace,
                 usesyslog,
-                usedelta,
                 ignorepkgs_builder,
                 ignoregroups_builder,
                 noupgrades_builder,

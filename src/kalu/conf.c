@@ -392,11 +392,6 @@ parse_pacman_conf (const char       *file,
                     pac_conf->verbosepkglists = 1;
                     debug ("config: verbosepkglists");
                 }
-                else if (streq (key, "UseDelta"))
-                {
-                    pac_conf->usedelta = 0.7;
-                    debug ("config: usedelta (default: 0.7)");
-                }
                 else if (streq (key, "CheckSpace"))
                 {
                     pac_conf->checkspace = 1;
@@ -492,21 +487,6 @@ parse_pacman_conf (const char       *file,
                         goto cleanup;
                     }
                     FREELIST (values);
-                }
-                else if (strcmp (key, "UseDelta") == 0)
-                {
-                    double ratio;
-                    char *end;
-                    ratio = g_ascii_strtod (value, &end);
-                    if (*end != '\0' || ratio < 0.0 || ratio > 2.0)
-                    {
-                        set_error ("config file %s, line %d: invalid delta ratio: %s",
-                                file, linenum, value);
-                        success = FALSE;
-                        goto cleanup;
-                    }
-                    pac_conf->usedelta = ratio;
-                    debug ("config: usedelta=%f", ratio);
                 }
                 /* we silently ignore "unrecognized" options, since we don't
                  * parse all of pacman's options anyways... */

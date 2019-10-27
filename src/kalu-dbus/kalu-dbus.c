@@ -436,30 +436,6 @@ event_cb (alpm_event_t *event)
     {
         emit_signal ("Event", "i", EVENT_KEY_DOWNLOAD);
     }
-    else if (event->type == ALPM_EVENT_DELTA_INTEGRITY_START)
-    {
-        /* checking delta integrity */
-        emit_signal ("Event", "i", EVENT_DELTA_INTEGRITY);
-    }
-    else if (event->type == ALPM_EVENT_DELTA_PATCHES_START)
-    {
-        /* applying deltas */
-        emit_signal ("Event", "i", EVENT_DELTA_PATCHES);
-    }
-    else if (event->type == ALPM_EVENT_DELTA_PATCH_START)
-    {
-        alpm_event_delta_patch_t *e = (alpm_event_delta_patch_t *) event;
-        emit_signal ("EventDeltaGenerating", "ss",
-                e->delta->delta, e->delta->to);
-    }
-    else if (event->type == ALPM_EVENT_DELTA_PATCH_DONE)
-    {
-        emit_signal ("Event", "i", EVENT_DELTA_PATCH_DONE);
-    }
-    else if (event->type == ALPM_EVENT_DELTA_PATCH_FAILED)
-    {
-        emit_signal ("Event", "i", EVENT_DELTA_PATCH_FAILED);
-    }
     /* we ignore ALPM_EVENT_DATABASE_MISSING because it should only be relevant
      * on operations that do not sync databases, and we always do */
 }
@@ -808,7 +784,6 @@ init_alpm (GVariant *parameters)
     const gchar  *arch;
     gboolean      checkspace;
     gboolean      usesyslog;
-    gdouble       usedelta;
     GVariantIter *ignorepkgs_iter;
     alpm_list_t  *ignorepkgs = NULL;
     GVariantIter *ignoregroups_iter;
@@ -830,7 +805,7 @@ init_alpm (GVariant *parameters)
     state = STATE_INIT;
 
     debug ("getting alpm params");
-    g_variant_get (parameters, "(ssssasasisbbdasasasas)",
+    g_variant_get (parameters, "(ssssasasisbbasasasas)",
         &rootdir,
         &dbpath,
         &logfile,
@@ -841,7 +816,6 @@ init_alpm (GVariant *parameters)
         &arch,
         &checkspace,
         &usesyslog,
-        &usedelta,
         &ignorepkgs_iter,
         &ignoregroups_iter,
         &noupgrades_iter,
@@ -941,7 +915,6 @@ init_alpm (GVariant *parameters)
     alpm_option_set_arch (handle, arch);
     alpm_option_set_checkspace (handle, checkspace);
     alpm_option_set_usesyslog (handle, usesyslog);
-    alpm_option_set_deltaratio (handle, usedelta);
 
     while (g_variant_iter_loop (ignorepkgs_iter, "s", &s))
     {
@@ -1420,8 +1393,7 @@ thread_sysupgrade (gpointer data _UNUSED_)
         }
         else if (  err == ALPM_ERR_PKG_INVALID
                 || err == ALPM_ERR_PKG_INVALID_CHECKSUM
-                || err == ALPM_ERR_PKG_INVALID_SIG
-                || err == ALPM_ERR_DLT_INVALID)
+                || err == ALPM_ERR_PKG_INVALID_SIG)
         {
             for (i = alpm_data; i; i = alpm_list_next (i))
             {

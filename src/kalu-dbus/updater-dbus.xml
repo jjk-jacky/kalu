@@ -14,7 +14,6 @@
       <arg type='s'  name='arch'         direction='in'/>
       <arg type='b'  name='checkspace'   direction='in'/>
       <arg type='b'  name='usesyslog'    direction='in'/>
-      <arg type='d'  name='usedelta'     direction='in'/>
       <arg type='as' name='ignorepkgs'   direction='in'/>
       <arg type='as' name='ignoregroups' direction='in'/>
       <arg type='as' name='noupgrades'   direction='in'/>
@@ -159,10 +158,6 @@
         <arg type='s' name='pkg' />
         <arg type='s' name='version' />
         <arg type='s' name='file' />
-    </signal>
-    <signal name='EventDeltaGenerating'>
-      <arg type='s' name='delta' />
-      <arg type='s' name='dest' />
     </signal>
     <signal name='EventOptdepRemoval'>
         <arg type='s' name='pkg' />

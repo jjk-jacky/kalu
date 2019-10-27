@@ -505,20 +505,8 @@ on_event (KaluUpdater *kupdater _UNUSED_, event_t event)
             msg = _("Running post-transaction hooks...");
             upd_action = 1;
             break;
-        case EVENT_DELTA_INTEGRITY:
-            msg = _("Checking delta integrity...");
-            break;
         case EVENT_KEY_DOWNLOAD:
             msg = _("Importing required keys...");
-            break;
-        case EVENT_DELTA_PATCHES:
-            msg = _("Applying delta patches...");
-            break;
-        case EVENT_DELTA_PATCH_DONE:
-            msg = _("Delta patching done.");
-            break;
-        case EVENT_DELTA_PATCH_FAILED:
-            msg = _("Delta patching failed.");
             break;
         default:
             return;
@@ -717,7 +705,6 @@ on_event_pkgdownload_start (KaluUpdater *kupdater _UNUSED_, const gchar *filenam
     /* first, we need to find the package we're dealing with */
     pkg_iter_t *pkg_iter = updater->step_data;
     gchar *pkg, *s;
-    int max;
     int i;
 
     free (pkg_iter->filename);
@@ -726,15 +713,10 @@ on_event_pkgdownload_start (KaluUpdater *kupdater _UNUSED_, const gchar *filenam
     /* we want the package name only: the third dash from the last is the one
      * between pkgname and pkgver, since filenames follow:
      * PACKAGE-[EPOCH:]PKGVER-PKGREL-ARCH.pkg.EXT (and no dash is allowed in
-     * PKGVER)
-     * If the filename ends in ".delta" there there are two version numbers. */
-    if (streq (filename + strlen (filename) - 6, ".delta"))
-        max = 4;
-    else
-        max = 3;
+     * PKGVER) */
 
     s = pkg = strdup (filename);
-    for (i = 0; i < max; ++i)
+    for (i = 0; i < 3; ++i)
     {
         if (NULL == (s = strrchr (pkg, '-')))
         {
@@ -909,14 +891,6 @@ on_event_pacsave_created (KaluUpdater *kupdater _UNUSED_, const gchar *pkg _UNUS
 {
     add_log (LOGTYPE_WARNING, _("Warning: %s saved as %s.pacsave\n"),
             file, file);
-}
-
-static void
-on_event_delta_generating (KaluUpdater *kupdater _UNUSED_, const gchar *delta,
-                           const gchar *dest)
-{
-    add_log (LOGTYPE_NORMAL, _("Using delta %s to generate %s...\n"),
-            delta, dest);
 }
 
 static void
@@ -2371,7 +2345,6 @@ updater_method_cb (KaluUpdater *kupdater, const gchar *errmsg,
                 pac_conf->arch,
                 pac_conf->checkspace,
                 pac_conf->usesyslog,
-                pac_conf->usedelta,
                 pac_conf->ignorepkgs,
                 pac_conf->ignoregroups,
                 pac_conf->noupgrades,
@@ -2493,10 +2466,6 @@ updater_new_cb (GObject *source _UNUSED_, GAsyncResult *res,
     g_signal_connect (kalu_updater,
             "event-pacsave-created",
             G_CALLBACK (on_event_pacsave_created),
-            NULL);
-    g_signal_connect (kalu_updater,
-            "event-delta-generating",
-            G_CALLBACK (on_event_delta_generating),
             NULL);
     g_signal_connect (kalu_updater,
             "event-optdep-removal",
